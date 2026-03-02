@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+:root {
+  --background: #000000;
+  --foreground: #ffffff;
+  --cyan: #00BEFF;
+  --cyan-glow: rgba(0, 190, 255, 0.5);
+  --green: #9ae6b4;
+  --teal: #9cfecb;
+  --purple: #8b5cf6;
+  --gradient-start: #00BEFF;
+  --gradient-end: #8b5cf6;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-cyan: var(--cyan);
+  --color-green: var(--green);
+  --color-teal: var(--teal);
+  --color-purple: var(--purple);
+  --font-sans: 'Inter', 'Lato', system-ui, sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', 'Lato', Arial, Helvetica, sans-serif;
+}
+
+/* Custom utility classes */
+.gradient-text {
+  background: linear-gradient(135deg, var(--cyan) 0%, var(--purple) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-button {
+  background: linear-gradient(135deg, var(--cyan) 0%, var(--purple) 100%);
+  transition: all 0.3s ease;
+}
+
+.gradient-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 40px var(--cyan-glow);
+}
+
+.cyan-button {
+  background: var(--cyan);
+  color: #000000;
+  transition: all 0.3s ease;
+}
+
+.cyan-button:hover {
+  background: #00a8e0;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 40px var(--cyan-glow);
+}
+
+.glow-border {
+  border: 2px solid var(--cyan);
+  box-shadow: 0 0 20px var(--cyan-glow);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar but allow scrolling */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

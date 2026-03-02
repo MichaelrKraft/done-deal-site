@@ -1,0 +1,84 @@
+import Link from 'next/link';
+
+export default function Footer() {
+  return (
+    <footer className="bg-black border-t border-white/10 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+          {/* Brand */}
+          <div className="col-span-1 md:col-span-2">
+            <Link href="/" className="inline-block mb-4">
+              <span className="text-2xl font-bold">
+                <span className="text-[#00BEFF]">Done</span>
+                <span className="text-[#8b5cf6]">:</span>
+                <span className="text-white">Deal</span>
+              </span>
+            </Link>
+            <p className="text-gray-400 max-w-md">
+              The #1 AI Transaction Coordination Software, that gets deals done reliably and on time.
+            </p>
+          </div>
+
+          {/* Company Links */}
+          <div>
+            <h3 className="text-white font-semibold mb-4">Company</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link href="/" className="text-gray-400 hover:text-white transition-colors">
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link href="#pricing" className="text-gray-400 hover:text-white transition-colors">
+                  Pricing
+                </Link>
+              </li>
+              <li>
+                <a
+                  href="https://www.app.appointwise.io/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  Login
+                </a>
+              </li>
+              <li>
+                <span className="text-gray-500 text-sm">Access your billing</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Services Links */}
+          <div>
+            <h3 className="text-white font-semibold mb-4">Services</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link href="/contact" className="text-gray-400 hover:text-white transition-colors">
+                  Contact
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="text-gray-400 hover:text-white transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="text-gray-400 hover:text-white transition-colors">
+                  Terms & Conditions
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Copyright */}
+        <div className="border-t border-white/10 pt-8 text-center">
+          <p className="text-gray-500">
+            ©{new Date().getFullYear()} Done Deal. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}
