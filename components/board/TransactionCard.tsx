@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef, useEffect } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useRouter } from 'next/navigation'
@@ -23,8 +24,15 @@ function getUrgencyColor(days: number): string {
 
 export function TransactionCard({ transaction }: Props) {
   const router = useRouter()
+  const wasDragged = useRef(false)
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: transaction.id })
+
+  useEffect(() => {
+    if (isDragging) {
+      wasDragged.current = true
+    }
+  }, [isDragging])
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -36,6 +44,10 @@ export function TransactionCard({ transaction }: Props) {
   const urgencyColor = getUrgencyColor(days)
 
   function handleClick() {
+    if (wasDragged.current) {
+      wasDragged.current = false
+      return
+    }
     router.push(`/transactions/${transaction.id}`)
   }
 

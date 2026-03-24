@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import {
   DndContext,
   DragEndEvent,
@@ -33,6 +33,13 @@ interface Props {
 
 export function KanbanBoard({ initialTransactions }: Props) {
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!error) return
+    const timer = setTimeout(() => setError(null), 3000)
+    return () => clearTimeout(timer)
+  }, [error])
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -69,11 +76,17 @@ export function KanbanBoard({ initialTransactions }: Props) {
           t.id === transactionId ? { ...t, stage: previous.stage } : t
         )
       )
+      setError('Failed to update stage. Please try again.')
     }
   }, [transactions])
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-2 rounded-lg text-sm mb-4">
+          {error}
+        </div>
+      )}
       <div className="flex gap-4 overflow-x-auto pb-4">
         {COLUMNS.map(({ stage, label }) => {
           const columnTxs = transactions.filter((t) => t.stage === stage)
