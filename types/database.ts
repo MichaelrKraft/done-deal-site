@@ -358,6 +358,7 @@ export type Database = {
           approved_at: string | null
           expires_at: string | null
           created_at: string
+          updated_at: string | null
         }
         Insert: {
           id?: string
@@ -373,6 +374,7 @@ export type Database = {
           approved_at?: string | null
           expires_at?: string | null
           created_at?: string
+          updated_at?: string | null
         }
         Update: {
           id?: string
@@ -388,6 +390,7 @@ export type Database = {
           approved_at?: string | null
           expires_at?: string | null
           created_at?: string
+          updated_at?: string | null
         }
       }
       compliance_requirements: {

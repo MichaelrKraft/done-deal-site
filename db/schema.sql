@@ -134,7 +134,8 @@ CREATE TABLE IF NOT EXISTS ai_actions (
   approved_by     uuid REFERENCES agents(id),
   approved_at     timestamptz,
   expires_at      timestamptz,
-  created_at      timestamptz NOT NULL DEFAULT now()
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  updated_at      timestamptz DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS compliance_requirements (
@@ -178,6 +179,7 @@ CREATE INDEX IF NOT EXISTS idx_ai_actions_agent_id        ON ai_actions(agent_id
 CREATE INDEX IF NOT EXISTS idx_ai_actions_status          ON ai_actions(status);
 CREATE INDEX IF NOT EXISTS idx_email_threads_transaction_id ON email_threads(transaction_id);
 CREATE INDEX IF NOT EXISTS idx_compliance_transaction_id  ON compliance_requirements(transaction_id);
+CREATE INDEX idx_agents_auth_user_id ON agents(auth_user_id);
 
 -- ============================================================
 -- TRIGGERS: updated_at auto-update
@@ -203,6 +205,10 @@ CREATE OR REPLACE TRIGGER trg_documents_updated_at
   BEFORE UPDATE ON documents
   FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
+CREATE TRIGGER trg_ai_actions_updated_at
+  BEFORE UPDATE ON ai_actions
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
 -- ============================================================
 -- ROW LEVEL SECURITY
 -- ============================================================
@@ -222,12 +228,12 @@ ALTER TABLE email_threads       ENABLE ROW LEVEL SECURITY;
 CREATE OR REPLACE FUNCTION current_agent_id()
 RETURNS uuid AS $$
   SELECT id FROM agents WHERE auth_user_id = auth.uid() LIMIT 1;
-$$ LANGUAGE sql STABLE SECURITY DEFINER;
+$$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public, pg_temp;
 
 CREATE OR REPLACE FUNCTION current_brokerage_id()
 RETURNS uuid AS $$
   SELECT brokerage_id FROM agents WHERE auth_user_id = auth.uid() LIMIT 1;
-$$ LANGUAGE sql STABLE SECURITY DEFINER;
+$$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- brokerages: agents see only their brokerage
 CREATE POLICY "agents_read_own_brokerage" ON brokerages
@@ -279,7 +285,10 @@ CREATE POLICY "agents_manage_documents" ON documents
 
 -- ai_actions: agents see their own actions
 CREATE POLICY "agents_manage_ai_actions" ON ai_actions
-  FOR ALL USING (agent_id = current_agent_id());
+  FOR ALL USING (
+    agent_id = current_agent_id()
+    AND transaction_id IN (SELECT id FROM transactions WHERE agent_id = current_agent_id())
+  );
 
 -- compliance_requirements: scoped through transactions
 CREATE POLICY "agents_manage_compliance" ON compliance_requirements
