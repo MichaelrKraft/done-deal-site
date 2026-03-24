@@ -10,8 +10,10 @@ export async function POST(
   const supabase = await createClient()
 
   // 1. Authenticate user
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+  }
 
   // 2. Resolve agent
   const { data: agent } = await supabase

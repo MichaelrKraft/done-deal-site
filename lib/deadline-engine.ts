@@ -67,6 +67,19 @@ export function calculateDeadlines(
   closingDate: string,
   options: DeadlineInput['options'] = {}
 ): CalculatedDeadline[] {
+  const parsedMec = parseDate(mecDate)
+  const parsedClosing = parseDate(closingDate)
+
+  if (isNaN(parsedMec.getTime())) {
+    throw new Error(`Invalid mecDate: "${mecDate}"`)
+  }
+  if (isNaN(parsedClosing.getTime())) {
+    throw new Error(`Invalid closingDate: "${closingDate}"`)
+  }
+  if (parsedClosing < parsedMec) {
+    throw new Error('closingDate must be on or after mecDate')
+  }
+
   const { hasHoa = false, yearBuilt, isBackup = false, tfcDate } = options
 
   // Backup offers: use tfcDate as the anchor instead of mecDate when provided
