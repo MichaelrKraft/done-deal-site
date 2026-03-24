@@ -93,6 +93,7 @@ export type Database = {
           checklist_template?: Record<string, unknown>
           created_at?: string
         }
+        Relationships: []
       }
       agents: {
         Row: {
@@ -131,6 +132,7 @@ export type Database = {
           autonomy_default?: AutonomyMode
           created_at?: string
         }
+        Relationships: []
       }
       transactions: {
         Row: {
@@ -184,6 +186,7 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       parties: {
         Row: {
@@ -216,6 +219,7 @@ export type Database = {
           company?: string | null
           created_at?: string
         }
+        Relationships: []
       }
       deadlines: {
         Row: {
@@ -257,6 +261,7 @@ export type Database = {
           notes?: string | null
           created_at?: string
         }
+        Relationships: []
       }
       tasks: {
         Row: {
@@ -301,6 +306,7 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       documents: {
         Row: {
@@ -342,6 +348,7 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
       ai_actions: {
         Row: {
@@ -392,6 +399,7 @@ export type Database = {
           created_at?: string
           updated_at?: string | null
         }
+        Relationships: []
       }
       compliance_requirements: {
         Row: {
@@ -421,6 +429,7 @@ export type Database = {
           notes?: string | null
           created_at?: string
         }
+        Relationships: []
       }
       email_threads: {
         Row: {
@@ -453,6 +462,7 @@ export type Database = {
           last_message_at?: string | null
           created_at?: string
         }
+        Relationships: []
       }
     }
     Views: Record<string, never>
