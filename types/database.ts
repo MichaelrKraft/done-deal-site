@@ -55,6 +55,7 @@ export type AIActionStatus =
   | 'executed'
   | 'auto_executed'
   | 'expired'
+  | 'skipped'
 
 export type ComplianceStatus = 'pending' | 'in_progress' | 'complete' | 'n_a' | 'waived'
 
@@ -485,6 +486,14 @@ export type Document = Database['public']['Tables']['documents']['Row']
 export type AIAction = Database['public']['Tables']['ai_actions']['Row']
 export type ComplianceRequirement = Database['public']['Tables']['compliance_requirements']['Row']
 export type EmailThread = Database['public']['Tables']['email_threads']['Row']
+
+// Enriched type returned by /api/feed (AIAction + joined transaction fields)
+export interface AIActionWithTransaction extends AIAction {
+  transaction: {
+    property_address: string
+    stage: string
+  } | null
+}
 
 // Insert types
 export type BrokerageInsert = Database['public']['Tables']['brokerages']['Insert']
