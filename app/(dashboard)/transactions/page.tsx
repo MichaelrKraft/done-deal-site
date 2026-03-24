@@ -37,10 +37,18 @@ export default async function TransactionsPage() {
     .eq('auth_user_id', user.id)
     .single()
 
+  if (!agent) {
+    return (
+      <div className="p-6 text-red-400">
+        Account setup incomplete. Please complete onboarding.
+      </div>
+    )
+  }
+
   const { data: rawTransactions } = await supabase
     .from('transactions')
     .select('*')
-    .eq('agent_id', agent?.id ?? '')
+    .eq('agent_id', agent.id)
     .neq('stage', 'archived')
     .order('created_at', { ascending: false })
 

@@ -15,7 +15,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'File must be a PDF' }, { status: 400 })
   }
 
+  const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB
+  if (file.size > MAX_FILE_SIZE) {
+    return NextResponse.json({ error: 'File too large. Maximum 20MB.' }, { status: 413 })
+  }
+
   const buffer = Buffer.from(await file.arrayBuffer())
+
+  // Verify PDF magic bytes (%PDF)
+  if (buffer.length < 4 || buffer.toString('ascii', 0, 4) !== '%PDF') {
+    return NextResponse.json({ error: 'Invalid PDF file' }, { status: 400 })
+  }
   const extracted = await extractContractData(buffer)
 
   return NextResponse.json({ extracted })

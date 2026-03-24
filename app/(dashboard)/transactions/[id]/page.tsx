@@ -17,10 +17,17 @@ export default async function TransactionDetailPage({ params }: { params: Promis
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
+  const { data: agent } = await supabase
+    .from('agents')
+    .select('id')
+    .eq('auth_user_id', user.id)
+    .single()
+
   const { data: rawTransaction } = await supabase
     .from('transactions')
     .select('*, parties(*), deadlines(*), tasks(*)')
     .eq('id', id)
+    .eq('agent_id', agent?.id ?? '')
     .single()
 
   if (!rawTransaction) notFound()
