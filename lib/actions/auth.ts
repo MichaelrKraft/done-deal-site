@@ -1,18 +1,36 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 
 interface AuthResult {
   error: string | null
 }
 
-export async function signUp(formData: FormData): Promise<AuthResult> {
-  const supabase = await createClient()
+const signUpSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+  password: z.string().min(8),
+})
 
-  const name = formData.get('name') as string
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
+const signInSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+})
+
+export async function signUp(formData: FormData): Promise<AuthResult> {
+  const parsed = signUpSchema.safeParse({
+    name: formData.get('name'),
+    email: formData.get('email'),
+    password: formData.get('password'),
+  })
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0]?.message ?? 'Invalid input' }
+  }
+  const { name, email, password } = parsed.data
+
+  const supabase = await createClient()
 
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -37,10 +55,16 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
 }
 
 export async function signIn(formData: FormData): Promise<AuthResult> {
-  const supabase = await createClient()
+  const parsed = signInSchema.safeParse({
+    email: formData.get('email'),
+    password: formData.get('password'),
+  })
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0]?.message ?? 'Invalid input' }
+  }
+  const { email, password } = parsed.data
 
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
+  const supabase = await createClient()
 
   const { error } = await supabase.auth.signInWithPassword({ email, password })
 

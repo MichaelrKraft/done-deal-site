@@ -1,7 +1,22 @@
 'use server'
 
+import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import type { TransactionSide } from '@/types/database'
+
+const agentInfoSchema = z.object({
+  name: z.string().min(2).max(100),
+  brokerageCode: z.string().min(1).max(50),
+})
+
+const telegramSchema = z.object({
+  username: z.string().min(1).max(50).regex(/^[a-zA-Z0-9_]+$/, 'Invalid Telegram username'),
+})
+
+const transactionSchema = z.object({
+  propertyAddress: z.string().min(5).max(200),
+  side: z.enum(['buyer', 'seller']),
+})
 
 interface SaveAgentInfoResult {
   error: string | null
@@ -11,6 +26,11 @@ export async function saveAgentInfo(
   name: string,
   brokerageCode: string
 ): Promise<SaveAgentInfoResult> {
+  const parsed = agentInfoSchema.safeParse({ name, brokerageCode })
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0]?.message ?? 'Invalid input' }
+  }
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -51,7 +71,13 @@ export async function saveAgentInfo(
     { onConflict: 'auth_user_id' }
   )
 
-  return { error: error?.message ?? null }
+  if (error) return { error: error.message }
+
+  // Mark agent record as created in user metadata so middleware can verify
+  // without a DB query on every request
+  await supabase.auth.updateUser({ data: { agent_created: true } })
+
+  return { error: null }
 }
 
 interface SaveTelegramResult {
@@ -61,6 +87,11 @@ interface SaveTelegramResult {
 export async function saveTelegramUsername(
   telegramUsername: string
 ): Promise<SaveTelegramResult> {
+  const parsed = telegramSchema.safeParse({ username: telegramUsername })
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0]?.message ?? 'Invalid Telegram username' }
+  }
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -83,6 +114,11 @@ export async function createFirstTransaction(
   propertyAddress: string,
   side: TransactionSide
 ): Promise<CreateTransactionResult> {
+  const parsed = transactionSchema.safeParse({ propertyAddress, side })
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0]?.message ?? 'Invalid input', transactionId: null }
+  }
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 

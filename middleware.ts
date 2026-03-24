@@ -31,14 +31,15 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 
   const { pathname } = request.nextUrl
 
-  const isProtectedRoute =
+  const isDashboardRoute =
     pathname.startsWith('/feed') ||
     pathname.startsWith('/board') ||
     pathname.startsWith('/transactions') ||
     pathname.startsWith('/admin') ||
-    pathname.startsWith('/settings') ||
-    (pathname.startsWith('/onboarding') && !pathname.startsWith('/api'))
+    pathname.startsWith('/settings')
 
+  const isOnboardingRoute = pathname.startsWith('/onboarding')
+  const isProtectedRoute = isDashboardRoute || isOnboardingRoute
   const isAuthRoute = pathname === '/login' || pathname === '/signup'
 
   if (!user && isProtectedRoute) {
@@ -47,6 +48,15 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 
   if (user && isAuthRoute) {
     return NextResponse.redirect(new URL('/feed', request.url))
+  }
+
+  // If authenticated user hasn't completed onboarding (no agent row yet),
+  // redirect dashboard routes to /onboarding. Uses user metadata — no DB query.
+  if (user && isDashboardRoute) {
+    const agentCreated = (user.user_metadata as Record<string, unknown>)?.agent_created === true
+    if (!agentCreated) {
+      return NextResponse.redirect(new URL('/onboarding', request.url))
+    }
   }
 
   return supabaseResponse

@@ -18,7 +18,7 @@ export default async function OnboardingPage() {
         <h1 className="text-2xl font-bold text-white">Done Deal</h1>
         <p className="mt-1 text-sm text-gray-400">Set up your AI transaction coordinator</p>
       </div>
-      <OnboardingWizard defaultName={defaultName} userId={user.id} />
+      <OnboardingWizard defaultName={defaultName} />
     </div>
   )
 }

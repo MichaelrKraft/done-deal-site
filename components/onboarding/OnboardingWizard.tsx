@@ -23,10 +23,9 @@ const STEP_LABELS = [
 
 interface OnboardingWizardProps {
   defaultName: string
-  userId: string
 }
 
-export function OnboardingWizard({ defaultName, userId: _userId }: OnboardingWizardProps) {
+export function OnboardingWizard({ defaultName }: OnboardingWizardProps) {
   const [step, setStep] = useState(1)
   const [stepError, setStepError] = useState<string | null>(null)
   const router = useRouter()
