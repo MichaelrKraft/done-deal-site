@@ -26,7 +26,7 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
     password: formData.get('password'),
   })
   if (!parsed.success) {
-    return { error: parsed.error.errors[0]?.message ?? 'Invalid input' }
+    return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
   }
   const { name, email, password } = parsed.data
 
@@ -60,7 +60,7 @@ export async function signIn(formData: FormData): Promise<AuthResult> {
     password: formData.get('password'),
   })
   if (!parsed.success) {
-    return { error: parsed.error.errors[0]?.message ?? 'Invalid input' }
+    return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
   }
   const { email, password } = parsed.data
 

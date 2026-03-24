@@ -28,7 +28,7 @@ export async function saveAgentInfo(
 ): Promise<SaveAgentInfoResult> {
   const parsed = agentInfoSchema.safeParse({ name, brokerageCode })
   if (!parsed.success) {
-    return { error: parsed.error.errors[0]?.message ?? 'Invalid input' }
+    return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
   }
 
   const supabase = await createClient()
@@ -89,7 +89,7 @@ export async function saveTelegramUsername(
 ): Promise<SaveTelegramResult> {
   const parsed = telegramSchema.safeParse({ username: telegramUsername })
   if (!parsed.success) {
-    return { error: parsed.error.errors[0]?.message ?? 'Invalid Telegram username' }
+    return { error: parsed.error.issues[0]?.message ?? 'Invalid Telegram username' }
   }
 
   const supabase = await createClient()
@@ -116,7 +116,7 @@ export async function createFirstTransaction(
 ): Promise<CreateTransactionResult> {
   const parsed = transactionSchema.safeParse({ propertyAddress, side })
   if (!parsed.success) {
-    return { error: parsed.error.errors[0]?.message ?? 'Invalid input', transactionId: null }
+    return { error: parsed.error.issues[0]?.message ?? 'Invalid input', transactionId: null }
   }
 
   const supabase = await createClient()
