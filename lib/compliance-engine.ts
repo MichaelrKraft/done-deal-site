@@ -12,6 +12,8 @@ export interface ComplianceInput {
   has_septic?: boolean
   has_well?: boolean
   has_spd?: boolean           // Seller's Property Disclosure provided?
+  water_source?: 'well' | 'municipal'
+  sewage_type?: 'septic' | 'municipal'
   side: 'buyer' | 'seller'
   is_backup_offer?: boolean
   is_conservatorship?: boolean
@@ -195,6 +197,17 @@ export function checkCompliance(input: ComplianceInput): ComplianceResult {
     flags.push('Property has solar PPA — disclosure and buyer acknowledgment required per CBS §2.5.9. High risk.')
   }
 
+  // Solar — unknown type (has_solar true but no type specified)
+  if (input.has_solar && !input.solar_type) {
+    // Solar present but type not specified — flag for manual review
+    requirements.push({
+      requirement_type: 'solar_unknown',
+      description: 'Solar system present but type not specified. Manual review required to determine if owned, leased, or PPA.',
+      risk_level: 'medium',
+      triggered_by: 'has_solar',
+    })
+  }
+
   // HOA / CIC
   if (input.has_hoa) {
     requirements.push({
@@ -245,4 +258,29 @@ export function checkCompliance(input: ComplianceInput): ComplianceResult {
   }
 
   return { requirements, tasks, flags }
+}
+
+// ============================================================
+// INPUT BUILDER (shared by both transaction routes)
+// ============================================================
+
+export function buildComplianceInput(
+  pd: Record<string, unknown>,
+  side: 'buyer' | 'seller'
+): ComplianceInput {
+  return {
+    side,
+    year_built: typeof pd.year_built === 'number' ? pd.year_built : undefined,
+    has_hoa: pd.has_hoa === true,
+    water_source: typeof pd.water_source === 'string' ? pd.water_source as 'well' | 'municipal' : undefined,
+    sewage_type: typeof pd.sewage_type === 'string' ? pd.sewage_type as 'septic' | 'municipal' : undefined,
+    has_solar: pd.has_solar === true,
+    solar_type: typeof pd.solar_type === 'string' ? pd.solar_type as 'owned' | 'leased' | 'ppa' : undefined,
+    is_backup_offer: pd.is_backup_offer === true,
+    is_conservatorship: pd.is_conservatorship === true,
+    is_co_listing: pd.is_co_listing === true,
+    has_septic: pd.has_septic === true,
+    has_well: pd.has_well === true,
+    has_spd: typeof pd.has_spd === 'boolean' ? pd.has_spd : undefined,
+  }
 }

@@ -1,8 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import type { PartyRole, RiskLevel, TaskAssignedTo } from '@/types/database'
-import { checkCompliance } from '@/lib/compliance-engine'
-import type { ComplianceInput } from '@/lib/compliance-engine'
+import { checkCompliance, buildComplianceInput } from '@/lib/compliance-engine'
 
 export async function GET() {
   const supabase = await createClient()
@@ -98,27 +97,13 @@ export async function POST(request: Request) {
   if (transaction) {
     const pd = (body.property_details ?? {}) as Record<string, unknown>
 
-    const complianceInput: ComplianceInput = {
-      side: body.side,
-      year_built: typeof pd.year_built === 'number' ? pd.year_built : undefined,
-      has_hoa: typeof pd.has_hoa === 'boolean' ? pd.has_hoa : undefined,
-      has_solar: typeof pd.has_solar === 'boolean' ? pd.has_solar : undefined,
-      solar_type: (pd.solar_type === 'owned' || pd.solar_type === 'leased' || pd.solar_type === 'ppa')
-        ? pd.solar_type
-        : undefined,
-      has_septic: typeof pd.has_septic === 'boolean' ? pd.has_septic : undefined,
-      has_well: typeof pd.has_well === 'boolean' ? pd.has_well : undefined,
-      has_spd: typeof pd.has_spd === 'boolean' ? pd.has_spd : undefined,
-      is_backup_offer: typeof pd.is_backup_offer === 'boolean' ? pd.is_backup_offer : undefined,
-      is_conservatorship: typeof pd.is_conservatorship === 'boolean' ? pd.is_conservatorship : undefined,
-      is_co_listing: typeof pd.is_co_listing === 'boolean' ? pd.is_co_listing : undefined,
-    }
+    const complianceInput = buildComplianceInput(pd, body.side)
 
     const complianceResult = checkCompliance(complianceInput)
 
     // Insert compliance requirements
     if (complianceResult.requirements.length > 0) {
-      await supabase.from('compliance_requirements').insert(
+      const { error: compReqError } = await supabase.from('compliance_requirements').insert(
         complianceResult.requirements.map(r => ({
           transaction_id: transaction.id,
           requirement_type: r.requirement_type,
@@ -127,11 +112,14 @@ export async function POST(request: Request) {
           status: 'pending' as const,
         }))
       )
+      if (compReqError) {
+        console.error('Compliance requirements insert failed:', compReqError.message)
+      }
     }
 
     // Insert tasks
     if (complianceResult.tasks.length > 0) {
-      await supabase.from('tasks').insert(
+      const { error: compTaskError } = await supabase.from('tasks').insert(
         complianceResult.tasks.map((t, index) => ({
           transaction_id: transaction.id,
           stage: t.stage,
@@ -142,6 +130,9 @@ export async function POST(request: Request) {
           sort_order: index,
         }))
       )
+      if (compTaskError) {
+        console.error('Compliance tasks insert failed:', compTaskError.message)
+      }
     }
   }
 

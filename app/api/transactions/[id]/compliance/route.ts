@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { checkCompliance } from '@/lib/compliance-engine'
-import type { ComplianceInput } from '@/lib/compliance-engine'
+import { checkCompliance, buildComplianceInput } from '@/lib/compliance-engine'
 import type { RiskLevel, TaskAssignedTo } from '@/types/database'
 
 export async function POST(
@@ -38,21 +37,7 @@ export async function POST(
   // Build compliance input from property_details
   const pd = transaction.property_details as Record<string, unknown>
 
-  const input: ComplianceInput = {
-    side: transaction.side,
-    year_built: typeof pd.year_built === 'number' ? pd.year_built : undefined,
-    has_hoa: typeof pd.has_hoa === 'boolean' ? pd.has_hoa : undefined,
-    has_solar: typeof pd.has_solar === 'boolean' ? pd.has_solar : undefined,
-    solar_type: (pd.solar_type === 'owned' || pd.solar_type === 'leased' || pd.solar_type === 'ppa')
-      ? pd.solar_type
-      : undefined,
-    has_septic: typeof pd.has_septic === 'boolean' ? pd.has_septic : undefined,
-    has_well: typeof pd.has_well === 'boolean' ? pd.has_well : undefined,
-    has_spd: typeof pd.has_spd === 'boolean' ? pd.has_spd : undefined,
-    is_backup_offer: typeof pd.is_backup_offer === 'boolean' ? pd.is_backup_offer : undefined,
-    is_conservatorship: typeof pd.is_conservatorship === 'boolean' ? pd.is_conservatorship : undefined,
-    is_co_listing: typeof pd.is_co_listing === 'boolean' ? pd.is_co_listing : undefined,
-  }
+  const input = buildComplianceInput(pd, transaction.side)
 
   const result = checkCompliance(input)
 
@@ -65,7 +50,7 @@ export async function POST(
     status: 'pending' as const,
   }))
 
-  let requirementsCreated = 0
+  let requirementsProcessed = 0
   if (requirementInserts.length > 0) {
     const { error: reqError } = await supabase
       .from('compliance_requirements')
@@ -77,7 +62,7 @@ export async function POST(
     if (reqError) {
       return NextResponse.json({ error: reqError.message }, { status: 500 })
     }
-    requirementsCreated = requirementInserts.length
+    requirementsProcessed = requirementInserts.length
   }
 
   // Upsert tasks (idempotent on transaction_id + title)
@@ -91,7 +76,7 @@ export async function POST(
     sort_order: index,
   }))
 
-  let tasksCreated = 0
+  let tasksProcessed = 0
   if (taskInserts.length > 0) {
     const { error: taskError } = await supabase
       .from('tasks')
@@ -103,12 +88,12 @@ export async function POST(
     if (taskError) {
       return NextResponse.json({ error: taskError.message }, { status: 500 })
     }
-    tasksCreated = taskInserts.length
+    tasksProcessed = taskInserts.length
   }
 
   return NextResponse.json({
-    requirements_created: requirementsCreated,
-    tasks_created: tasksCreated,
+    requirements_processed: requirementsProcessed,
+    tasks_processed: tasksProcessed,
     flags: result.flags,
   })
 }
