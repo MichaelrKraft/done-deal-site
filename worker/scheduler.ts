@@ -42,7 +42,7 @@ export async function scheduleRepeatableJobs(agentId: string): Promise<void> {
     { agent_id: agentId, job_type: 'deadline_watch' },
     {
       repeat: { every: 2 * 60 * 60 * 1000 }, // 2 hours in ms
-      jobId: `${agentId}:deadline_watch:repeat`,
+      jobId: makeJobId(agentId, 'deadline_watch', 'repeat'),
     }
   )
 
@@ -52,7 +52,7 @@ export async function scheduleRepeatableJobs(agentId: string): Promise<void> {
     { agent_id: agentId, job_type: 'token_refresh' },
     {
       repeat: { every: 60 * 60 * 1000 },
-      jobId: `${agentId}:token_refresh:repeat`,
+      jobId: makeJobId(agentId, 'token_refresh', 'repeat'),
     }
   )
 
@@ -62,7 +62,7 @@ export async function scheduleRepeatableJobs(agentId: string): Promise<void> {
     { agent_id: agentId, job_type: 'email_sync' },
     {
       repeat: { every: 6 * 60 * 60 * 1000 },
-      jobId: `${agentId}:email_sync:repeat`,
+      jobId: makeJobId(agentId, 'email_sync', 'repeat'),
     }
   )
 }
