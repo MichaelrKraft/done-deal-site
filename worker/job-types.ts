@@ -29,6 +29,6 @@ export interface TCEventJobData {
 }
 
 // Unique job ID to prevent duplicate runs
-export function makeJobId(agentId: string, jobType: string, dateKey: string): string {
+export function makeJobId(agentId: string, jobType: TCJobType | string, dateKey: string): string {
   return `${agentId}:${jobType}:${dateKey}`
 }

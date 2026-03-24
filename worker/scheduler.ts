@@ -35,6 +35,7 @@ async function scheduleDailyJobs(agentId: string, dateKey: string): Promise<void
 }
 
 // Repeatable jobs (BullMQ repeat)
+// NOTE: jobId must NOT be used with repeat — BullMQ ignores/breaks it for repeatable jobs
 export async function scheduleRepeatableJobs(agentId: string): Promise<void> {
   // Deadline watch: every 2 hours
   await tcAgentQueue.add(
@@ -42,7 +43,6 @@ export async function scheduleRepeatableJobs(agentId: string): Promise<void> {
     { agent_id: agentId, job_type: 'deadline_watch' },
     {
       repeat: { every: 2 * 60 * 60 * 1000 }, // 2 hours in ms
-      jobId: makeJobId(agentId, 'deadline_watch', 'repeat'),
     }
   )
 
@@ -52,7 +52,6 @@ export async function scheduleRepeatableJobs(agentId: string): Promise<void> {
     { agent_id: agentId, job_type: 'token_refresh' },
     {
       repeat: { every: 60 * 60 * 1000 },
-      jobId: makeJobId(agentId, 'token_refresh', 'repeat'),
     }
   )
 
@@ -62,14 +61,22 @@ export async function scheduleRepeatableJobs(agentId: string): Promise<void> {
     { agent_id: agentId, job_type: 'email_sync' },
     {
       repeat: { every: 6 * 60 * 60 * 1000 },
-      jobId: makeJobId(agentId, 'email_sync', 'repeat'),
     }
   )
 }
 
+function getDenverOffsetHours(): number {
+  // Denver is UTC-7 during MDT (March-October) or UTC-6 during MST
+  const month = new Date().getMonth() + 1 // 1-based
+  return month >= 3 && month <= 10 ? 7 : 6
+}
+
 function getDelayUntilHour(hour: number): number {
+  // Use America/Denver timezone (UTC-7 in summer, UTC-6 in winter)
   const now = new Date()
+  const denverOffset = getDenverOffsetHours()
   const target = new Date()
-  target.setHours(hour, 0, 0, 0)
+  target.setUTCHours(hour - denverOffset, 0, 0, 0)
+  if (target <= now) target.setUTCDate(target.getUTCDate() + 1)
   return Math.max(0, target.getTime() - now.getTime())
 }

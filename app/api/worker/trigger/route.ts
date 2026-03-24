@@ -20,6 +20,11 @@ const VALID_EVENT_TYPES: TCEventType[] = [
 // POST /api/worker/trigger
 // Used internally when: MEC date set, document uploaded, stage changed, action approved
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const secret = request.headers.get('x-internal-secret')
+  if (!secret || secret !== process.env.INTERNAL_WORKER_SECRET) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   let body: TriggerRequestBody
 
   try {
