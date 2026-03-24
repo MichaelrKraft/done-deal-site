@@ -272,7 +272,7 @@ export function calculateDeadlines(
     calculated_from: anchorSource,
     days_offset: 5,
     is_business_days: true,
-    risk_level: 'low',
+    risk_level: 'high',
     notes: 'YC compliance: submit transaction contact sheet',
   })
 
