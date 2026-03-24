@@ -14,6 +14,7 @@ export default function NewTransactionPage() {
   const [loading, setLoading] = useState(false)
   const [extracting, setExtracting] = useState(false)
   const [extracted, setExtracted] = useState<ExtractedContractData | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const [form, setForm] = useState({
     property_address: '',
     mec_date: '',
@@ -27,10 +28,17 @@ export default function NewTransactionPage() {
     const file = e.target.files?.[0]
     if (!file) return
     setExtracting(true)
+    setError(null)
     const fd = new FormData()
     fd.append('file', file)
     fd.append('side', side)
     const res = await fetch('/api/transactions/extract', { method: 'POST', body: fd })
+    if (!res.ok) {
+      const body = await res.json() as { error?: string }
+      setError(body.error ?? 'PDF extraction failed')
+      setExtracting(false)
+      return
+    }
     const { extracted: data } = await res.json() as { extracted: ExtractedContractData }
     if (data) {
       setExtracted(data)
@@ -48,6 +56,7 @@ export default function NewTransactionPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
+    setError(null)
     const parties = []
     if (extracted?.buyer_name) parties.push({ role: 'buyer', name: extracted.buyer_name, email: extracted.buyer_email })
     if (extracted?.seller_name) parties.push({ role: 'seller', name: extracted.seller_name })
@@ -79,6 +88,12 @@ export default function NewTransactionPage() {
         parties: parties.filter(p => p.name),
       }),
     })
+    if (!res.ok) {
+      const body = await res.json() as { error?: string }
+      setError(body.error ?? 'Failed to create transaction')
+      setLoading(false)
+      return
+    }
     const { transactionId } = await res.json() as { transactionId: string }
     if (transactionId) router.push(`/transactions/${transactionId}`)
     setLoading(false)
@@ -164,6 +179,12 @@ export default function NewTransactionPage() {
             <Input id="earnest" type="number" value={form.earnest_money} onChange={e => setForm({ ...form, earnest_money: e.target.value })} placeholder="5000" className="mt-1" />
           </div>
         </div>
+
+        {error && (
+          <div className="rounded-md bg-red-900/40 border border-red-700 px-3 py-2">
+            <p className="text-sm text-red-300">{error}</p>
+          </div>
+        )}
 
         <div className="flex gap-3 pt-2">
           <Button type="submit" disabled={loading || !form.property_address} className="flex-1">

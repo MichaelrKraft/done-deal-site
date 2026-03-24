@@ -16,12 +16,37 @@ export async function saveAgentInfo(
 
   if (!user) return { error: 'Not authenticated' }
 
+  // Look up brokerage UUID by email domain first, then fall back to name match
+  const emailDomain = user.email?.split('@')[1] ?? ''
+  let brokerageId: string | null = null
+
+  const { data: byDomain } = await supabase
+    .from('brokerages')
+    .select('id')
+    .eq('email_domain', emailDomain)
+    .single()
+
+  if (byDomain?.id) {
+    brokerageId = byDomain.id
+  } else {
+    const { data: byName } = await supabase
+      .from('brokerages')
+      .select('id')
+      .ilike('name', `%${brokerageCode}%`)
+      .single()
+    brokerageId = byName?.id ?? null
+  }
+
+  if (!brokerageId) {
+    return { error: `Brokerage not found for code "${brokerageCode}". Contact your brokerage admin.` }
+  }
+
   const { error } = await supabase.from('agents').upsert(
     {
       auth_user_id: user.id,
       name,
       email: user.email ?? '',
-      brokerage_id: brokerageCode,
+      brokerage_id: brokerageId,
     },
     { onConflict: 'auth_user_id' }
   )

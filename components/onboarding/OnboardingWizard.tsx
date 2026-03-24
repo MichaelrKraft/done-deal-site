@@ -28,12 +28,18 @@ interface OnboardingWizardProps {
 
 export function OnboardingWizard({ defaultName, userId: _userId }: OnboardingWizardProps) {
   const [step, setStep] = useState(1)
+  const [stepError, setStepError] = useState<string | null>(null)
   const router = useRouter()
 
   const progress = ((step - 1) / (TOTAL_STEPS - 1)) * 100
 
   async function handleYourInfo(values: YourInfoValues) {
-    await saveAgentInfo(values.name, values.brokerageCode)
+    setStepError(null)
+    const result = await saveAgentInfo(values.name, values.brokerageCode)
+    if (result.error) {
+      setStepError(result.error)
+      return
+    }
     setStep(2)
   }
 
@@ -63,6 +69,12 @@ export function OnboardingWizard({ defaultName, userId: _userId }: OnboardingWiz
         </div>
         <Progress value={progress} />
       </div>
+
+      {stepError && (
+        <div className="rounded-md bg-red-900/40 border border-red-700 px-3 py-2">
+          <p className="text-sm text-red-300">{stepError}</p>
+        </div>
+      )}
 
       <Card>
         <CardContent className="pt-6">
