@@ -14,7 +14,7 @@ export default async function SettingsPage() {
 
   const { data: agent } = await supabase
     .from('agents')
-    .select('id, name, email, autonomy_default, telegram_id, outlook_token, google_token, docusign_token, email_provider, calendar_provider, brokerage_id, soul_document, inbox_address')
+    .select('*')
     .eq('auth_user_id', user.id)
     .single()
 
