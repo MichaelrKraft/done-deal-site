@@ -5,6 +5,7 @@ import { classifyRisk, shouldAutoExecute } from '@/lib/risk-classifier'
 import { allToolDefinitions, executeToolCall } from '@/tools'
 import type { TCJobType } from '@/worker/job-types'
 import { sendTelegramMessage, sendTelegramApprovalRequest } from '@/integrations/telegram'
+import { YOUR_CASTLE_RULES } from '@/lib/your-castle-rules'
 
 // ============================================================
 // SERVICE CLIENT (worker context — no cookies)
@@ -300,7 +301,9 @@ RISK GUIDANCE:
 - MEDIUM: earnest money reminders, lender follow-ups, disclosure packages — always require agent approval.
 - HIGH: inspection objections, contract amendments, CDA submissions, wire fraud warnings — always require agent approval.
 
-Always include the transaction_id in every tool call. Be concise and action-oriented.${
+Always include the transaction_id in every tool call. Be concise and action-oriented.
+
+${YOUR_CASTLE_RULES}${
   memories.length > 0
     ? `\n\nAGENT-SPECIFIC RULES & MEMORIES:\nThese are things ${preferredName} has told you to remember. Follow them strictly.\n${memories.map((m) => `- [${m.memory_type}] ${m.content}`).join('\n')}`
     : ''

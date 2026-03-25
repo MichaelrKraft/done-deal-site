@@ -5,6 +5,7 @@ import TaskList from '@/components/transactions/TaskList'
 import type { Transaction, Party, Deadline, Task as TaskType, AIAction, TaskNoteRow, Document as DocumentType } from '@/types/database'
 import DocumentChecklistSection from '@/components/documents/DocumentChecklistSection'
 import SharePortalButton from '@/components/transactions/SharePortalButton'
+import { AskTC } from '@/components/feed/AskTC'
 
 const STAGE_LABELS: Record<string, string> = {
   pre_listing: 'Pre-Listing',
@@ -102,6 +103,9 @@ export default async function TransactionDetailPage({ params }: { params: Promis
         </div>
         <SharePortalButton transactionId={id} />
       </div>
+
+      {/* Ask TC — AI chat prompt */}
+      <AskTC agentId={agent?.id ?? ''} />
 
       {/* AI Activity Feed (top 5 most recent) */}
       {aiActions.length > 0 && (
