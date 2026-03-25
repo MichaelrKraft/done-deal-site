@@ -38,17 +38,22 @@ export default function SignupPage() {
 
   async function onSubmit(values: SignupFormValues) {
     setServerError(null)
-    const formData = new FormData()
-    formData.set('name', values.name)
-    formData.set('email', values.email)
-    formData.set('password', values.password)
+    try {
+      const formData = new FormData()
+      formData.set('name', values.name)
+      formData.set('email', values.email)
+      formData.set('password', values.password)
 
-    const result = await signUp(formData)
-    if (result.error) {
-      setServerError(result.error)
-      return
+      const result = await signUp(formData)
+      if (result.error) {
+        setServerError(result.error)
+        return
+      }
+      router.push('/onboarding')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      setServerError(`Connection error: ${message}. Check that the server is running.`)
     }
-    router.push('/onboarding')
   }
 
   return (

@@ -2,6 +2,7 @@
 
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server-admin'
 import type { TransactionSide } from '@/types/database'
 
 const agentInfoSchema = z.object({
@@ -36,11 +37,14 @@ export async function saveAgentInfo(
 
   if (!user) return { error: 'Not authenticated' }
 
-  // Look up brokerage UUID by email domain first, then fall back to name match
+  // Use admin client to bypass RLS for brokerage lookup + agent creation.
+  // New users have no agent row yet, so RLS blocks anon key queries.
+  const adminSupabase = createAdminClient()
+
   const emailDomain = user.email?.split('@')[1] ?? ''
   let brokerageId: string | null = null
 
-  const { data: byDomain } = await supabase
+  const { data: byDomain } = await adminSupabase
     .from('brokerages')
     .select('id')
     .eq('email_domain', emailDomain)
@@ -49,7 +53,7 @@ export async function saveAgentInfo(
   if (byDomain?.id) {
     brokerageId = byDomain.id
   } else {
-    const { data: byName } = await supabase
+    const { data: byName } = await adminSupabase
       .from('brokerages')
       .select('id')
       .ilike('name', `%${brokerageCode}%`)
@@ -61,7 +65,7 @@ export async function saveAgentInfo(
     return { error: `Brokerage not found for code "${brokerageCode}". Contact your brokerage admin.` }
   }
 
-  const { error } = await supabase.from('agents').upsert(
+  const { error } = await adminSupabase.from('agents').upsert(
     {
       auth_user_id: user.id,
       name,
