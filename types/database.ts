@@ -55,6 +55,9 @@ export type DocumentUploadedVia = 'ui' | 'inbound_email' | 'client_portal' | 'do
 
 export type DocumentVisibility = 'agent_only' | 'shared' | 'client_visible'
 
+export type EsignStatus = 'created' | 'sent' | 'delivered' | 'signed' | 'declined' | 'voided'
+export type EsignProvider = 'docusign' | 'dotloop'
+
 export type AIActionStatus =
   | 'pending'
   | 'approved'
@@ -67,6 +70,10 @@ export type AIActionStatus =
 export type MemoryType = 'rule' | 'preference' | 'context' | 'correction'
 
 export type ComplianceStatus = 'pending' | 'in_progress' | 'complete' | 'n_a' | 'waived'
+
+export type InboundEmailProcessingStatus = 'received' | 'processing' | 'completed' | 'failed' | 'duplicate'
+
+export type InboundAttachmentExtractionStatus = 'pending' | 'processing' | 'success' | 'failed' | 'skipped'
 
 export type EmailTemplateCategory =
   | 'general'
@@ -129,6 +136,8 @@ export type Database = {
           autonomy_default: AutonomyMode
           preferences: Record<string, unknown>
           soul_document: string
+          docusign_token: Record<string, unknown> | null
+          inbox_address: string | null
           created_at: string
         }
         Insert: {
@@ -146,6 +155,8 @@ export type Database = {
           autonomy_default?: AutonomyMode
           preferences?: Record<string, unknown>
           soul_document?: string
+          docusign_token?: Record<string, unknown> | null
+          inbox_address?: string | null
           created_at?: string
         }
         Update: {
@@ -163,6 +174,8 @@ export type Database = {
           autonomy_default?: AutonomyMode
           preferences?: Record<string, unknown>
           soul_document?: string
+          docusign_token?: Record<string, unknown> | null
+          inbox_address?: string | null
           created_at?: string
         }
         Relationships: []
@@ -182,6 +195,7 @@ export type Database = {
           earnest_money: number | null
           property_details: Record<string, unknown>
           autonomy_mode: AutonomyMode
+          photo_url: string | null
           created_at: string
           updated_at: string
         }
@@ -369,6 +383,9 @@ export type Database = {
           content_type: string | null
           content_hash: string | null
           visibility: DocumentVisibility
+          esign_status: EsignStatus | null
+          esign_provider: EsignProvider | null
+          esign_metadata: Record<string, unknown>
           created_at: string
           updated_at: string
         }
@@ -390,6 +407,9 @@ export type Database = {
           content_type?: string | null
           content_hash?: string | null
           visibility?: DocumentVisibility
+          esign_status?: EsignStatus | null
+          esign_provider?: EsignProvider | null
+          esign_metadata?: Record<string, unknown>
           created_at?: string
           updated_at?: string
         }
@@ -411,6 +431,9 @@ export type Database = {
           content_type?: string | null
           content_hash?: string | null
           visibility?: DocumentVisibility
+          esign_status?: EsignStatus | null
+          esign_provider?: EsignProvider | null
+          esign_metadata?: Record<string, unknown>
           created_at?: string
           updated_at?: string
         }
@@ -671,6 +694,135 @@ export type Database = {
         }
         Relationships: []
       }
+      esign_events: {
+        Row: {
+          id: string
+          document_id: string | null
+          transaction_id: string
+          provider: string
+          event_type: string
+          envelope_id: string
+          payload: Record<string, unknown>
+          processed: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          document_id?: string | null
+          transaction_id: string
+          provider?: string
+          event_type: string
+          envelope_id: string
+          payload?: Record<string, unknown>
+          processed?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          document_id?: string | null
+          transaction_id?: string
+          provider?: string
+          event_type?: string
+          envelope_id?: string
+          payload?: Record<string, unknown>
+          processed?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      inbound_emails: {
+        Row: {
+          id: string
+          agent_id: string | null
+          transaction_id: string | null
+          from_email: string
+          from_name: string | null
+          subject: string | null
+          body_text: string | null
+          message_id: string | null
+          in_reply_to: string | null
+          attachment_count: number
+          processing_status: InboundEmailProcessingStatus
+          error_message: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          agent_id?: string | null
+          transaction_id?: string | null
+          from_email: string
+          from_name?: string | null
+          subject?: string | null
+          body_text?: string | null
+          message_id?: string | null
+          in_reply_to?: string | null
+          attachment_count?: number
+          processing_status?: InboundEmailProcessingStatus
+          error_message?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          agent_id?: string | null
+          transaction_id?: string | null
+          from_email?: string
+          from_name?: string | null
+          subject?: string | null
+          body_text?: string | null
+          message_id?: string | null
+          in_reply_to?: string | null
+          attachment_count?: number
+          processing_status?: InboundEmailProcessingStatus
+          error_message?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      inbound_attachments: {
+        Row: {
+          id: string
+          inbound_email_id: string
+          document_id: string | null
+          filename: string
+          content_type: string
+          size_bytes: number
+          storage_path: string | null
+          is_pdf: boolean
+          content_hash: string | null
+          extraction_status: InboundAttachmentExtractionStatus
+          extracted_data: Record<string, unknown> | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          inbound_email_id: string
+          document_id?: string | null
+          filename: string
+          content_type: string
+          size_bytes: number
+          storage_path?: string | null
+          is_pdf?: boolean
+          content_hash?: string | null
+          extraction_status?: InboundAttachmentExtractionStatus
+          extracted_data?: Record<string, unknown> | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          inbound_email_id?: string
+          document_id?: string | null
+          filename?: string
+          content_type?: string
+          size_bytes?: number
+          storage_path?: string | null
+          is_pdf?: boolean
+          content_hash?: string | null
+          extraction_status?: InboundAttachmentExtractionStatus
+          extracted_data?: Record<string, unknown> | null
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>
@@ -738,6 +890,57 @@ export interface PortalLinkRow {
   created_at: string
 }
 export type PortalLinkInsert = Omit<PortalLinkRow, 'id' | 'created_at' | 'access_count' | 'last_accessed_at'>
+
+// E-sign events
+export interface EsignEventRow {
+  id: string
+  document_id: string | null
+  transaction_id: string
+  provider: string
+  event_type: string
+  envelope_id: string
+  payload: Record<string, unknown>
+  processed: boolean
+  created_at: string
+}
+export type EsignEventInsert = Omit<EsignEventRow, 'id' | 'created_at' | 'processed'>
+
+// Inbound emails
+export interface InboundEmailRow {
+  id: string
+  agent_id: string | null
+  transaction_id: string | null
+  from_email: string
+  from_name: string | null
+  subject: string | null
+  body_text: string | null
+  message_id: string | null
+  in_reply_to: string | null
+  attachment_count: number
+  processing_status: InboundEmailProcessingStatus
+  error_message: string | null
+  created_at: string
+}
+export type InboundEmailInsert = Omit<InboundEmailRow, 'id' | 'created_at' | 'attachment_count' | 'processing_status'>
+  & Partial<Pick<InboundEmailRow, 'attachment_count' | 'processing_status'>>
+
+// Inbound attachments
+export interface InboundAttachmentRow {
+  id: string
+  inbound_email_id: string
+  document_id: string | null
+  filename: string
+  content_type: string
+  size_bytes: number
+  storage_path: string | null
+  is_pdf: boolean
+  content_hash: string | null
+  extraction_status: InboundAttachmentExtractionStatus
+  extracted_data: Record<string, unknown> | null
+  created_at: string
+}
+export type InboundAttachmentInsert = Omit<InboundAttachmentRow, 'id' | 'created_at' | 'is_pdf' | 'extraction_status'>
+  & Partial<Pick<InboundAttachmentRow, 'is_pdf' | 'extraction_status'>>
 
 // Enriched type returned by /api/feed (AIAction + joined transaction fields)
 export interface AIActionWithTransaction extends AIAction {

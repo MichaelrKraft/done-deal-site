@@ -5,6 +5,7 @@ import MemoriesSection from '@/components/settings/MemoriesSection'
 import SoulSection from '@/components/settings/SoulSection'
 import TemplatesSection from '@/components/settings/TemplatesSection'
 import TelegramSection from '@/components/settings/TelegramSection'
+import InboxAddressSection from '@/components/settings/InboxAddressSection'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -13,7 +14,7 @@ export default async function SettingsPage() {
 
   const { data: agent } = await supabase
     .from('agents')
-    .select('id, name, email, autonomy_default, telegram_id, outlook_token, google_token, email_provider, calendar_provider, brokerage_id, soul_document')
+    .select('id, name, email, autonomy_default, telegram_id, outlook_token, google_token, docusign_token, email_provider, calendar_provider, brokerage_id, soul_document, inbox_address')
     .eq('auth_user_id', user.id)
     .single()
 
@@ -67,6 +68,7 @@ export default async function SettingsPage() {
             <span className="text-sm text-[#7a6e63]">{brokerage?.name ?? 'Unknown'}</span>
             <span className="text-xs text-[#b0a698]">Brokerage</span>
           </div>
+          <InboxAddressSection initialAddress={agent.inbox_address ?? null} />
         </div>
       </section>
 
@@ -117,6 +119,27 @@ export default async function SettingsPage() {
               ) : (
                 <a
                   href="/api/auth/google"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#c75c2e] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#b5512a] transition-colors"
+                >
+                  Connect
+                </a>
+              )}
+            </div>
+          </div>
+          <div className="px-4 py-3">
+            <div className="flex justify-between items-center">
+              <div>
+                <span className="text-sm text-[#2c2420] font-medium">DocuSign</span>
+                <p className="text-xs text-[#b0a698] mt-0.5">Track e-signature status on your documents</p>
+              </div>
+              {agent.docusign_token ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  Connected
+                </span>
+              ) : (
+                <a
+                  href="/api/auth/docusign"
                   className="inline-flex items-center gap-1.5 rounded-lg bg-[#c75c2e] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#b5512a] transition-colors"
                 >
                   Connect
