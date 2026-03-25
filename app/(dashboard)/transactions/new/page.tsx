@@ -110,6 +110,20 @@ export default function NewTransactionPage() {
         <CardContent>
           <div
             onClick={() => fileRef.current?.click()}
+            onDragOver={(e) => { e.preventDefault(); e.stopPropagation() }}
+            onDrop={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              const file = e.dataTransfer.files[0]
+              if (file && file.type === 'application/pdf') {
+                const dt = new DataTransfer()
+                dt.items.add(file)
+                if (fileRef.current) {
+                  fileRef.current.files = dt.files
+                  fileRef.current.dispatchEvent(new Event('change', { bubbles: true }))
+                }
+              }
+            }}
             className="border-2 border-dashed border-gray-700 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition-colors"
           >
             {extracting ? (
