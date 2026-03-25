@@ -7,6 +7,7 @@ import DocumentChecklistSection from '@/components/documents/DocumentChecklistSe
 import SharePortalButton from '@/components/transactions/SharePortalButton'
 import { AskTC } from '@/components/feed/AskTC'
 import PropertyPhoto from '@/components/transactions/PropertyPhoto'
+import ContactsDropdown from '@/components/transactions/ContactsDropdown'
 
 const STAGE_LABELS: Record<string, string> = {
   pre_listing: 'Pre-Listing',
@@ -105,7 +106,10 @@ export default async function TransactionDetailPage({ params }: { params: Promis
           </div>
           </div>
         </div>
-        <SharePortalButton transactionId={id} />
+        <div className="flex items-center gap-2">
+          <ContactsDropdown parties={transaction.parties} />
+          <SharePortalButton transactionId={id} />
+        </div>
       </div>
 
       {/* Ask TC — AI chat prompt */}

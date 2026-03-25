@@ -69,6 +69,16 @@ export type AIActionStatus =
 
 export type MemoryType = 'rule' | 'preference' | 'context' | 'correction'
 
+export type TeamRole = 'assistant' | 'team_lead' | 'tc' | 'broker'
+
+export interface TeamPermissions {
+  can_view_transactions: boolean
+  can_approve_actions: boolean
+  can_edit_transactions: boolean
+  can_manage_documents: boolean
+  can_view_analytics: boolean
+}
+
 export type ComplianceStatus = 'pending' | 'in_progress' | 'complete' | 'n_a' | 'waived'
 
 export type InboundEmailProcessingStatus = 'received' | 'processing' | 'completed' | 'failed' | 'duplicate'
@@ -823,6 +833,33 @@ export type Database = {
         }
         Relationships: []
       }
+      team_memberships: {
+        Row: {
+          id: string
+          agent_id: string
+          member_id: string
+          role: TeamRole
+          permissions: TeamPermissions
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          agent_id: string
+          member_id: string
+          role: TeamRole
+          permissions?: TeamPermissions
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          agent_id?: string
+          member_id?: string
+          role?: TeamRole
+          permissions?: TeamPermissions
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>
@@ -941,6 +978,18 @@ export interface InboundAttachmentRow {
 }
 export type InboundAttachmentInsert = Omit<InboundAttachmentRow, 'id' | 'created_at' | 'is_pdf' | 'extraction_status'>
   & Partial<Pick<InboundAttachmentRow, 'is_pdf' | 'extraction_status'>>
+
+// Team memberships
+export interface TeamMembershipRow {
+  id: string
+  agent_id: string
+  member_id: string
+  role: TeamRole
+  permissions: TeamPermissions
+  created_at: string
+}
+export type TeamMembershipInsert = Omit<TeamMembershipRow, 'id' | 'created_at'>
+  & Partial<Pick<TeamMembershipRow, 'permissions'>>
 
 // Enriched type returned by /api/feed (AIAction + joined transaction fields)
 export interface AIActionWithTransaction extends AIAction {

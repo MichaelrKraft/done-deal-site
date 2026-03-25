@@ -10,6 +10,8 @@ import {
   FileText,
   Plus,
   BookOpen,
+  BarChart3,
+  Users,
   Settings,
   LogOut,
 } from 'lucide-react'
@@ -22,6 +24,8 @@ const NAV_ITEMS = [
   { label: 'Transactions', href: '/transactions', icon: FileText },
   { label: 'New', href: '/transactions/new', icon: Plus },
   { label: 'Resources', href: '/resources', icon: BookOpen },
+  { label: 'Analytics', href: '/analytics', icon: BarChart3 },
+  { label: 'Team', href: '/team', icon: Users },
   { label: 'Settings', href: '/settings', icon: Settings },
 ]
 
