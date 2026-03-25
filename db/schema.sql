@@ -139,6 +139,16 @@ CREATE TABLE IF NOT EXISTS ai_actions (
   updated_at      timestamptz DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS agent_memories (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  agent_id        uuid NOT NULL REFERENCES agents(id) ON DELETE CASCADE,
+  memory_type     text NOT NULL CHECK (memory_type IN ('rule', 'preference', 'context', 'correction')),
+  content         text NOT NULL,
+  source          text NOT NULL DEFAULT 'chat',
+  active          boolean NOT NULL DEFAULT true,
+  created_at      timestamptz NOT NULL DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS compliance_requirements (
   id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   transaction_id   uuid NOT NULL REFERENCES transactions(id) ON DELETE CASCADE,
@@ -180,6 +190,7 @@ CREATE INDEX IF NOT EXISTS idx_ai_actions_agent_id        ON ai_actions(agent_id
 CREATE INDEX IF NOT EXISTS idx_ai_actions_status          ON ai_actions(status);
 CREATE INDEX IF NOT EXISTS idx_email_threads_transaction_id ON email_threads(transaction_id);
 CREATE INDEX IF NOT EXISTS idx_compliance_transaction_id  ON compliance_requirements(transaction_id);
+CREATE INDEX IF NOT EXISTS idx_agent_memories_agent_id    ON agent_memories(agent_id);
 CREATE INDEX idx_agents_auth_user_id ON agents(auth_user_id);
 
 -- ============================================================
@@ -222,6 +233,7 @@ ALTER TABLE deadlines           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tasks               ENABLE ROW LEVEL SECURITY;
 ALTER TABLE documents           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_actions          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE agent_memories        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE compliance_requirements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE email_threads       ENABLE ROW LEVEL SECURITY;
 
@@ -296,6 +308,10 @@ CREATE POLICY "agents_manage_compliance" ON compliance_requirements
   FOR ALL USING (
     transaction_id IN (SELECT id FROM transactions WHERE agent_id = current_agent_id())
   );
+
+-- agent_memories: agents see only their own memories
+CREATE POLICY "agents_manage_memories" ON agent_memories
+  FOR ALL USING (agent_id = current_agent_id());
 
 -- email_threads: scoped through transactions
 CREATE POLICY "agents_manage_email_threads" ON email_threads

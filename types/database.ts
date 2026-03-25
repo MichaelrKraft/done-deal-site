@@ -57,6 +57,8 @@ export type AIActionStatus =
   | 'expired'
   | 'skipped'
 
+export type MemoryType = 'rule' | 'preference' | 'context' | 'correction'
+
 export type ComplianceStatus = 'pending' | 'in_progress' | 'complete' | 'n_a' | 'waived'
 
 // ============================================================
@@ -405,6 +407,36 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_memories: {
+        Row: {
+          id: string
+          agent_id: string
+          memory_type: MemoryType
+          content: string
+          source: string
+          active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          agent_id: string
+          memory_type: MemoryType
+          content: string
+          source?: string
+          active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          agent_id?: string
+          memory_type?: MemoryType
+          content?: string
+          source?: string
+          active?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
       compliance_requirements: {
         Row: {
           id: string
@@ -487,6 +519,7 @@ export type Deadline = Database['public']['Tables']['deadlines']['Row']
 export type Task = Database['public']['Tables']['tasks']['Row']
 export type Document = Database['public']['Tables']['documents']['Row']
 export type AIAction = Database['public']['Tables']['ai_actions']['Row']
+export type AgentMemory = Database['public']['Tables']['agent_memories']['Row']
 export type ComplianceRequirement = Database['public']['Tables']['compliance_requirements']['Row']
 export type EmailThread = Database['public']['Tables']['email_threads']['Row']
 
@@ -507,6 +540,7 @@ export type DeadlineInsert = Database['public']['Tables']['deadlines']['Insert']
 export type TaskInsert = Database['public']['Tables']['tasks']['Insert']
 export type DocumentInsert = Database['public']['Tables']['documents']['Insert']
 export type AIActionInsert = Database['public']['Tables']['ai_actions']['Insert']
+export type AgentMemoryInsert = Database['public']['Tables']['agent_memories']['Insert']
 export type ComplianceRequirementInsert = Database['public']['Tables']['compliance_requirements']['Insert']
 export type EmailThreadInsert = Database['public']['Tables']['email_threads']['Insert']
 
@@ -519,5 +553,6 @@ export type DeadlineUpdate = Database['public']['Tables']['deadlines']['Update']
 export type TaskUpdate = Database['public']['Tables']['tasks']['Update']
 export type DocumentUpdate = Database['public']['Tables']['documents']['Update']
 export type AIActionUpdate = Database['public']['Tables']['ai_actions']['Update']
+export type AgentMemoryUpdate = Database['public']['Tables']['agent_memories']['Update']
 export type ComplianceRequirementUpdate = Database['public']['Tables']['compliance_requirements']['Update']
 export type EmailThreadUpdate = Database['public']['Tables']['email_threads']['Update']

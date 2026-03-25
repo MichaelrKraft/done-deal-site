@@ -1,7 +1,29 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
-import type { Transaction } from '@/types/database'
+import type { Transaction, MemoryType } from '@/types/database'
+
+// ============================================================
+// MEMORY DETECTION
+// ============================================================
+
+const MEMORY_TRIGGERS: { pattern: RegExp; type: MemoryType }[] = [
+  { pattern: /don'?t ever|never |stop asking|don'?t ask/i, type: 'rule' },
+  { pattern: /always |from now on|going forward|remember that/i, type: 'rule' },
+  { pattern: /i prefer|i like to|i usually|my style/i, type: 'preference' },
+  { pattern: /i work with|my .* is|i use|my office/i, type: 'context' },
+  { pattern: /that'?s wrong|actually,? it'?s|no,? the correct/i, type: 'correction' },
+]
+
+function detectMemory(message: string): { type: MemoryType; content: string } | null {
+  for (const trigger of MEMORY_TRIGGERS) {
+    if (trigger.pattern.test(message)) {
+      return { type: trigger.type, content: message }
+    }
+  }
+  return null
+}
 
 export async function POST(request: NextRequest) {
   // 1. Auth
@@ -21,6 +43,18 @@ export async function POST(request: NextRequest) {
   const preferredName = prefs.preferred_name ?? agent.name.split(' ')[0]
   const communicationStyle = prefs.communication_style ?? 'balanced'
   const detailLevel = prefs.detail_level ?? 'highlights'
+
+  // 2b. Load agent memories
+  const { data: memories } = await supabase
+    .from('agent_memories')
+    .select('content, memory_type')
+    .eq('agent_id', agent.id)
+    .eq('active', true)
+    .limit(50)
+
+  const memoriesBlock = memories && memories.length > 0
+    ? `\n\nAGENT-SPECIFIC RULES & MEMORIES:\nThese are things ${preferredName} has told you to remember. Follow them strictly.\n${memories.map((m) => `- [${m.memory_type}] ${m.content}`).join('\n')}`
+    : ''
 
   // 3. Parse request body
   const body: unknown = await request.json()
@@ -132,12 +166,25 @@ You are the AI transaction coordinator for ${preferredName} at Your Castle Real 
 If the agent has no active transactions, let them know and suggest they add one.
 
 Here is the current state of their transactions:
-${context}`,
+${context}${memoriesBlock}`,
       messages: [{ role: 'user', content: message }],
     })
 
     const textBlock = response.content.find((b) => b.type === 'text')
-    const reply = textBlock ? textBlock.text : 'No response generated.'
+    let reply = textBlock ? textBlock.text : 'No response generated.'
+
+    // 8. Detect and save memories from user message
+    const detected = detectMemory(message)
+    if (detected) {
+      const admin = createAdminClient()
+      await admin.from('agent_memories').insert({
+        agent_id: agent.id,
+        memory_type: detected.type,
+        content: detected.content,
+        source: 'chat',
+      })
+      reply += '\n\n*I\'ve noted this and will remember it for all future interactions.*'
+    }
 
     return NextResponse.json({ reply })
   } catch (err: unknown) {

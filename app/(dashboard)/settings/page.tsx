@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import MemoriesSection from '@/components/settings/MemoriesSection'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -8,11 +9,19 @@ export default async function SettingsPage() {
 
   const { data: agent } = await supabase
     .from('agents')
-    .select('name, email, autonomy_default, telegram_id, outlook_token, brokerage_id')
+    .select('id, name, email, autonomy_default, telegram_id, outlook_token, brokerage_id')
     .eq('auth_user_id', user.id)
     .single()
 
   if (!agent) redirect('/onboarding')
+
+  const { data: memories } = await supabase
+    .from('agent_memories')
+    .select('id, memory_type, content, source, created_at')
+    .eq('agent_id', agent.id)
+    .eq('active', true)
+    .order('created_at', { ascending: false })
+    .limit(100)
 
   const { data: brokerage } = await supabase
     .from('brokerages')
@@ -161,6 +170,9 @@ export default async function SettingsPage() {
           </div>
         </div>
       </section>
+
+      {/* Memories */}
+      <MemoriesSection initial={memories ?? []} />
 
       {/* Privacy & Data */}
       <section>

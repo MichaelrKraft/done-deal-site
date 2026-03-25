@@ -78,8 +78,18 @@ export async function runTCAgent(agentId: string, jobType: TCJobType): Promise<v
     supabase.from('compliance_requirements').select('*').in('transaction_id', txIds),
   ])
 
+  // 3b. Load agent memories
+  const { data: memoriesData } = await supabase
+    .from('agent_memories')
+    .select('content, memory_type')
+    .eq('agent_id', agentId)
+    .eq('active', true)
+    .limit(50)
+
+  const agentMemories = memoriesData ?? []
+
   // 4. Build Claude messages
-  const systemPrompt = buildSystemPrompt(agent, jobType)
+  const systemPrompt = buildSystemPrompt(agent, jobType, agentMemories)
   const contextMessage = buildContextMessage(
     transactions,
     (partiesResult.data ?? []) as Party[],
@@ -213,7 +223,11 @@ async function notifyViaTelegram(
 // SYSTEM PROMPT BUILDER
 // ============================================================
 
-function buildSystemPrompt(agent: Agent, jobType: TCJobType): string {
+function buildSystemPrompt(
+  agent: Agent,
+  jobType: TCJobType,
+  memories: { content: string; memory_type: string }[] = []
+): string {
   const today = new Date().toISOString().split('T')[0]
   const jobDesc = JOB_DESCRIPTIONS[jobType]
   const prefs = (agent.preferences ?? {}) as Record<string, string>
@@ -268,7 +282,11 @@ RISK GUIDANCE:
 - MEDIUM: earnest money reminders, lender follow-ups, disclosure packages — always require agent approval.
 - HIGH: inspection objections, contract amendments, CDA submissions, wire fraud warnings — always require agent approval.
 
-Always include the transaction_id in every tool call. Be concise and action-oriented.`
+Always include the transaction_id in every tool call. Be concise and action-oriented.${
+  memories.length > 0
+    ? `\n\nAGENT-SPECIFIC RULES & MEMORIES:\nThese are things ${preferredName} has told you to remember. Follow them strictly.\n${memories.map((m) => `- [${m.memory_type}] ${m.content}`).join('\n')}`
+    : ''
+}`
 }
 
 // ============================================================
