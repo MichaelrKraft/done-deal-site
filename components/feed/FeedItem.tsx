@@ -134,7 +134,7 @@ export function FeedItem({ action, onAction }: Props) {
             onClick={() => handleAction('approve')}
             disabled={loading !== null}
             aria-label={`Approve and send action for ${address}`}
-            className="bg-[#c75c2e] text-white hover:bg-[#b5512a] rounded-lg flex-1 sm:flex-none"
+            className="bg-[#84c9d1] text-white hover:bg-[#6fb8c0] rounded-lg flex-1 sm:flex-none"
           >
             {loading === 'approve' ? 'Sending...' : 'Approve & Send'}
           </Button>

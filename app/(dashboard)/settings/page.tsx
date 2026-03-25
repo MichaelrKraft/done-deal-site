@@ -93,7 +93,7 @@ export default async function SettingsPage() {
               ) : (
                 <a
                   href="/api/auth/microsoft"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#c75c2e] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#b5512a] transition-colors"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#84c9d1] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#6fb8c0] transition-colors"
                 >
                   Connect
                 </a>
@@ -119,7 +119,7 @@ export default async function SettingsPage() {
               ) : (
                 <a
                   href="/api/auth/google"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#c75c2e] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#b5512a] transition-colors"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#84c9d1] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#6fb8c0] transition-colors"
                 >
                   Connect
                 </a>
@@ -140,7 +140,7 @@ export default async function SettingsPage() {
               ) : (
                 <a
                   href="/api/auth/docusign"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#c75c2e] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#b5512a] transition-colors"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#84c9d1] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#6fb8c0] transition-colors"
                 >
                   Connect
                 </a>

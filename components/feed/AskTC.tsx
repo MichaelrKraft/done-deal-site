@@ -125,7 +125,7 @@ export function AskTC({ agentId }: AskTCProps) {
             <button
               key={prompt}
               onClick={() => sendMessage(prompt)}
-              className="rounded-full border border-[#e8e2d9] px-3 py-1 text-xs text-[#b0a698] transition-colors hover:border-[#c75c2e] hover:text-[#c75c2e]"
+              className="rounded-full border border-[#e8e2d9] px-3 py-1 text-xs text-[#b0a698] transition-colors hover:border-[#84c9d1] hover:text-[#84c9d1]"
             >
               {prompt}
             </button>
@@ -141,12 +141,12 @@ export function AskTC({ agentId }: AskTCProps) {
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask your AI TC anything..."
           disabled={isLoading}
-          className="flex-1 rounded-xl border border-[#e8e2d9] bg-white px-4 py-2.5 text-sm text-[#2c2420] placeholder-[#b0a698] outline-none transition-colors focus:border-[#c75c2e] disabled:opacity-50"
+          className="flex-1 rounded-xl border border-[#e8e2d9] bg-white px-4 py-2.5 text-sm text-[#2c2420] placeholder-[#b0a698] outline-none transition-colors focus:border-[#84c9d1] disabled:opacity-50"
         />
         <button
           type="submit"
           disabled={isLoading || !input.trim()}
-          className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#c75c2e] text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+          className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#84c9d1] text-white transition-opacity hover:opacity-90 disabled:opacity-40"
           aria-label="Send message"
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">

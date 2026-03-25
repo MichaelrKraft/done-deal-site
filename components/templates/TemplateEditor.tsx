@@ -103,7 +103,7 @@ export default function TemplateEditor({ template, onSave, onCancel }: TemplateE
     return parts.map((part, i) => {
       if (/^\{\{\w+\}\}$/.test(part)) {
         return (
-          <span key={i} className="inline-block bg-[#c75c2e]/10 text-[#c75c2e] rounded px-1 font-medium">
+          <span key={i} className="inline-block bg-[#84c9d1]/10 text-[#84c9d1] rounded px-1 font-medium">
             {part}
           </span>
         )
@@ -132,7 +132,7 @@ export default function TemplateEditor({ template, onSave, onCancel }: TemplateE
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Inspection Follow-Up"
-          className="w-full rounded-lg border border-[#e8e2d9] bg-[#faf8f5] px-3 py-2 text-sm text-[#2c2420] placeholder:text-[#b0a698] focus:outline-none focus:ring-2 focus:ring-[#c75c2e]/20 focus:border-[#c75c2e]/40"
+          className="w-full rounded-lg border border-[#e8e2d9] bg-[#faf8f5] px-3 py-2 text-sm text-[#2c2420] placeholder:text-[#b0a698] focus:outline-none focus:ring-2 focus:ring-[#84c9d1]/20 focus:border-[#84c9d1]/40"
         />
       </div>
 
@@ -143,7 +143,7 @@ export default function TemplateEditor({ template, onSave, onCancel }: TemplateE
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value as EmailTemplateCategory)}
-            className="w-full rounded-lg border border-[#e8e2d9] bg-[#faf8f5] px-3 py-2 text-sm text-[#2c2420] focus:outline-none focus:ring-2 focus:ring-[#c75c2e]/20 focus:border-[#c75c2e]/40"
+            className="w-full rounded-lg border border-[#e8e2d9] bg-[#faf8f5] px-3 py-2 text-sm text-[#2c2420] focus:outline-none focus:ring-2 focus:ring-[#84c9d1]/20 focus:border-[#84c9d1]/40"
           >
             {CATEGORIES.map((c) => (
               <option key={c.value} value={c.value}>{c.label}</option>
@@ -156,7 +156,7 @@ export default function TemplateEditor({ template, onSave, onCancel }: TemplateE
               type="checkbox"
               checked={isShared}
               onChange={(e) => setIsShared(e.target.checked)}
-              className="rounded border-[#e8e2d9] text-[#c75c2e] focus:ring-[#c75c2e]/20"
+              className="rounded border-[#e8e2d9] text-[#84c9d1] focus:ring-[#84c9d1]/20"
             />
             <span className="text-xs text-[#7a6e63]">Share with brokerage</span>
           </label>
@@ -171,7 +171,7 @@ export default function TemplateEditor({ template, onSave, onCancel }: TemplateE
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           placeholder="e.g. Inspection Update - {{property_address}}"
-          className="w-full rounded-lg border border-[#e8e2d9] bg-[#faf8f5] px-3 py-2 text-sm text-[#2c2420] placeholder:text-[#b0a698] focus:outline-none focus:ring-2 focus:ring-[#c75c2e]/20 focus:border-[#c75c2e]/40"
+          className="w-full rounded-lg border border-[#e8e2d9] bg-[#faf8f5] px-3 py-2 text-sm text-[#2c2420] placeholder:text-[#b0a698] focus:outline-none focus:ring-2 focus:ring-[#84c9d1]/20 focus:border-[#84c9d1]/40"
         />
       </div>
 
@@ -184,7 +184,7 @@ export default function TemplateEditor({ template, onSave, onCancel }: TemplateE
           onChange={(e) => setBody(e.target.value)}
           rows={8}
           placeholder="Write your template here. Use {{variable_name}} for dynamic content."
-          className="w-full rounded-lg border border-[#e8e2d9] bg-[#faf8f5] px-3 py-2 text-sm text-[#2c2420] placeholder:text-[#b0a698] focus:outline-none focus:ring-2 focus:ring-[#c75c2e]/20 focus:border-[#c75c2e]/40 resize-y font-mono"
+          className="w-full rounded-lg border border-[#e8e2d9] bg-[#faf8f5] px-3 py-2 text-sm text-[#2c2420] placeholder:text-[#b0a698] focus:outline-none focus:ring-2 focus:ring-[#84c9d1]/20 focus:border-[#84c9d1]/40 resize-y font-mono"
         />
       </div>
 
@@ -233,7 +233,7 @@ export default function TemplateEditor({ template, onSave, onCancel }: TemplateE
           type="button"
           onClick={handleSave}
           disabled={saving || !name.trim() || !subject.trim() || !body.trim()}
-          className="rounded-lg bg-[#c75c2e] px-4 py-2 text-xs font-medium text-white hover:bg-[#b5512a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="rounded-lg bg-[#84c9d1] px-4 py-2 text-xs font-medium text-white hover:bg-[#6fb8c0] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {saving ? 'Saving...' : template ? 'Update Template' : 'Create Template'}
         </button>

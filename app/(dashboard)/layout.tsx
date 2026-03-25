@@ -55,12 +55,12 @@ export default function DashboardLayout({
                 href={item.href}
                 className={`group relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${
                   isActive
-                    ? 'bg-[rgba(199,92,46,0.08)] text-[#c75c2e]'
+                    ? 'bg-[rgba(132,201,209,0.1)] text-[#84c9d1]'
                     : 'text-sd-text-secondary hover:bg-sd-border-subtle hover:text-sd-text'
                 }`}
               >
                 {isActive && (
-                  <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-[#c75c2e]" />
+                  <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-[#84c9d1]" />
                 )}
                 <Icon size={18} />
                 <span className="pointer-events-none absolute left-full ml-2 whitespace-nowrap rounded-md bg-[#2c2420] px-2.5 py-1 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">

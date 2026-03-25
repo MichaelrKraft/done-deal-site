@@ -32,7 +32,7 @@ export function StepConnectTelegram({ onNext, onSkip }: StepConnectTelegramProps
         <ol className="text-sm text-[#7a6e63] space-y-2 list-decimal list-inside">
           <li>
             Open Telegram and search for{' '}
-            <span className="font-mono text-[#c75c2e]">@DoneDealBot</span>
+            <span className="font-mono text-[#84c9d1]">@DoneDealBot</span>
           </li>
           <li>Send the bot a message: <span className="font-mono text-[#2c2420]">/start</span></li>
           <li>Enter your Telegram username below</li>

@@ -73,8 +73,8 @@ export function StepFirstTransaction({ onNext, onSkip }: StepFirstTransactionPro
               className={cn(
                 'flex-1 rounded-md border py-2 text-sm font-medium transition-colors',
                 side === 'buyer'
-                  ? 'border-[#c75c2e] bg-[#c75c2e]/10 text-[#c75c2e]'
-                  : 'border-[#e8e2d9] bg-white text-[#7a6e63] hover:border-[#c75c2e]/50'
+                  ? 'border-[#84c9d1] bg-[#84c9d1]/10 text-[#84c9d1]'
+                  : 'border-[#e8e2d9] bg-white text-[#7a6e63] hover:border-[#84c9d1]/50'
               )}
             >
               Buyer
@@ -85,8 +85,8 @@ export function StepFirstTransaction({ onNext, onSkip }: StepFirstTransactionPro
               className={cn(
                 'flex-1 rounded-md border py-2 text-sm font-medium transition-colors',
                 side === 'seller'
-                  ? 'border-[#c75c2e] bg-[#c75c2e]/10 text-[#c75c2e]'
-                  : 'border-[#e8e2d9] bg-white text-[#7a6e63] hover:border-[#c75c2e]/50'
+                  ? 'border-[#84c9d1] bg-[#84c9d1]/10 text-[#84c9d1]'
+                  : 'border-[#e8e2d9] bg-white text-[#7a6e63] hover:border-[#84c9d1]/50'
               )}
             >
               Seller

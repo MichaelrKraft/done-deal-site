@@ -28,7 +28,7 @@ export function KanbanColumn({ stage, label, transactions, count }: Props) {
         ref={setNodeRef}
         className={`flex-1 rounded-xl border p-2 transition-colors min-h-[120px] ${
           isOver
-            ? 'border-[#c75c2e] bg-[#faf8f5]'
+            ? 'border-[#84c9d1] bg-[#faf8f5]'
             : 'border-[#e8e2d9] bg-[#faf8f5]'
         }`}
       >

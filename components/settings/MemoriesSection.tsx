@@ -99,12 +99,12 @@ export default function MemoriesSection({ initial }: { initial: Memory[] }) {
             onChange={(e) => setNewRule(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') handleAdd() }}
             placeholder="e.g. Always CC the listing agent on lender emails"
-            className="flex-1 rounded-lg border border-[#e8e2d9] bg-[#faf8f5] px-3 py-2 text-sm text-[#2c2420] placeholder:text-[#b0a698] focus:outline-none focus:ring-2 focus:ring-[#c75c2e]/20 focus:border-[#c75c2e]/40"
+            className="flex-1 rounded-lg border border-[#e8e2d9] bg-[#faf8f5] px-3 py-2 text-sm text-[#2c2420] placeholder:text-[#b0a698] focus:outline-none focus:ring-2 focus:ring-[#84c9d1]/20 focus:border-[#84c9d1]/40"
           />
           <button
             onClick={handleAdd}
             disabled={!newRule.trim() || adding}
-            className="rounded-lg bg-[#c75c2e] px-4 py-2 text-xs font-medium text-white hover:bg-[#b5512a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            className="rounded-lg bg-[#84c9d1] px-4 py-2 text-xs font-medium text-white hover:bg-[#6fb8c0] transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
           >
             {adding ? 'Adding...' : 'Add Rule'}
           </button>
@@ -134,11 +134,11 @@ export default function MemoriesSection({ initial }: { initial: Memory[] }) {
                       if (e.key === 'Escape') { setEditingId(null); setEditText('') }
                     }}
                     autoFocus
-                    className="flex-1 rounded-lg border border-[#c75c2e]/30 bg-[#faf8f5] px-3 py-1.5 text-sm text-[#2c2420] focus:outline-none focus:ring-2 focus:ring-[#c75c2e]/20"
+                    className="flex-1 rounded-lg border border-[#84c9d1]/30 bg-[#faf8f5] px-3 py-1.5 text-sm text-[#2c2420] focus:outline-none focus:ring-2 focus:ring-[#84c9d1]/20"
                   />
                   <button
                     onClick={() => handleSaveEdit(m.id)}
-                    className="text-xs text-[#c75c2e] font-medium hover:text-[#b5512a]"
+                    className="text-xs text-[#84c9d1] font-medium hover:text-[#6fb8c0]"
                   >
                     Save
                   </button>

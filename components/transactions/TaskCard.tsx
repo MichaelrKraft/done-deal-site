@@ -36,7 +36,7 @@ const STATUS_PILL: Record<string, { bg: string; label: string }> = {
 }
 
 const ASSIGNED_LABELS: Record<string, { label: string; color: string }> = {
-  ai: { label: 'AI', color: 'bg-[#c75c2e]/10 text-[#c75c2e]' },
+  ai: { label: 'AI', color: 'bg-[#84c9d1]/10 text-[#84c9d1]' },
   agent: { label: 'You', color: 'bg-blue-50 text-blue-700' },
   lender: { label: 'Lender', color: 'bg-purple-50 text-purple-700' },
   title: { label: 'Title Co', color: 'bg-emerald-50 text-emerald-700' },
@@ -183,7 +183,7 @@ export default function TaskCard({ task, aiActions, notes, onStatusChange, onAdd
               <div className="relative ml-2 border-l-2 border-[#e8e2d9] pl-4 space-y-3">
                 {aiActions.map(action => (
                   <div key={action.id} className="relative">
-                    <span className="absolute -left-[21px] top-1 w-2 h-2 rounded-full bg-[#c75c2e]" />
+                    <span className="absolute -left-[21px] top-1 w-2 h-2 rounded-full bg-[#84c9d1]" />
                     <p className="text-xs text-[#2c2420]">
                       {action.context_summary ?? action.action_type.replace(/_/g, ' ')}
                     </p>
@@ -237,7 +237,7 @@ export default function TaskCard({ task, aiActions, notes, onStatusChange, onAdd
                   }}
                   placeholder="Add a note..."
                   maxLength={2000}
-                  className="flex-1 text-xs px-3 py-1.5 rounded-lg border border-[#e8e2d9] bg-[#faf8f5] text-[#2c2420] placeholder-[#b0a698] focus:outline-none focus:ring-1 focus:ring-[#c75c2e]/30 focus:border-[#c75c2e]/30"
+                  className="flex-1 text-xs px-3 py-1.5 rounded-lg border border-[#e8e2d9] bg-[#faf8f5] text-[#2c2420] placeholder-[#b0a698] focus:outline-none focus:ring-1 focus:ring-[#84c9d1]/30 focus:border-[#84c9d1]/30"
                 />
                 <button
                   type="button"
@@ -248,7 +248,7 @@ export default function TaskCard({ task, aiActions, notes, onStatusChange, onAdd
                     }
                   }}
                   disabled={!noteInput.trim()}
-                  className="text-xs px-3 py-1.5 rounded-lg bg-[#c75c2e] text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#b04e26] transition-colors"
+                  className="text-xs px-3 py-1.5 rounded-lg bg-[#84c9d1] text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#b04e26] transition-colors"
                 >
                   Add Note
                 </button>

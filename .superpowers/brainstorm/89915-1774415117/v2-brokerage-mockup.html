@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Done Deal — Brokerage Scale (Version 2 Mockup)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'Inter', sans-serif; background: #050510; color: #fff; }
+
+  /* NAV */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 60px; position: sticky; top: 0; z-index: 100;
+    background: rgba(5,5,16,0.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .logo { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo span { color: #f59e0b; }
+  .nav-links { display: flex; gap: 32px; align-items: center; }
+  .nav-links a { color: #94a3b8; font-size: 14px; text-decoration: none; transition: color 0.2s; }
+  .nav-links a:hover { color: #fff; }
+  .btn-demo-nav {
+    background: #f59e0b; color: #000; font-weight: 700; font-size: 14px;
+    padding: 10px 22px; border-radius: 8px; border: none; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-demo-nav:hover { background: #fbbf24; }
+
+  /* HERO */
+  .hero {
+    padding: 100px 60px 80px;
+    background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(245,158,11,0.12), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 50%, rgba(99,102,241,0.08), transparent);
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);
+    color: #f59e0b; font-size: 12px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; padding: 6px 16px; border-radius: 20px; margin-bottom: 28px;
+  }
+  .hero h1 {
+    font-size: 72px; font-weight: 900; letter-spacing: -3px; line-height: 1.0;
+    margin-bottom: 24px; max-width: 900px; margin-left: auto; margin-right: auto;
+  }
+  .hero h1 .gold { color: #f59e0b; }
+  .hero-sub {
+    font-size: 20px; color: #94a3b8; max-width: 600px; margin: 0 auto 48px;
+    line-height: 1.6;
+  }
+  .hero-ctas { display: flex; gap: 16px; justify-content: center; align-items: center; }
+  .btn-primary {
+    background: #f59e0b; color: #000; font-weight: 800; font-size: 16px;
+    padding: 16px 36px; border-radius: 10px; border: none; cursor: pointer;
+  }
+  .btn-secondary {
+    background: transparent; color: #fff; font-weight: 600; font-size: 16px;
+    padding: 16px 36px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2);
+    cursor: pointer;
+  }
+  .hero-note { margin-top: 16px; font-size: 13px; color: #475569; }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: flex; justify-content: center; gap: 0;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.02);
+  }
+  .stat {
+    flex: 1; text-align: center; padding: 40px 20px;
+    border-right: 1px solid rgba(255,255,255,0.06);
+  }
+  .stat:last-child { border-right: none; }
+  .stat-num { font-size: 48px; font-weight: 900; color: #f59e0b; letter-spacing: -2px; }
+  .stat-label { font-size: 14px; color: #64748b; margin-top: 4px; }
+
+  /* TRUST LOGOS */
+  .trust { padding: 60px 60px; text-align: center; }
+  .trust-label { font-size: 12px; color: #475569; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 40px; }
+  .logos { display: flex; justify-content: center; gap: 60px; align-items: center; flex-wrap: wrap; }
+  .logo-item {
+    font-size: 18px; font-weight: 800; color: #334155;
+    letter-spacing: -0.5px; text-transform: uppercase;
+  }
+
+  /* ROI CALCULATOR */
+  .roi-section {
+    padding: 100px 60px;
+    background: radial-gradient(ellipse 70% 50% at 50% 50%, rgba(245,158,11,0.05), transparent);
+  }
+  .section-label {
+    font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: #f59e0b; margin-bottom: 16px;
+  }
+  .section-title { font-size: 48px; font-weight: 900; letter-spacing: -2px; margin-bottom: 16px; }
+  .section-sub { font-size: 18px; color: #64748b; margin-bottom: 60px; max-width: 500px; }
+  .roi-card {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px; padding: 48px; max-width: 680px; margin: 0 auto;
+  }
+  .roi-input-row { display: flex; gap: 16px; align-items: flex-end; margin-bottom: 32px; }
+  .roi-input-group { flex: 1; }
+  .roi-input-group label { display: block; font-size: 13px; color: #64748b; margin-bottom: 8px; }
+  .roi-input-group input {
+    width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px; padding: 14px 16px; color: #fff; font-size: 18px; font-weight: 700;
+    outline: none;
+  }
+  .roi-calc-btn {
+    background: #f59e0b; color: #000; font-weight: 800; font-size: 15px;
+    padding: 14px 28px; border-radius: 8px; border: none; cursor: pointer; white-space: nowrap;
+  }
+  .roi-results { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .roi-result {
+    background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2);
+    border-radius: 12px; padding: 20px; text-align: center;
+  }
+  .roi-result-num { font-size: 32px; font-weight: 900; color: #f59e0b; }
+  .roi-result-label { font-size: 12px; color: #64748b; margin-top: 4px; }
+
+  /* HOW IT WORKS */
+  .how-section { padding: 100px 60px; }
+  .steps { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 40px; margin-top: 60px; }
+  .step {
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px; padding: 36px; position: relative;
+  }
+  .step-num {
+    font-size: 72px; font-weight: 900; color: rgba(245,158,11,0.12);
+    position: absolute; top: 20px; right: 24px; line-height: 1;
+  }
+  .step-icon { font-size: 32px; margin-bottom: 20px; }
+  .step h3 { font-size: 20px; font-weight: 700; margin-bottom: 12px; }
+  .step p { font-size: 15px; color: #64748b; line-height: 1.6; }
+
+  /* TESTIMONIALS */
+  .testimonials { padding: 100px 60px; background: rgba(255,255,255,0.01); }
+  .testimonial-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-top: 60px; }
+  .testimonial-card {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; padding: 32px;
+  }
+  .stars { color: #f59e0b; font-size: 18px; margin-bottom: 16px; }
+  .testimonial-text { font-size: 16px; color: #cbd5e1; line-height: 1.7; margin-bottom: 24px; }
+  .testimonial-author { display: flex; align-items: center; gap: 12px; }
+  .author-avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 16px; color: #000;
+  }
+  .author-name { font-size: 15px; font-weight: 700; }
+  .author-title { font-size: 13px; color: #64748b; }
+
+  /* PRICING */
+  .pricing { padding: 100px 60px; text-align: center; }
+  .pricing-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-top: 60px; max-width: 1000px; margin-left: auto; margin-right: auto; }
+  .pricing-card {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px; padding: 40px;
+  }
+  .pricing-card.featured {
+    background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.4);
+    position: relative;
+  }
+  .featured-badge {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    background: #f59e0b; color: #000; font-size: 11px; font-weight: 800;
+    padding: 4px 16px; border-radius: 20px; white-space: nowrap;
+  }
+  .plan-name { font-size: 14px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+  .plan-price { font-size: 48px; font-weight: 900; letter-spacing: -2px; }
+  .plan-price span { font-size: 18px; font-weight: 400; color: #64748b; }
+  .plan-desc { font-size: 14px; color: #64748b; margin: 12px 0 28px; }
+  .plan-features { list-style: none; text-align: left; margin-bottom: 32px; }
+  .plan-features li { font-size: 14px; color: #94a3b8; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; gap: 10px; }
+  .plan-features li::before { content: "✓"; color: #f59e0b; font-weight: 700; }
+  .plan-btn {
+    width: 100%; padding: 14px; border-radius: 8px; font-weight: 700;
+    font-size: 15px; cursor: pointer; border: none;
+  }
+  .plan-btn.primary { background: #f59e0b; color: #000; }
+  .plan-btn.outline { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+
+  /* BOTTOM CTA */
+  .bottom-cta {
+    padding: 120px 60px; text-align: center;
+    background: radial-gradient(ellipse 80% 80% at 50% 50%, rgba(245,158,11,0.1), transparent);
+  }
+  .bottom-cta h2 { font-size: 64px; font-weight: 900; letter-spacing: -3px; margin-bottom: 20px; }
+  .bottom-cta p { font-size: 18px; color: #64748b; margin-bottom: 48px; }
+  .bottom-cta-btns { display: flex; gap: 16px; justify-content: center; }
+
+  /* FOOTER */
+  footer {
+    padding: 40px 60px; border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  footer .logo { font-size: 18px; }
+  footer p { font-size: 13px; color: #334155; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Done<span>Deal</span></div>
+  <div class="nav-links">
+    <a href="#">How It Works</a>
+    <a href="#">Pricing</a>
+    <a href="#">Case Studies</a>
+    <a href="#">Contact</a>
+  </div>
+  <button class="btn-demo-nav">Book a Demo</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">🏢 Built for brokerages</div>
+  <h1>Give your <span class="gold">800 agents</span><br>their time back.</h1>
+  <p class="hero-sub">Done Deal's AI transaction coordinator works every deal from contract to close — automatically. No TC staff required.</p>
+  <div class="hero-ctas">
+    <button class="btn-primary">📅 Schedule a Demo</button>
+    <button class="btn-secondary">Watch 2-min Overview →</button>
+  </div>
+  <p class="hero-note">No credit card required · Setup in under 30 minutes</p>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-num">21</div>
+    <div class="stat-label">Hours saved per transaction</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">$0</div>
+    <div class="stat-label">TC staff cost per transaction</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">100%</div>
+    <div class="stat-label">Colorado compliance coverage</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">24/7</div>
+    <div class="stat-label">AI monitoring every deal</div>
+  </div>
+</div>
+
+<!-- TRUST LOGOS -->
+<div class="trust">
+  <p class="trust-label">Trusted by agents at</p>
+  <div class="logos">
+    <span class="logo-item" style="color:#475569;">Keller Williams</span>
+    <span class="logo-item" style="color:#475569;">RE/MAX</span>
+    <span class="logo-item" style="color:#475569;">eXp Realty</span>
+    <span class="logo-item" style="color:#475569;">Compass</span>
+    <span class="logo-item" style="color:#475569;">Your Castle</span>
+  </div>
+</div>
+
+<!-- ROI CALCULATOR -->
+<section class="roi-section">
+  <div style="max-width:680px;margin:0 auto;">
+    <p class="section-label">ROI Calculator</p>
+    <h2 class="section-title">See your savings.</h2>
+    <p class="section-sub">Enter your brokerage size and we'll show you the exact ROI.</p>
+    <div class="roi-card">
+      <div class="roi-input-row">
+        <div class="roi-input-group">
+          <label>Number of agents</label>
+          <input type="number" value="50" min="1">
+        </div>
+        <div class="roi-input-group">
+          <label>Avg transactions/agent/year</label>
+          <input type="number" value="12" min="1">
+        </div>
+        <button class="roi-calc-btn">Calculate →</button>
+      </div>
+      <div class="roi-results">
+        <div class="roi-result">
+          <div class="roi-result-num">12,600</div>
+          <div class="roi-result-label">Hours saved per year</div>
+        </div>
+        <div class="roi-result">
+          <div class="roi-result-num">$378K</div>
+          <div class="roi-result-label">TC cost eliminated</div>
+        </div>
+        <div class="roi-result">
+          <div class="roi-result-num">600</div>
+          <div class="roi-result-label">Transactions handled</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section">
+  <p class="section-label">How It Works</p>
+  <h2 class="section-title">Three steps to<br>autonomous TC.</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-icon">📄</div>
+      <h3>Upload the contract</h3>
+      <p>Drop the executed contract into Done Deal. The AI extracts all parties, dates, deadlines, and property details in seconds.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-icon">🤖</div>
+      <h3>AI takes over</h3>
+      <p>Your AI TC drafts emails, tracks deadlines, chases documents, and communicates with all parties — on autopilot.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-icon">🏡</div>
+      <h3>You approve, it closes</h3>
+      <p>Review anything flagged for your eyes. Everything else is handled. Your agents close more deals in less time.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+  <p class="section-label" style="text-align:center;">Testimonials</p>
+  <h2 class="section-title" style="text-align:center;">Why brokers <br>can't stop talking about Done Deal.</h2>
+  <div class="testimonial-grid">
+    <div class="testimonial-card">
+      <div class="stars">★★★★★</div>
+      <p class="testimonial-text">"Done Deal handles everything from contract to close. My agents stopped asking me TC questions the week we launched."</p>
+      <div class="testimonial-author">
+        <div class="author-avatar">A</div>
+        <div>
+          <div class="author-name">Ashley Romero</div>
+          <div class="author-title">Broker/Owner, Keller Williams</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="stars">★★★★★</div>
+      <p class="testimonial-text">"We eliminated our TC staff entirely. The AI is faster, more accurate, and never takes a sick day. The ROI was immediate."</p>
+      <div class="testimonial-author">
+        <div class="author-avatar">E</div>
+        <div>
+          <div class="author-name">Ethan Brooks</div>
+          <div class="author-title">Team Lead, eXp Realty</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="stars">★★★★★</div>
+      <p class="testimonial-text">"Colorado compliance was always a headache. Done Deal knows every rule, every deadline, every disclosure. It's like having a compliance officer on every deal."</p>
+      <div class="testimonial-author">
+        <div class="author-avatar">N</div>
+        <div>
+          <div class="author-name">Nina Park</div>
+          <div class="author-title">Agent, Compass</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing">
+  <p class="section-label">Pricing</p>
+  <h2 class="section-title">Scale without the overhead.</h2>
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <p class="plan-name">Solo Agent</p>
+      <div class="plan-price">$99<span>/mo</span></div>
+      <p class="plan-desc">For individual agents doing 1–15 transactions/year</p>
+      <ul class="plan-features">
+        <li>Up to 15 active transactions</li>
+        <li>AI email drafting</li>
+        <li>Deadline tracking</li>
+        <li>Document checklist</li>
+        <li>Colorado compliance engine</li>
+      </ul>
+      <button class="plan-btn outline">Start Free Trial</button>
+    </div>
+    <div class="pricing-card featured">
+      <div class="featured-badge">Most Popular</div>
+      <p class="plan-name">Brokerage</p>
+      <div class="plan-price">$49<span>/agent/mo</span></div>
+      <p class="plan-desc">For teams of 10–500 agents. Volume discounts available.</p>
+      <ul class="plan-features">
+        <li>Unlimited transactions per agent</li>
+        <li>Supervised + Autonomous modes</li>
+        <li>Outlook / Telegram integration</li>
+        <li>Kanban deal board</li>
+        <li>Priority support</li>
+      </ul>
+      <button class="plan-btn primary">Book a Demo</button>
+    </div>
+    <div class="pricing-card">
+      <p class="plan-name">Enterprise</p>
+      <div class="plan-price" style="font-size:32px;">Custom</div>
+      <p class="plan-desc">For brokerages with 500+ agents or custom workflow needs</p>
+      <ul class="plan-features">
+        <li>Everything in Brokerage</li>
+        <li>Custom AI training on your SOPs</li>
+        <li>Dedicated account manager</li>
+        <li>White-label option</li>
+        <li>SLA guarantee</li>
+      </ul>
+      <button class="plan-btn outline">Contact Sales</button>
+    </div>
+  </div>
+</section>
+
+<!-- BOTTOM CTA -->
+<section class="bottom-cta">
+  <h2>Ready to stop paying<br>for <span style="color:#f59e0b;">human TCs?</span></h2>
+  <p>Schedule a 30-minute demo. We'll show you exactly how it works for your brokerage.</p>
+  <div class="bottom-cta-btns">
+    <button class="btn-primary" style="font-size:18px;padding:18px 48px;">📅 Book Your Demo</button>
+    <button class="btn-secondary" style="font-size:18px;padding:18px 48px;">Talk to Sales →</button>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="logo">Done<span style="color:#f59e0b;">Deal</span></div>
+  <p>© 2026 Done Deal. AI-powered transaction coordination for residential real estate.</p>
+  <p style="color:#1e293b;">Privacy · Terms · Contact</p>
+</footer>
+
+</body>
+</html>

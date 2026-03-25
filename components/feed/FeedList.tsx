@@ -45,9 +45,9 @@ function FeedSkeleton() {
 function EmptyState() {
   return (
     <div className="rounded-xl border border-[#e8e2d9] bg-white p-12 text-center shadow-sm">
-      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#c75c2e]/10">
+      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#84c9d1]/10">
         <svg
-          className="h-6 w-6 text-[#c75c2e]"
+          className="h-6 w-6 text-[#84c9d1]"
           fill="none"
           viewBox="0 0 24 24"
           strokeWidth={2}

@@ -51,7 +51,7 @@ export default function PropertyPhoto({ transactionId, photoUrl }: PropertyPhoto
       <button
         type="button"
         onClick={() => fileRef.current?.click()}
-        className="relative flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-[#e8e2d9] bg-[#faf8f5] transition-colors hover:border-[#c75c2e] group"
+        className="relative flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-[#e8e2d9] bg-[#faf8f5] transition-colors hover:border-[#84c9d1] group"
       >
         {photo ? (
           <Image
@@ -62,16 +62,16 @@ export default function PropertyPhoto({ transactionId, photoUrl }: PropertyPhoto
             sizes="80px"
           />
         ) : uploading ? (
-          <svg className="h-5 w-5 animate-spin text-[#c75c2e]" viewBox="0 0 24 24" fill="none">
+          <svg className="h-5 w-5 animate-spin text-[#84c9d1]" viewBox="0 0 24 24" fill="none">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
         ) : (
           <div className="flex flex-col items-center gap-0.5">
-            <svg className="h-5 w-5 text-[#b0a698] group-hover:text-[#c75c2e] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-5 w-5 text-[#b0a698] group-hover:text-[#84c9d1] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
             </svg>
-            <span className="text-[8px] text-[#b0a698] group-hover:text-[#c75c2e] transition-colors">Photo</span>
+            <span className="text-[8px] text-[#b0a698] group-hover:text-[#84c9d1] transition-colors">Photo</span>
           </div>
         )}
         {photo && (

@@ -122,7 +122,7 @@ export default function NewTransactionPage() {
                 uploadFile(file)
               }
             }}
-            className="border-2 border-dashed border-[#e8e2d9] rounded-lg p-8 text-center cursor-pointer hover:border-[#c75c2e] transition-colors"
+            className="border-2 border-dashed border-[#e8e2d9] rounded-lg p-8 text-center cursor-pointer hover:border-[#84c9d1] transition-colors"
           >
             {extracting ? (
               <p className="text-[#7a6e63]">Extracting contract data...</p>
@@ -149,7 +149,7 @@ export default function NewTransactionPage() {
                 type="button"
                 onClick={() => setSide(s)}
                 className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
-                  side === s ? 'bg-[#c75c2e] text-white' : 'bg-[#f5f0ea] text-[#7a6e63] hover:bg-[#ece6dd]'
+                  side === s ? 'bg-[#84c9d1] text-white' : 'bg-[#f5f0ea] text-[#7a6e63] hover:bg-[#ece6dd]'
                 }`}
               >
                 {s.charAt(0).toUpperCase() + s.slice(1)}

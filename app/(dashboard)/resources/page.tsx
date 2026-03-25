@@ -53,7 +53,7 @@ const RESOURCE_CATEGORIES = [
 ]
 
 const TAG_COLORS: Record<string, string> = {
-  Essential: 'bg-[#c75c2e] text-white',
+  Essential: 'bg-[#84c9d1] text-white',
   Buyers: 'bg-blue-100 text-blue-700',
   Sellers: 'bg-purple-100 text-purple-700',
   Solar: 'bg-amber-100 text-amber-700',
@@ -91,13 +91,13 @@ export default function ResourcesPage() {
                   href={`/resources/${encodeURIComponent(doc.file)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between rounded-lg border border-[#e8e2d9] bg-white px-4 py-3 transition-colors hover:border-[#c75c2e] hover:bg-[#faf8f5] group"
+                  className="flex items-center justify-between rounded-lg border border-[#e8e2d9] bg-white px-4 py-3 transition-colors hover:border-[#84c9d1] hover:bg-[#faf8f5] group"
                 >
                   <div className="flex items-center gap-3">
-                    <svg className="w-5 h-5 text-[#c75c2e] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-[#84c9d1] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                     </svg>
-                    <span className="text-sm text-[#2c2420] group-hover:text-[#c75c2e] transition-colors">
+                    <span className="text-sm text-[#2c2420] group-hover:text-[#84c9d1] transition-colors">
                       {doc.name}
                     </span>
                     {doc.tag && (
@@ -106,7 +106,7 @@ export default function ResourcesPage() {
                       </span>
                     )}
                   </div>
-                  <svg className="w-4 h-4 text-[#b0a698] group-hover:text-[#c75c2e] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-[#b0a698] group-hover:text-[#84c9d1] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
                 </a>

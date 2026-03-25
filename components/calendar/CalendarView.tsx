@@ -193,9 +193,9 @@ export function CalendarView({ deadlines }: CalendarViewProps) {
                 key={dateKey}
                 className={`min-h-[100px] border-b border-r border-[#e8e2d9] p-1.5 last:border-r-0 ${
                   isWeekend ? 'bg-[#faf8f5]/50' : ''
-                } ${isToday ? 'ring-2 ring-[#c75c2e] ring-inset rounded-lg' : ''}`}
+                } ${isToday ? 'ring-2 ring-[#84c9d1] ring-inset rounded-lg' : ''}`}
               >
-                <span className={`text-sm ${isToday ? 'font-bold text-[#c75c2e]' : 'text-[#2c2420]'}`}>
+                <span className={`text-sm ${isToday ? 'font-bold text-[#84c9d1]' : 'text-[#2c2420]'}`}>
                   {dayNum}
                 </span>
                 <div className="mt-1 flex flex-col gap-0.5">

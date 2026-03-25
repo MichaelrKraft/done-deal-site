@@ -99,7 +99,7 @@ export default async function TransactionDetailPage({ params }: { params: Promis
               {transaction.side === 'buyer' ? 'Buyer' : 'Seller'}
             </Badge>
             <Badge variant="outline">{STAGE_LABELS[transaction.stage] ?? transaction.stage}</Badge>
-            <Badge variant="outline" className="bg-[#c75c2e]/10 text-[#c75c2e] border-[#c75c2e]/20">
+            <Badge variant="outline" className="bg-[#84c9d1]/10 text-[#84c9d1] border-[#84c9d1]/20">
               AI Active
             </Badge>
           </div>
@@ -200,7 +200,7 @@ export default async function TransactionDetailPage({ params }: { params: Promis
       {transaction.parties.length === 0 && deadlinesSorted.length === 0 && transaction.tasks.length === 0 && (
         <div className="text-center py-16">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#f5f0ea] mb-4">
-            <span className="text-[#c75c2e] text-xl">&#9672;</span>
+            <span className="text-[#84c9d1] text-xl">&#9672;</span>
           </div>
           <p className="text-[#7a6e63]">No data yet. The AI TC agent will populate tasks and deadlines once your MEC date is set.</p>
         </div>

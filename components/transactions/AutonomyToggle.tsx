@@ -54,7 +54,7 @@ export function AutonomyToggle({ transactionId, currentMode }: Props) {
           disabled:opacity-50 disabled:cursor-not-allowed
           ${isAutonomous
             ? 'bg-[#0F7B0F] focus-visible:ring-[#0F7B0F]'
-            : 'bg-[#c75c2e] focus-visible:ring-[#c75c2e]'}
+            : 'bg-[#84c9d1] focus-visible:ring-[#84c9d1]'}
         `}
       >
         <span
@@ -67,7 +67,7 @@ export function AutonomyToggle({ transactionId, currentMode }: Props) {
       </button>
 
       <div className="min-w-0">
-        <span className={`text-sm font-medium ${isAutonomous ? 'text-[#0F7B0F]' : 'text-[#c75c2e]'}`}>
+        <span className={`text-sm font-medium ${isAutonomous ? 'text-[#0F7B0F]' : 'text-[#84c9d1]'}`}>
           {isAutonomous ? 'Autonomous' : 'Supervised'}
         </span>
         <p className="text-xs text-[#b0a698] mt-0.5">

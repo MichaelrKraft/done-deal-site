@@ -99,7 +99,7 @@ export default function TemplatesSection() {
         {!showEditor && (
           <button
             onClick={handleCreate}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#c75c2e] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#b5512a] transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#84c9d1] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#6fb8c0] transition-colors"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.5v15m7.5-7.5h-15" />

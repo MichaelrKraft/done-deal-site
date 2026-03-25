@@ -168,7 +168,7 @@ export default function TelegramSection({ initialTelegramId }: TelegramSectionPr
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="@username"
-              className="flex-1 rounded-lg border border-[#e8e2d9] bg-white px-3 py-1.5 text-sm text-[#2c2420] placeholder:text-[#b0a698] focus:outline-none focus:ring-2 focus:ring-[#c75c2e]/20 focus:border-[#c75c2e]"
+              className="flex-1 rounded-lg border border-[#e8e2d9] bg-white px-3 py-1.5 text-sm text-[#2c2420] placeholder:text-[#b0a698] focus:outline-none focus:ring-2 focus:ring-[#84c9d1]/20 focus:border-[#84c9d1]"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleConnect()
               }}
@@ -177,7 +177,7 @@ export default function TelegramSection({ initialTelegramId }: TelegramSectionPr
               type="button"
               onClick={handleConnect}
               disabled={status === 'loading' || inputValue.replace(/^@/, '').length < 5}
-              className="rounded-lg bg-[#c75c2e] px-4 py-1.5 text-xs font-medium text-white hover:bg-[#b5512a] transition-colors disabled:opacity-50"
+              className="rounded-lg bg-[#84c9d1] px-4 py-1.5 text-xs font-medium text-white hover:bg-[#6fb8c0] transition-colors disabled:opacity-50"
             >
               {status === 'loading' ? 'Saving...' : 'Connect'}
             </button>

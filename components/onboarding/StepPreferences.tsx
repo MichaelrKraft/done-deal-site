@@ -92,7 +92,7 @@ export function StepPreferences({ defaultName, onNext }: StepPreferencesProps) {
                       onClick={() => selectOption(q.key, option)}
                       className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
                         isSelected
-                          ? 'bg-[#c75c2e] text-white'
+                          ? 'bg-[#84c9d1] text-white'
                           : 'bg-[#f5f0ea] text-[#7a6e63] hover:bg-[#ece6dd]'
                       }`}
                     >

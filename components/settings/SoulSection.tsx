@@ -56,7 +56,7 @@ export default function SoulSection({ initial }: SoulSectionProps) {
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               rows={16}
-              className="w-full rounded-lg border border-[#e8e2d9] bg-[#faf8f5] p-3 text-sm text-[#2c2420] font-mono leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#c75c2e]/30 focus:border-[#c75c2e] resize-y"
+              className="w-full rounded-lg border border-[#e8e2d9] bg-[#faf8f5] p-3 text-sm text-[#2c2420] font-mono leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#84c9d1]/30 focus:border-[#84c9d1] resize-y"
             />
             <div className="flex gap-2 justify-end">
               <button
@@ -70,7 +70,7 @@ export default function SoulSection({ initial }: SoulSectionProps) {
                 type="button"
                 onClick={handleSave}
                 disabled={saving}
-                className="rounded-lg bg-[#c75c2e] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#b5512a] transition-colors disabled:opacity-50"
+                className="rounded-lg bg-[#84c9d1] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#6fb8c0] transition-colors disabled:opacity-50"
               >
                 {saving ? 'Saving...' : 'Save'}
               </button>
@@ -85,7 +85,7 @@ export default function SoulSection({ initial }: SoulSectionProps) {
               <button
                 type="button"
                 onClick={() => { setDraft(soulDocument); setEditing(true) }}
-                className="text-xs text-[#c75c2e] hover:text-[#b5512a] font-medium transition-colors"
+                className="text-xs text-[#84c9d1] hover:text-[#6fb8c0] font-medium transition-colors"
               >
                 Edit
               </button>

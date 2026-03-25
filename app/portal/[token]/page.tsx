@@ -166,7 +166,7 @@ export default async function PortalPage({
                     <div
                       className={`h-2 w-full rounded-full ${
                         isCompleted
-                          ? 'bg-[#c75c2e]'
+                          ? 'bg-[#84c9d1]'
                           : 'bg-[#e8e2d9]'
                       }`}
                     />
@@ -175,7 +175,7 @@ export default async function PortalPage({
                   <span
                     className={`text-[10px] md:text-xs mt-2 text-center leading-tight ${
                       isCurrent
-                        ? 'text-[#c75c2e] font-semibold'
+                        ? 'text-[#84c9d1] font-semibold'
                         : isCompleted
                         ? 'text-[#2c2420]'
                         : 'text-[#b0a698]'
@@ -231,7 +231,7 @@ export default async function PortalPage({
                             ? 'bg-red-50 text-red-600'
                             : days <= 3
                             ? 'bg-amber-50 text-amber-600'
-                            : 'bg-[#f5f0ea] text-[#c75c2e]'
+                            : 'bg-[#f5f0ea] text-[#84c9d1]'
                         }`}
                       >
                         {days < 0 ? `${Math.abs(days)}` : days === 0 ? '!' : days}
@@ -357,7 +357,7 @@ export default async function PortalPage({
       <footer className="border-t border-[#e8e2d9] bg-white mt-12">
         <div className="max-w-2xl mx-auto px-4 py-6 text-center">
           <p className="text-xs text-[#b0a698]">
-            Powered by <span className="font-semibold text-[#c75c2e]">Done Deal</span>
+            Powered by <span className="font-semibold text-[#84c9d1]">Done Deal</span>
           </p>
         </div>
       </footer>

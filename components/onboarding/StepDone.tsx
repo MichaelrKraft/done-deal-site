@@ -9,9 +9,9 @@ export function StepDone() {
   return (
     <div className="space-y-6 text-center">
       <div className="flex justify-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#c75c2e]/10 border border-[#c75c2e]">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#84c9d1]/10 border border-[#84c9d1]">
           <svg
-            className="h-8 w-8 text-[#c75c2e]"
+            className="h-8 w-8 text-[#84c9d1]"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -34,15 +34,15 @@ export function StepDone() {
         <p className="text-sm font-medium text-[#2c2420]">What happens next</p>
         <ul className="text-sm text-[#7a6e63] space-y-2">
           <li className="flex items-start gap-2">
-            <span className="mt-0.5 text-[#c75c2e]">•</span>
+            <span className="mt-0.5 text-[#84c9d1]">•</span>
             Your AI TC scans your transactions and builds a timeline of deadlines
           </li>
           <li className="flex items-start gap-2">
-            <span className="mt-0.5 text-[#c75c2e]">•</span>
+            <span className="mt-0.5 text-[#84c9d1]">•</span>
             Drafts emails and reminders — you approve before anything sends
           </li>
           <li className="flex items-start gap-2">
-            <span className="mt-0.5 text-[#c75c2e]">•</span>
+            <span className="mt-0.5 text-[#84c9d1]">•</span>
             Telegram alerts keep you updated on the go
           </li>
         </ul>

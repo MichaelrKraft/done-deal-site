@@ -104,7 +104,7 @@ export default function InboxAddressSection({ initialAddress }: InboxAddressSect
           <button
             type="button"
             onClick={generateAddress}
-            className="rounded-lg bg-[#c75c2e] px-4 py-1.5 text-xs font-medium text-white hover:bg-[#b5512a] transition-colors"
+            className="rounded-lg bg-[#84c9d1] px-4 py-1.5 text-xs font-medium text-white hover:bg-[#6fb8c0] transition-colors"
           >
             Generate Address
           </button>
