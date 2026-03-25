@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import {
   Inbox,
   LayoutDashboard,
+  Calendar,
   FileText,
   Plus,
   Settings,
@@ -15,6 +16,7 @@ import { signOut } from '@/lib/actions/auth'
 const NAV_ITEMS = [
   { label: 'Feed', href: '/feed', icon: Inbox },
   { label: 'Board', href: '/board', icon: LayoutDashboard },
+  { label: 'Calendar', href: '/calendar', icon: Calendar },
   { label: 'Transactions', href: '/transactions', icon: FileText },
   { label: 'New', href: '/transactions/new', icon: Plus },
   { label: 'Settings', href: '/settings', icon: Settings },
