@@ -24,9 +24,7 @@ export default function NewTransactionPage() {
   })
   const fileRef = useRef<HTMLInputElement>(null)
 
-  async function handlePDFUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+  async function uploadFile(file: File) {
     setExtracting(true)
     setError(null)
     const fd = new FormData()
@@ -116,12 +114,7 @@ export default function NewTransactionPage() {
               e.stopPropagation()
               const file = e.dataTransfer.files[0]
               if (file && file.type === 'application/pdf') {
-                const dt = new DataTransfer()
-                dt.items.add(file)
-                if (fileRef.current) {
-                  fileRef.current.files = dt.files
-                  fileRef.current.dispatchEvent(new Event('change', { bubbles: true }))
-                }
+                uploadFile(file)
               }
             }}
             className="border-2 border-dashed border-[#e8e2d9] rounded-lg p-8 text-center cursor-pointer hover:border-[#c75c2e] transition-colors"
@@ -137,7 +130,7 @@ export default function NewTransactionPage() {
               </>
             )}
           </div>
-          <input ref={fileRef} type="file" accept=".pdf" className="hidden" onChange={handlePDFUpload} />
+          <input ref={fileRef} type="file" accept=".pdf" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadFile(f) }} />
         </CardContent>
       </Card>
 
