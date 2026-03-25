@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS agents (
   whatsapp_id       text,
   autonomy_default  text NOT NULL DEFAULT 'supervised'
                     CHECK (autonomy_default IN ('supervised', 'autonomous')),
+  preferences       jsonb NOT NULL DEFAULT '{}',
   created_at        timestamptz NOT NULL DEFAULT now()
 );
 

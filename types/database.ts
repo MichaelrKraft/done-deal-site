@@ -107,6 +107,7 @@ export type Database = {
           telegram_id: string | null
           whatsapp_id: string | null
           autonomy_default: AutonomyMode
+          preferences: Record<string, unknown>
           created_at: string
         }
         Insert: {
@@ -119,6 +120,7 @@ export type Database = {
           telegram_id?: string | null
           whatsapp_id?: string | null
           autonomy_default?: AutonomyMode
+          preferences?: Record<string, unknown>
           created_at?: string
         }
         Update: {
@@ -131,6 +133,7 @@ export type Database = {
           telegram_id?: string | null
           whatsapp_id?: string | null
           autonomy_default?: AutonomyMode
+          preferences?: Record<string, unknown>
           created_at?: string
         }
         Relationships: []

@@ -12,10 +12,15 @@ export async function POST(request: NextRequest) {
   // 2. Agent lookup
   const { data: agent } = await supabase
     .from('agents')
-    .select('id, name')
+    .select('id, name, preferences')
     .eq('auth_user_id', user.id)
     .single()
   if (!agent) return NextResponse.json({ error: 'Agent not found' }, { status: 404 })
+
+  const prefs = (agent.preferences ?? {}) as Record<string, string>
+  const preferredName = prefs.preferred_name ?? agent.name.split(' ')[0]
+  const communicationStyle = prefs.communication_style ?? 'balanced'
+  const detailLevel = prefs.detail_level ?? 'highlights'
 
   // 3. Parse request body
   const body: unknown = await request.json()
@@ -106,7 +111,23 @@ export async function POST(request: NextRequest) {
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 1024,
-      system: `You are an AI transaction coordinator assistant for ${agent.name} at Your Castle Real Estate. Answer questions about their transactions concisely and helpfully. Use Colorado real estate terminology. Today is ${today.toISOString().split('T')[0]}.
+      system: `PERSONALITY & COMMUNICATION STYLE:
+You are a friendly, confident, and experienced transaction coordinator — ${preferredName}'s most reliable team member. You genuinely care about getting deals closed smoothly.
+
+- Be warm but professional. Address the agent as "${preferredName}".
+- Lead with what you've already done, then what needs attention.
+- Be proactive: "I noticed the inspection deadline is in 3 days — I've already drafted a reminder to the inspector."
+- Be confident: "Everything's on track" or "We need to address this today."
+- Keep it concise — agents are busy. No filler.
+- Use "we" language: "We're 5 days from closing" not "The closing date is in 5 days."
+- When flagging issues, always include the recommended action.
+- Celebrate wins: "Great news — earnest money confirmed by title!"
+
+AGENT PREFERENCES:
+- Communication style: ${communicationStyle}
+- Detail level: ${detailLevel}
+
+You are the AI transaction coordinator for ${preferredName} at Your Castle Real Estate. Use Colorado real estate terminology. Today is ${today.toISOString().split('T')[0]}.
 
 If the agent has no active transactions, let them know and suggest they add one.
 

@@ -5,19 +5,22 @@ import { useRouter } from 'next/navigation'
 import { Progress } from '@/components/ui/progress'
 import { Card, CardContent } from '@/components/ui/card'
 import { saveAgentInfo, saveTelegramUsername, createFirstTransaction } from '@/lib/actions/onboarding'
+import { savePreferences } from '@/lib/actions/preferences'
 import { StepYourInfo, type YourInfoValues } from './StepYourInfo'
 import { StepConnectOutlook } from './StepConnectOutlook'
 import { StepConnectTelegram } from './StepConnectTelegram'
 import { StepFirstTransaction, type FirstTransactionValues } from './StepFirstTransaction'
+import { StepPreferences } from './StepPreferences'
 import { StepDone } from './StepDone'
 
-const TOTAL_STEPS = 5
+const TOTAL_STEPS = 6
 
 const STEP_LABELS = [
   'Your info',
   'Connect Outlook',
   'Connect Telegram',
   'First transaction',
+  'Preferences',
   'Done',
 ]
 
@@ -56,6 +59,16 @@ export function OnboardingWizard({ defaultName }: OnboardingWizardProps) {
 
   function handleSkipTransaction() {
     setStep(5)
+  }
+
+  async function handlePreferences(preferences: Record<string, string>) {
+    setStepError(null)
+    const result = await savePreferences(preferences)
+    if (result.error) {
+      setStepError(result.error)
+      return
+    }
+    setStep(6)
     router.prefetch('/feed')
   }
 
@@ -89,7 +102,10 @@ export function OnboardingWizard({ defaultName }: OnboardingWizardProps) {
           {step === 4 && (
             <StepFirstTransaction onNext={handleFirstTransaction} onSkip={handleSkipTransaction} />
           )}
-          {step === 5 && <StepDone />}
+          {step === 5 && (
+            <StepPreferences defaultName={defaultName} onNext={handlePreferences} />
+          )}
+          {step === 6 && <StepDone />}
         </CardContent>
       </Card>
     </div>
