@@ -12,13 +12,29 @@ export default async function SettingsPage() {
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) redirect('/login')
 
-  const { data: agent } = await supabase
+  const { data: rawAgent } = await supabase
     .from('agents')
     .select('*')
     .eq('auth_user_id', user.id)
     .single()
 
-  if (!agent) redirect('/onboarding')
+  if (!rawAgent) redirect('/onboarding')
+
+  const agent = rawAgent as Record<string, unknown> & {
+    id: string
+    name: string
+    email: string
+    brokerage_id: string
+    autonomy_default: string
+    telegram_id: string | null
+    outlook_token: unknown
+    google_token?: unknown
+    docusign_token?: unknown
+    email_provider?: string
+    calendar_provider?: string
+    soul_document: string
+    inbox_address?: string | null
+  }
 
   const { data: memories } = await supabase
     .from('agent_memories')
