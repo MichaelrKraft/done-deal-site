@@ -86,7 +86,11 @@ export default function TaskCard({ task, aiActions }: TaskCardProps) {
   const assigned = ASSIGNED_LABELS[task.assigned_to] ?? ASSIGNED_LABELS.agent
 
   return (
-    <div className="bg-white border border-[#e8e2d9] rounded-xl shadow-sm">
+    <div className={`bg-white rounded-xl shadow-sm border ${
+      task.status === 'completed' ? 'border-emerald-400' :
+      task.status === 'in_progress' ? 'border-amber-300' :
+      'border-[#e8e2d9]'
+    }`}>
       <button
         type="button"
         className="w-full flex items-center gap-3 px-4 py-3 text-left cursor-pointer"
