@@ -33,6 +33,12 @@ export interface ExtractedContractData {
   inspection_deadline?: string
 }
 
+const MONTH_MAP: Record<string, string> = {
+  january: '01', february: '02', march: '03', april: '04',
+  may: '05', june: '06', july: '07', august: '08',
+  september: '09', october: '10', november: '11', december: '12',
+}
+
 export async function extractContractData(pdfBuffer: Buffer): Promise<ExtractedContractData> {
   const parser = new PDFParse(new Uint8Array(pdfBuffer))
   await parser.load()
@@ -41,31 +47,81 @@ export async function extractContractData(pdfBuffer: Buffer): Promise<ExtractedC
   const text = data.pages.map((p) => p.text).join('\n')
   const result: ExtractedContractData = {}
 
-  // Address patterns
-  const addrMatch = text.match(/(?:Property Address|Street Address|Property:)\s*([^\n]{10,80})/i)
+  // Address — CBS uses "Property Address:"
+  const addrMatch = text.match(/(?:Property Address|Street Address|Property:)\s*:?\s*([^\n]{10,80})/i)
   if (addrMatch) result.property_address = addrMatch[1].trim()
 
-  // Date patterns MM/DD/YYYY
-  const dates = [...text.matchAll(/(\d{2}\/\d{2}\/\d{4})/g)].map(m => m[1])
-  void dates // available for future use
+  // Buyer names — CBS uses "Buyer(s):" with possible middle names and "and" for couples
+  const buyerMatch = text.match(/Buyer\(?s?\)?[:\s]+([A-Z][a-zA-Z ]+?)(?:\s+Seller|\s+Property|\n)/m)
+  if (buyerMatch) {
+    const raw = buyerMatch[1].trim().replace(/\s+and\s+/g, ' & ')
+    result.buyer_name = raw
+  }
+
+  // Seller names — CBS uses "Seller(s):"
+  const sellerMatch = text.match(/Seller\(?s?\)?[:\s]+([A-Z][a-zA-Z ]+?)(?:\s+Property|\s+Address|\n)/m)
+  if (sellerMatch) {
+    const raw = sellerMatch[1].trim().replace(/\s+and\s+/g, ' & ')
+    result.seller_name = raw
+  }
+
+  // Dates — support both "MM/DD/YYYY" and "Month DD, YYYY" formats
+  const allNumericDates = [...text.matchAll(/(\d{1,2})\/(\d{1,2})\/(\d{4})/g)]
+  const allWrittenDates = [...text.matchAll(/(\w+)\s+(\d{1,2}),?\s+(\d{4})/g)]
 
   // MEC date
-  const mecMatch = text.match(/(?:MEC|Mutual Execution|Contract Date)[:\s]+(\d{2}\/\d{2}\/\d{4})/i)
-  if (mecMatch) result.mec_date = parseDate(mecMatch[1])
+  const mecNumeric = text.match(/(?:MEC|Mutual Execution|Contract Date|Date of Contract)[:\s]+(\d{1,2})\/(\d{1,2})\/(\d{4})/i)
+  const mecWritten = text.match(/(?:MEC|Mutual Execution|Contract Date|Date of Contract)[:\s]+(\w+)\s+(\d{1,2}),?\s+(\d{4})/i)
+  if (mecNumeric) {
+    result.mec_date = `${mecNumeric[3]}-${mecNumeric[1].padStart(2, '0')}-${mecNumeric[2].padStart(2, '0')}`
+  } else if (mecWritten && MONTH_MAP[mecWritten[1].toLowerCase()]) {
+    result.mec_date = `${mecWritten[3]}-${MONTH_MAP[mecWritten[1].toLowerCase()]}-${mecWritten[2].padStart(2, '0')}`
+  }
 
   // Closing date
-  const closeMatch = text.match(/(?:Closing Date|Close of Escrow)[:\s]+(\d{2}\/\d{2}\/\d{4})/i)
-  if (closeMatch) result.closing_date = parseDate(closeMatch[1])
+  const closeNumeric = text.match(/(?:Closing|Close of Escrow|Closing Date|Settlement Date)[:\s]+(\d{1,2})\/(\d{1,2})\/(\d{4})/i)
+  const closeWritten = text.match(/(?:Closing|Close of Escrow|Closing Date|Settlement Date)[:\s]+(\w+)\s+(\d{1,2}),?\s+(\d{4})/i)
+  if (closeNumeric) {
+    result.closing_date = `${closeNumeric[3]}-${closeNumeric[1].padStart(2, '0')}-${closeNumeric[2].padStart(2, '0')}`
+  } else if (closeWritten && MONTH_MAP[closeWritten[1].toLowerCase()]) {
+    result.closing_date = `${closeWritten[3]}-${MONTH_MAP[closeWritten[1].toLowerCase()]}-${closeWritten[2].padStart(2, '0')}`
+  }
+
+  // If no labeled dates found, try to find dates in the text and use heuristics
+  if (!result.mec_date && !result.closing_date) {
+    const foundDates: string[] = []
+    for (const m of allNumericDates) {
+      foundDates.push(`${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}`)
+    }
+    for (const m of allWrittenDates) {
+      const monthNum = MONTH_MAP[m[1].toLowerCase()]
+      if (monthNum) {
+        foundDates.push(`${m[3]}-${monthNum}-${m[2].padStart(2, '0')}`)
+      }
+    }
+    if (foundDates.length >= 2) {
+      const sorted = [...new Set(foundDates)].sort()
+      result.mec_date = sorted[0]
+      result.closing_date = sorted[sorted.length - 1]
+    } else if (foundDates.length === 1) {
+      result.mec_date = foundDates[0]
+    }
+  }
 
   // Inspection deadline
-  const inspMatch = text.match(/(?:Inspection Objection|Inspection Deadline)[:\s]+(\d{2}\/\d{2}\/\d{4})/i)
-  if (inspMatch) result.inspection_deadline = parseDate(inspMatch[1])
+  const inspNumeric = text.match(/(?:Inspection Objection|Inspection Deadline|Inspection Resolution)[:\s]+(\d{1,2})\/(\d{1,2})\/(\d{4})/i)
+  const inspWritten = text.match(/(?:Inspection Objection|Inspection Deadline|Inspection Resolution)[:\s]+(\w+)\s+(\d{1,2}),?\s+(\d{4})/i)
+  if (inspNumeric) {
+    result.inspection_deadline = `${inspNumeric[3]}-${inspNumeric[1].padStart(2, '0')}-${inspNumeric[2].padStart(2, '0')}`
+  } else if (inspWritten && MONTH_MAP[inspWritten[1].toLowerCase()]) {
+    result.inspection_deadline = `${inspWritten[3]}-${MONTH_MAP[inspWritten[1].toLowerCase()]}-${inspWritten[2].padStart(2, '0')}`
+  }
 
-  // Dollar amounts
-  const priceMatch = text.match(/(?:Purchase Price|Sale Price)[:\s$]+([0-9,]+)/i)
+  // Dollar amounts — handle "$589,500" and "589,500" and "589500"
+  const priceMatch = text.match(/(?:Purchase Price|Sale Price)[:\s]*\$?\s*([0-9,]+)/i)
   if (priceMatch) result.sale_price = parseInt(priceMatch[1].replace(/,/g, ''))
 
-  const earnestMatch = text.match(/(?:Earnest Money)[:\s$]+([0-9,]+)/i)
+  const earnestMatch = text.match(/(?:Earnest Money)[:\s]*\$?\s*([0-9,]+)/i)
   if (earnestMatch) result.earnest_money = parseInt(earnestMatch[1].replace(/,/g, ''))
 
   // Emails
@@ -73,12 +129,13 @@ export async function extractContractData(pdfBuffer: Buffer): Promise<ExtractedC
   if (emails.length > 0) result.buyer_agent_email = emails[0]
   if (emails.length > 1) result.seller_agent_email = emails[1]
 
-  // Names
-  const buyerMatch = text.match(/(?:Buyer(?:s)?)[:\s]+([A-Z][a-z]+ [A-Z][a-z]+)/m)
-  if (buyerMatch) result.buyer_name = buyerMatch[1].trim()
+  // Title company
+  const titleMatch = text.match(/(?:Title Company|Title Insurance|Closing Company)[:\s]+([^\n]{5,60})/i)
+  if (titleMatch) result.title_company = titleMatch[1].trim()
 
-  const sellerMatch = text.match(/(?:Seller(?:s)?)[:\s]+([A-Z][a-z]+ [A-Z][a-z]+)/m)
-  if (sellerMatch) result.seller_name = sellerMatch[1].trim()
+  // Lender
+  const lenderMatch = text.match(/(?:Lender|Mortgage Company|Loan Company)[:\s]+([^\n]{5,60})/i)
+  if (lenderMatch) result.lender_name = lenderMatch[1].trim()
 
   // Property characteristics
   result.has_hoa = /\b(?:HOA|home.?owner.?association|CIC|common interest)\b/i.test(text)
@@ -97,9 +154,4 @@ export async function extractContractData(pdfBuffer: Buffer): Promise<ExtractedC
   if (yearMatch) result.year_built = parseInt(yearMatch[1])
 
   return result
-}
-
-function parseDate(mmddyyyy: string): string {
-  const [mm, dd, yyyy] = mmddyyyy.split('/')
-  return `${yyyy}-${mm}-${dd}`
 }
