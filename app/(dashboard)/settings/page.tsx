@@ -9,7 +9,7 @@ export default async function SettingsPage() {
 
   const { data: agent } = await supabase
     .from('agents')
-    .select('name, email, autonomy_default, telegram_id')
+    .select('name, email, autonomy_default, telegram_id, outlook_token')
     .eq('auth_user_id', user.id)
     .single()
 
@@ -47,10 +47,53 @@ export default async function SettingsPage() {
         <CardHeader>
           <CardTitle className="text-base">Integrations</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm text-gray-400">
-          <p>Outlook email — coming in Phase 4</p>
-          <p>Telegram bot — coming in Phase 5</p>
-          <p>WhatsApp — coming in Phase 5</p>
+        <CardContent className="space-y-4 text-sm">
+          <div>
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-gray-400">Telegram</span>
+              {agent.telegram_id ? (
+                <span className="inline-flex items-center gap-1.5 text-emerald-400 text-xs font-medium">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  Connected
+                </span>
+              ) : (
+                <span className="text-gray-500 text-xs">Not connected</span>
+              )}
+            </div>
+            {agent.telegram_id ? (
+              <p className="text-xs text-gray-500">
+                Chat ID: {agent.telegram_id} — You will receive push notifications for pending actions.
+              </p>
+            ) : (
+              <div className="rounded-md bg-gray-800/50 p-3 text-xs text-gray-400 space-y-1">
+                <p>To connect Telegram notifications:</p>
+                <p>1. Open Telegram and search for your Done Deal bot</p>
+                <p>2. Send /start to the bot</p>
+                <p>3. The bot will reply with your Chat ID</p>
+                <p>4. Ask your admin to add the Chat ID to your agent profile</p>
+              </div>
+            )}
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-gray-400">Outlook email</span>
+            {agent.outlook_token ? (
+              <span className="inline-flex items-center gap-1.5 text-emerald-400 text-xs font-medium">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                Connected
+              </span>
+            ) : (
+              <a
+                href="/api/auth/microsoft"
+                className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-500 transition-colors"
+              >
+                Connect Outlook
+              </a>
+            )}
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-gray-400">WhatsApp</span>
+            <span className="text-gray-500 text-xs">Coming soon</span>
+          </div>
         </CardContent>
       </Card>
     </div>

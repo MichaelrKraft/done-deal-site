@@ -4,6 +4,7 @@ import type { Database, Agent, Transaction, Party, Deadline, Task, ComplianceReq
 import { classifyRisk, shouldAutoExecute } from '@/lib/risk-classifier'
 import { allToolDefinitions, executeToolCall } from '@/tools'
 import type { TCJobType } from '@/worker/job-types'
+import { sendTelegramMessage, sendTelegramApprovalRequest } from '@/integrations/telegram'
 
 // ============================================================
 // SERVICE CLIENT (worker context — no cookies)
@@ -157,6 +158,54 @@ export async function runTCAgent(agentId: string, jobType: TCJobType): Promise<v
       { role: 'assistant', content: response.content },
       { role: 'user', content: toolResults },
     ]
+  }
+
+  // 6. Telegram notifications (after tool-use loop)
+  await notifyViaTelegram(agent, agentId, supabase, transactions)
+}
+
+// ============================================================
+// TELEGRAM NOTIFICATIONS
+// ============================================================
+
+async function notifyViaTelegram(
+  agent: Agent,
+  agentId: string,
+  supabase: ReturnType<typeof createServiceClient>,
+  transactions: Transaction[]
+): Promise<void> {
+  if (!agent.telegram_id || !process.env.TELEGRAM_BOT_TOKEN) return
+
+  // Query actions created in the last 5 minutes (this run's actions)
+  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
+
+  const { data: recentActions } = await supabase
+    .from('ai_actions')
+    .select('id, action_type, risk_level, status, context_summary, transaction_id')
+    .eq('agent_id', agentId)
+    .gte('created_at', fiveMinutesAgo)
+
+  const actions = recentActions ?? []
+  const pendingActions = actions.filter((a) => a.status === 'pending')
+  const highRiskPending = pendingActions.filter((a) => a.risk_level === 'high')
+
+  if (pendingActions.length === 0) return
+
+  // Summary message
+  await sendTelegramMessage(
+    agent.telegram_id,
+    `You have *${pendingActions.length}* new item${pendingActions.length === 1 ? '' : 's'} to review.`
+  )
+
+  // Individual alerts for HIGH risk items
+  for (const action of highRiskPending) {
+    const tx = transactions.find((t) => t.id === action.transaction_id)
+    await sendTelegramApprovalRequest(agent.telegram_id, {
+      id: action.id,
+      type: action.action_type,
+      summary: action.context_summary ?? 'No summary available',
+      property: tx?.property_address ?? 'Unknown property',
+    })
   }
 }
 
