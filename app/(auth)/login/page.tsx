@@ -10,6 +10,7 @@ import { signIn } from '@/lib/actions/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 const loginSchema = z.object({
@@ -48,9 +49,9 @@ export default function LoginPage() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="space-y-1">
-        <h1 className="font-serif text-2xl text-sd-text">Done Deal</h1>
+        <Image src="/done-deal-logo.png" alt="Done Deal" width={180} height={180} className="mx-auto" priority />
         <CardTitle>Welcome back</CardTitle>
-        <CardDescription>Sign in to your Done Deal account</CardDescription>
+        <CardDescription>Sign in to your account</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

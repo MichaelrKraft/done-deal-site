@@ -1,45 +1,38 @@
-# Task: Interactive Task Cards with AI Activity Logs
+# Done Deal Phase 2 — Implementation Progress
 
-## Plan
+## Phase 0: Critical Bug Fix
+- [x] Fix pdf-parse v2 API change in lib/pdf-extractor.ts
+- [x] Verify extraction works with real PDF
 
-- [x] Read current transaction detail page, types, and list page
-- [x] Create `components/transactions/TaskCard.tsx` — interactive expandable task card
-- [x] Update `app/(dashboard)/transactions/[id]/page.tsx` — use TaskCard, increase AI actions limit, filter actions per task
-- [x] Update `app/(dashboard)/transactions/page.tsx` — add task progress indicators to list
-- [x] Run `npx tsc --noEmit` and fix any errors
+## Phase 1: Quick Wins
+- [ ] 1A: Manual Task Checkboxes
+  - [ ] 1A.1: Create SQL migration `db/migrations/phase2-task-checkboxes.sql` (completed_by, completed_at, completion_method columns)
+  - [ ] 1A.2: Update `types/database.ts` — add 3 new fields to tasks Row/Insert/Update + CompletionMethod type
+  - [ ] 1A.3: Create API route `app/api/transactions/[id]/tasks/[taskId]/route.ts` — PATCH with auth + IDOR check
+  - [ ] 1A.4: Update `components/transactions/TaskCard.tsx` — add onStatusChange prop, make StatusCircle clickable
+  - [ ] 1A.5: Create `components/transactions/TaskList.tsx` — client component wrapper with optimistic updates + API calls
+  - [ ] 1A.6: Update `app/(dashboard)/transactions/[id]/page.tsx` — use TaskList instead of inline TaskCard mapping
+  - [ ] 1A.7: Run `npx tsc --noEmit` to verify zero type errors
+- [x] 1B: Task Notes
+  - [x] 1B.1: Create SQL migration `db/migrations/phase2-task-notes.sql` (task_notes table + index)
+  - [x] 1B.2: Update `types/database.ts` — add TaskNoteRow, TaskNoteInsert types + task_notes to Database type map
+  - [x] 1B.3: Create API route `app/api/transactions/[id]/tasks/[taskId]/notes/route.ts` — GET (list) + POST (add) with auth + IDOR
+  - [x] 1B.4: Update `components/transactions/TaskCard.tsx` — add notes section below AI Activity Log (notes list + add note input)
+  - [x] 1B.5: Update `app/(dashboard)/transactions/[id]/page.tsx` — fetch task_notes, pass to TaskCards, add handleAddNote with optimistic update
+  - [x] 1B.6: Update `lib/tc-agent.ts` — load task_notes in runTCAgent(), include up to 3 recent notes per task in buildContextMessage()
+  - [x] 1B.7: Run `npx tsc --noEmit` to verify zero type errors
 
-## Changes
+## Phase 2: Document System
+- [ ] 2A: Document Storage & Tracking
+- [ ] 2B: Custom Email Templates
 
-### 1. TaskCard.tsx (new file)
-- Client component with expand/collapse state
-- Status circle (empty/pulse/checkmark/dashed) based on task status
-- Status pill label on the right
-- Assigned-to badge
-- Expandable AI activity log timeline
-- Relative time formatting helper
+## Phase 3: Inbound Email + Client Portal
+- [ ] 3A: Inbound Email Inbox
+- [ ] 3B: Client Portal
 
-### 2. Transaction Detail Page
-- Import and use TaskCard instead of inline task rendering
-- Increase ai_actions limit from 5 to 50
-- Filter AI actions per task by matching task title keywords in context_summary
-- Pass filtered actions to each TaskCard
+## Phase 3.5: Google Workspace + Settings
+- [ ] 3.5A: Google Workspace Integration
+- [ ] 3.5B: Telegram Setup in Settings Page
 
-### 3. Transactions List Page
-- Modify query to include tasks: `select('*, tasks(id, status)')`
-- Show "X/Y tasks done" with color-coded progress bar
-
-## Review
-
-All 5 tasks complete. Zero type errors.
-
-### Files Created
-- `components/transactions/TaskCard.tsx` (156 lines) -- Client component with interactive expand/collapse
-
-### Files Modified
-- `app/(dashboard)/transactions/[id]/page.tsx` (205 lines) -- Uses TaskCard, fetches 50 AI actions, filters per task
-- `app/(dashboard)/transactions/page.tsx` (123 lines) -- Loads tasks with transactions, shows progress bar
-
-### What Changed
-- **TaskCard**: status circles (empty red border for pending, amber pulse for in_progress, green checkmark for completed, dashed for skipped/n_a), status pill labels, assigned-to badge, click-to-expand with CSS max-height transition, AI activity timeline with relative timestamps
-- **Detail page**: removed inline task rendering and old STATUS_CONFIG/ASSIGNED_LABELS constants, imports TaskCard, increased AI actions query from 5 to 50, added `actionsForTask()` that matches task title keywords against context_summary, top-level feed still shows only 5 most recent
-- **List page**: query changed from `select('*')` to `select('*, tasks(id, status)')`, each transaction card shows a color-coded progress bar (green >=75%, amber 25-75%, red <25%) with "X/Y" fraction
+## Phase 4-6: Later phases
+- [ ] DocuSign, Team Collaboration, Analytics

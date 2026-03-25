@@ -284,6 +284,9 @@ export type Database = {
           assigned_to: TaskAssignedTo
           due_date: string | null
           sort_order: number
+          completed_by: string | null
+          completed_at: string | null
+          completion_method: 'manual' | 'ai_auto' | 'ai_approved' | null
           created_at: string
           updated_at: string
         }
@@ -298,6 +301,9 @@ export type Database = {
           assigned_to?: TaskAssignedTo
           due_date?: string | null
           sort_order?: number
+          completed_by?: string | null
+          completed_at?: string | null
+          completion_method?: 'manual' | 'ai_auto' | 'ai_approved' | null
           created_at?: string
           updated_at?: string
         }
@@ -312,6 +318,9 @@ export type Database = {
           assigned_to?: TaskAssignedTo
           due_date?: string | null
           sort_order?: number
+          completed_by?: string | null
+          completed_at?: string | null
+          completion_method?: 'manual' | 'ai_auto' | 'ai_approved' | null
           created_at?: string
           updated_at?: string
         }
@@ -503,6 +512,33 @@ export type Database = {
         }
         Relationships: []
       }
+      task_notes: {
+        Row: {
+          id: string
+          task_id: string
+          author_type: string
+          author_id: string | null
+          content: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          task_id: string
+          author_type: string
+          author_id?: string | null
+          content: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          task_id?: string
+          author_type?: string
+          author_id?: string | null
+          content?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>
@@ -525,6 +561,17 @@ export type AIAction = Database['public']['Tables']['ai_actions']['Row']
 export type AgentMemory = Database['public']['Tables']['agent_memories']['Row']
 export type ComplianceRequirement = Database['public']['Tables']['compliance_requirements']['Row']
 export type EmailThread = Database['public']['Tables']['email_threads']['Row']
+
+// Task notes
+export interface TaskNoteRow {
+  id: string
+  task_id: string
+  author_type: 'agent' | 'ai' | 'system'
+  author_id: string | null
+  content: string
+  created_at: string
+}
+export type TaskNoteInsert = Omit<TaskNoteRow, 'id' | 'created_at'>
 
 // Enriched type returned by /api/feed (AIAction + joined transaction fields)
 export interface AIActionWithTransaction extends AIAction {

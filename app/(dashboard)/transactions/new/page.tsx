@@ -27,28 +27,33 @@ export default function NewTransactionPage() {
   async function uploadFile(file: File) {
     setExtracting(true)
     setError(null)
-    const fd = new FormData()
-    fd.append('file', file)
-    fd.append('side', side)
-    const res = await fetch('/api/transactions/extract', { method: 'POST', body: fd })
-    if (!res.ok) {
-      const body = await res.json() as { error?: string }
-      setError(body.error ?? 'PDF extraction failed')
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('side', side)
+      const res = await fetch('/api/transactions/extract', { method: 'POST', body: fd })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({})) as { error?: string }
+        setError(body.error ?? 'PDF extraction failed')
+        return
+      }
+      const { extracted: data } = await res.json() as { extracted: ExtractedContractData }
+      if (data) {
+        setExtracted(data)
+        setForm({
+          property_address: data.property_address ?? '',
+          mec_date: data.mec_date ?? '',
+          closing_date: data.closing_date ?? '',
+          sale_price: data.sale_price?.toString() ?? '',
+          earnest_money: data.earnest_money?.toString() ?? '',
+        })
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error'
+      setError(`Upload failed: ${message}`)
+    } finally {
       setExtracting(false)
-      return
     }
-    const { extracted: data } = await res.json() as { extracted: ExtractedContractData }
-    if (data) {
-      setExtracted(data)
-      setForm({
-        property_address: data.property_address ?? '',
-        mec_date: data.mec_date ?? '',
-        closing_date: data.closing_date ?? '',
-        sale_price: data.sale_price?.toString() ?? '',
-        earnest_money: data.earnest_money?.toString() ?? '',
-      })
-    }
-    setExtracting(false)
   }
 
   async function handleSubmit(e: React.FormEvent) {

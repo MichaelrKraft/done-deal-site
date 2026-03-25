@@ -1,5 +1,11 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const pdfParse = require('pdf-parse') as (buffer: Buffer) => Promise<{ text: string }>
+const { PDFParse } = require('pdf-parse') as {
+  PDFParse: new (data: Uint8Array) => {
+    load(): Promise<void>
+    getText(): Promise<{ pages: { text: string }[] }>
+    destroy(): void
+  }
+}
 
 export interface ExtractedContractData {
   property_address?: string
@@ -28,8 +34,11 @@ export interface ExtractedContractData {
 }
 
 export async function extractContractData(pdfBuffer: Buffer): Promise<ExtractedContractData> {
-  const data = await pdfParse(pdfBuffer)
-  const text = data.text
+  const parser = new PDFParse(new Uint8Array(pdfBuffer))
+  await parser.load()
+  const data = await parser.getText()
+  parser.destroy()
+  const text = data.pages.map((p) => p.text).join('\n')
   const result: ExtractedContractData = {}
 
   // Address patterns

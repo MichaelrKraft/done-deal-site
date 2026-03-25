@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { TaskStatus, TaskAssignedTo, AIActionStatus } from '@/types/database'
+import type { TaskStatus, TaskAssignedTo, AIActionStatus, TaskNoteRow } from '@/types/database'
 
 interface TaskCardAction {
   id: string
@@ -22,6 +22,9 @@ interface TaskCardProps {
     due_date: string | null
   }
   aiActions: TaskCardAction[]
+  notes?: TaskNoteRow[]
+  onStatusChange?: (taskId: string, newStatus: string) => void
+  onAddNote?: (taskId: string, content: string) => void
 }
 
 const STATUS_PILL: Record<string, { bg: string; label: string }> = {
@@ -53,10 +56,18 @@ function relativeTime(dateStr: string): string {
   return `${days}d ago`
 }
 
-function StatusCircle({ status }: { status: string }) {
+function StatusCircle({ status, clickable, onClick }: { status: string; clickable?: boolean; onClick?: (e: React.MouseEvent) => void }) {
+  const interactiveClasses = clickable ? ' cursor-pointer hover:scale-110 transition-transform' : ''
+
   if (status === 'completed') {
     return (
-      <span className="flex-shrink-0 w-5 h-5 rounded-full border-2 border-emerald-500 bg-emerald-500 flex items-center justify-center">
+      <span
+        className={`flex-shrink-0 w-5 h-5 rounded-full border-2 border-emerald-500 bg-emerald-500 flex items-center justify-center${interactiveClasses}`}
+        onClick={onClick}
+        role={clickable ? 'button' : undefined}
+        tabIndex={clickable ? 0 : undefined}
+        aria-label={clickable ? 'Mark as pending' : undefined}
+      >
         <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
           <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
@@ -65,7 +76,13 @@ function StatusCircle({ status }: { status: string }) {
   }
   if (status === 'in_progress') {
     return (
-      <span className="flex-shrink-0 w-5 h-5 rounded-full border-2 border-amber-400 bg-amber-50 animate-pulse" />
+      <span
+        className={`flex-shrink-0 w-5 h-5 rounded-full border-2 border-amber-400 bg-amber-50 animate-pulse${interactiveClasses}`}
+        onClick={onClick}
+        role={clickable ? 'button' : undefined}
+        tabIndex={clickable ? 0 : undefined}
+        aria-label={clickable ? 'Mark as completed' : undefined}
+      />
     )
   }
   if (status === 'skipped' || status === 'n_a') {
@@ -75,12 +92,25 @@ function StatusCircle({ status }: { status: string }) {
   }
   // pending (not started)
   return (
-    <span className="flex-shrink-0 w-5 h-5 rounded-full border-2 border-red-300 bg-white" />
+    <span
+      className={`flex-shrink-0 w-5 h-5 rounded-full border-2 border-red-300 bg-white${interactiveClasses}`}
+      onClick={onClick}
+      role={clickable ? 'button' : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      aria-label={clickable ? 'Mark as completed' : undefined}
+    />
   )
 }
 
-export default function TaskCard({ task, aiActions }: TaskCardProps) {
+const NOTE_AUTHOR_BADGE: Record<string, { label: string; color: string }> = {
+  agent: { label: 'You', color: 'bg-blue-50 text-blue-700' },
+  ai: { label: 'AI', color: 'bg-amber-50 text-amber-700' },
+  system: { label: 'System', color: 'bg-gray-100 text-gray-600' },
+}
+
+export default function TaskCard({ task, aiActions, notes, onStatusChange, onAddNote }: TaskCardProps) {
   const [expanded, setExpanded] = useState(false)
+  const [noteInput, setNoteInput] = useState('')
 
   const pill = STATUS_PILL[task.status] ?? STATUS_PILL.pending
   const assigned = ASSIGNED_LABELS[task.assigned_to] ?? ASSIGNED_LABELS.agent
@@ -97,7 +127,19 @@ export default function TaskCard({ task, aiActions }: TaskCardProps) {
         onClick={() => setExpanded(prev => !prev)}
         aria-expanded={expanded}
       >
-        <StatusCircle status={task.status} />
+        <StatusCircle
+          status={task.status}
+          clickable={!!onStatusChange && ['pending', 'in_progress', 'completed'].includes(task.status)}
+          onClick={
+            onStatusChange && ['pending', 'in_progress', 'completed'].includes(task.status)
+              ? (e) => {
+                  e.stopPropagation()
+                  const newStatus = task.status === 'completed' ? 'pending' : 'completed'
+                  onStatusChange(task.id, newStatus)
+                }
+              : undefined
+          }
+        />
         <span className={`flex-1 text-sm font-medium ${
           task.status === 'completed' ? 'text-[#b0a698] line-through' : 'text-[#2c2420]'
         }`}>
@@ -119,7 +161,7 @@ export default function TaskCard({ task, aiActions }: TaskCardProps) {
 
       <div
         className={`overflow-hidden transition-[max-height] duration-300 ease-in-out ${
-          expanded ? 'max-h-96' : 'max-h-0'
+          expanded ? 'max-h-[600px]' : 'max-h-0'
         }`}
       >
         <div className="px-4 pb-4 pt-1">
@@ -150,6 +192,66 @@ export default function TaskCard({ task, aiActions }: TaskCardProps) {
                     </p>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+
+          {/* Notes Section */}
+          <div className="border-t border-[#e8e2d9] pt-3 mt-3">
+            <h4 className="text-xs font-semibold text-[#b0a698] uppercase tracking-wider mb-2">
+              Notes{notes && notes.length > 0 ? ` (${notes.length})` : ''}
+            </h4>
+
+            {(!notes || notes.length === 0) ? (
+              <p className="text-xs text-[#b0a698] italic">No notes yet</p>
+            ) : (
+              <div className="space-y-2 mb-3">
+                {notes.map(note => {
+                  const badge = NOTE_AUTHOR_BADGE[note.author_type] ?? NOTE_AUTHOR_BADGE.system
+                  return (
+                    <div key={note.id} className="flex items-start gap-2">
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 mt-0.5 ${badge.color}`}>
+                        {badge.label}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-[#2c2420]">{note.content}</p>
+                        <p className="text-[10px] text-[#b0a698] mt-0.5">{relativeTime(note.created_at)}</p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {onAddNote && (
+              <div className="flex gap-2 mt-2">
+                <input
+                  type="text"
+                  value={noteInput}
+                  onChange={(e) => setNoteInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && noteInput.trim()) {
+                      onAddNote(task.id, noteInput.trim())
+                      setNoteInput('')
+                    }
+                  }}
+                  placeholder="Add a note..."
+                  maxLength={2000}
+                  className="flex-1 text-xs px-3 py-1.5 rounded-lg border border-[#e8e2d9] bg-[#faf8f5] text-[#2c2420] placeholder-[#b0a698] focus:outline-none focus:ring-1 focus:ring-[#c75c2e]/30 focus:border-[#c75c2e]/30"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (noteInput.trim()) {
+                      onAddNote(task.id, noteInput.trim())
+                      setNoteInput('')
+                    }
+                  }}
+                  disabled={!noteInput.trim()}
+                  className="text-xs px-3 py-1.5 rounded-lg bg-[#c75c2e] text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#b04e26] transition-colors"
+                >
+                  Add Note
+                </button>
               </div>
             )}
           </div>

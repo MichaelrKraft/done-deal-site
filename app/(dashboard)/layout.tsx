@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   Inbox,
@@ -34,11 +35,8 @@ export default function DashboardLayout({
       {/* Fixed left sidebar — 56px wide */}
       <aside className="fixed left-0 top-0 z-40 flex h-screen w-14 flex-col items-center border-r border-sd-border bg-sd-bg-warm py-4">
         {/* Logo */}
-        <Link
-          href="/feed"
-          className="mb-6 flex h-9 w-9 items-center justify-center rounded-lg bg-[#c75c2e] text-xs font-bold text-white"
-        >
-          DD
+        <Link href="/feed" className="mb-6 flex h-9 w-9 items-center justify-center">
+          <Image src="/done-deal-flower.png" alt="Done Deal" width={36} height={36} />
         </Link>
 
         {/* Nav icons */}

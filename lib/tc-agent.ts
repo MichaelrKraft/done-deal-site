@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
-import type { Database, Agent, Transaction, Party, Deadline, Task, ComplianceRequirement } from '@/types/database'
+import type { Database, Agent, Transaction, Party, Deadline, Task, ComplianceRequirement, TaskNoteRow } from '@/types/database'
 import { classifyRisk, shouldAutoExecute } from '@/lib/risk-classifier'
 import { allToolDefinitions, executeToolCall } from '@/tools'
 import type { TCJobType } from '@/worker/job-types'
@@ -78,6 +78,18 @@ export async function runTCAgent(agentId: string, jobType: TCJobType): Promise<v
     supabase.from('compliance_requirements').select('*').in('transaction_id', txIds),
   ])
 
+  // Load task notes for context (3 most recent per task handled in buildContextMessage)
+  const allTaskIds = ((tasksResult.data ?? []) as Task[]).map((t) => t.id)
+  const { data: taskNotesData } = allTaskIds.length > 0
+    ? await supabase
+        .from('task_notes')
+        .select('*')
+        .in('task_id', allTaskIds)
+        .order('created_at', { ascending: false })
+    : { data: [] }
+
+  const taskNotes = (taskNotesData ?? []) as TaskNoteRow[]
+
   // 3b. Load agent memories
   const { data: memoriesData } = await supabase
     .from('agent_memories')
@@ -95,7 +107,8 @@ export async function runTCAgent(agentId: string, jobType: TCJobType): Promise<v
     (partiesResult.data ?? []) as Party[],
     (deadlinesResult.data ?? []) as Deadline[],
     (tasksResult.data ?? []) as Task[],
-    (complianceResult.data ?? []) as ComplianceRequirement[]
+    (complianceResult.data ?? []) as ComplianceRequirement[],
+    taskNotes
   )
 
   // 5. Tool-use loop (max iterations to prevent runaway)
@@ -298,12 +311,24 @@ Always include the transaction_id in every tool call. Be concise and action-orie
 // CONTEXT MESSAGE BUILDER
 // ============================================================
 
+function formatTimeAgo(date: Date): string {
+  const diff = Date.now() - date.getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  return `${days}d ago`
+}
+
 function buildContextMessage(
   transactions: Transaction[],
   parties: Party[],
   deadlines: Deadline[],
   tasks: Task[],
-  compliance: ComplianceRequirement[]
+  compliance: ComplianceRequirement[],
+  taskNotes: TaskNoteRow[] = []
 ): string {
   const today = new Date()
   const sections: string[] = ['ACTIVE TRANSACTIONS\n']
@@ -359,7 +384,17 @@ function buildContextMessage(
     if (activeTasks.length > 0) {
       sections.push('  Active tasks:')
       for (const t of activeTasks) {
-        sections.push(`    - [${t.status}] ${t.title} (assigned: ${t.assigned_to}, risk: ${t.risk_level})`)
+        const dueSuffix = t.due_date ? `, due: ${t.due_date}` : ''
+        sections.push(`    - [${t.status}] ${t.title} (assigned: ${t.assigned_to}${dueSuffix})`)
+        // Include up to 3 most recent notes per task
+        const notes = taskNotes
+          .filter((n) => n.task_id === t.id)
+          .slice(0, 3)
+        for (const note of notes) {
+          const ago = formatTimeAgo(new Date(note.created_at))
+          const authorLabel = note.author_type === 'agent' ? 'Agent' : note.author_type === 'ai' ? 'AI' : 'System'
+          sections.push(`      ${authorLabel} note (${ago}): "${note.content}"`)
+        }
       }
     }
 

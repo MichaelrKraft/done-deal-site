@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import MemoriesSection from '@/components/settings/MemoriesSection'
 import SoulSection from '@/components/settings/SoulSection'
@@ -37,9 +38,12 @@ export default async function SettingsPage() {
 
   return (
     <div className="p-8 max-w-xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-2xl font-serif text-[#2c2420]">Settings</h1>
-        <p className="text-sm text-[#7a6e63] mt-1">Configure your Done Deal instance</p>
+      <div className="flex items-center gap-4">
+        <Image src="/done-deal-logo.png" alt="Done Deal" width={64} height={64} />
+        <div>
+          <h1 className="text-2xl font-serif text-[#2c2420]">Settings</h1>
+          <p className="text-sm text-[#7a6e63] mt-1">Configure your Done Deal instance</p>
+        </div>
       </div>
 
       {/* Profile */}

@@ -10,6 +10,7 @@ import { signUp } from '@/lib/actions/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 const signupSchema = z.object({
@@ -59,7 +60,7 @@ export default function SignupPage() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="space-y-1">
-        <h1 className="font-serif text-2xl text-sd-text">Done Deal</h1>
+        <Image src="/done-deal-logo.png" alt="Done Deal" width={180} height={180} className="mx-auto" priority />
         <CardTitle>Create your account</CardTitle>
         <CardDescription>Get your AI transaction coordinator set up in 5 minutes</CardDescription>
       </CardHeader>

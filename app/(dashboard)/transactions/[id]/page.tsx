@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
-import TaskCard from '@/components/transactions/TaskCard'
-import type { Transaction, Party, Deadline, Task as TaskType, AIAction } from '@/types/database'
+import TaskList from '@/components/transactions/TaskList'
+import type { Transaction, Party, Deadline, Task as TaskType, AIAction, TaskNoteRow } from '@/types/database'
 
 const STAGE_LABELS: Record<string, string> = {
   pre_listing: 'Pre-Listing',
@@ -49,23 +49,21 @@ export default async function TransactionDetailPage({ params }: { params: Promis
 
   const aiActions = (recentActions ?? []) as AIAction[]
 
+  // Get task notes for all tasks in this transaction
+  const taskIds = transaction.tasks.map((t: TaskType) => t.id)
+  const { data: rawNotes } = taskIds.length > 0
+    ? await supabase
+        .from('task_notes')
+        .select('*')
+        .in('task_id', taskIds)
+        .order('created_at', { ascending: false })
+    : { data: [] }
+
+  const taskNotes = (rawNotes ?? []) as TaskNoteRow[]
+
   const deadlinesSorted = [...transaction.deadlines].sort(
     (a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
   )
-
-  const tasksByStatus = {
-    active: transaction.tasks.filter(t => t.status === 'pending' || t.status === 'in_progress'),
-    done: transaction.tasks.filter(t => t.status === 'completed' || t.status === 'skipped' || t.status === 'n_a'),
-  }
-
-  // Filter AI actions relevant to a task by matching title keywords in context_summary
-  function actionsForTask(task: TaskType): AIAction[] {
-    const keywords = task.title.toLowerCase().split(/\s+/).filter(w => w.length > 3)
-    return aiActions.filter(a => {
-      const summary = (a.context_summary ?? a.action_type).toLowerCase()
-      return keywords.some(kw => summary.includes(kw))
-    })
-  }
 
   const today = new Date()
 
@@ -117,33 +115,13 @@ export default async function TransactionDetailPage({ params }: { params: Promis
         </div>
       )}
 
-      {/* Tasks — Active */}
-      {tasksByStatus.active.length > 0 && (
-        <div>
-          <h2 className="text-sm font-semibold text-[#b0a698] uppercase tracking-wider mb-3">
-            Active Tasks ({tasksByStatus.active.length})
-          </h2>
-          <div className="space-y-2">
-            {tasksByStatus.active.map(t => (
-              <TaskCard key={t.id} task={t} aiActions={actionsForTask(t)} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Tasks — Completed */}
-      {tasksByStatus.done.length > 0 && (
-        <div>
-          <h2 className="text-sm font-semibold text-[#b0a698] uppercase tracking-wider mb-3">
-            Completed ({tasksByStatus.done.length})
-          </h2>
-          <div className="space-y-2">
-            {tasksByStatus.done.map(t => (
-              <TaskCard key={t.id} task={t} aiActions={actionsForTask(t)} />
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Tasks */}
+      <TaskList
+        tasks={transaction.tasks}
+        aiActions={aiActions}
+        transactionId={id}
+        initialNotes={taskNotes}
+      />
 
       {/* Deadlines */}
       {deadlinesSorted.length > 0 && (

@@ -28,7 +28,13 @@ export async function POST(request: Request) {
   if (buffer.length < 4 || buffer.toString('ascii', 0, 4) !== '%PDF') {
     return NextResponse.json({ error: 'Invalid PDF file' }, { status: 400 })
   }
-  const extracted = await extractContractData(buffer)
 
-  return NextResponse.json({ extracted })
+  try {
+    const extracted = await extractContractData(buffer)
+    return NextResponse.json({ extracted })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown extraction error'
+    console.error('[extract] PDF extraction failed:', message)
+    return NextResponse.json({ error: `PDF extraction failed: ${message}` }, { status: 500 })
+  }
 }
