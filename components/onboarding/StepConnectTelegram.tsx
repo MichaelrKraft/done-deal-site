@@ -31,8 +31,7 @@ export function StepConnectTelegram({ onNext, onSkip }: StepConnectTelegramProps
         <p className="text-sm font-medium text-[#2c2420]">Setup instructions</p>
         <ol className="text-sm text-[#7a6e63] space-y-2 list-decimal list-inside">
           <li>
-            Open Telegram and search for{' '}
-            <span className="font-mono text-[#84c9d1]">@DoneDealBot</span>
+            Open Telegram and search for your brokerage&apos;s Done Deal bot (ask your admin for the bot name)
           </li>
           <li>Send the bot a message: <span className="font-mono text-[#2c2420]">/start</span></li>
           <li>Enter your Telegram username below</li>

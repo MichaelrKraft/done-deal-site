@@ -158,9 +158,9 @@ export default function TelegramSection({ initialTelegramId }: TelegramSectionPr
       ) : (
         <div className="mt-2 space-y-3">
           <div className="rounded-lg bg-[#faf8f5] border border-[#f0ebe4] p-3 text-xs text-[#7a6e63] space-y-1">
-            <p>1. Search for your Done Deal bot on Telegram</p>
+            <p>1. Search for your brokerage&apos;s Done Deal bot on Telegram (ask your admin for the bot name)</p>
             <p>2. Send <span className="font-mono bg-[#f0ebe4] px-1 rounded">/start</span></p>
-            <p>3. Enter the username the bot gives you below</p>
+            <p>3. Enter your Telegram username below</p>
           </div>
           <div className="flex gap-2">
             <input
