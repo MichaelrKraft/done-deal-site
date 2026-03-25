@@ -44,8 +44,8 @@ export function StepFirstTransaction({ onNext, onSkip }: StepFirstTransactionPro
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-white">Create your first transaction</h2>
-        <p className="mt-1 text-sm text-gray-400">
+        <h2 className="text-xl font-serif text-[#2c2420]">Create your first transaction</h2>
+        <p className="mt-1 text-sm text-[#7a6e63]">
           Add a property to get started. You can always add more from your dashboard.
         </p>
       </div>
@@ -60,7 +60,7 @@ export function StepFirstTransaction({ onNext, onSkip }: StepFirstTransactionPro
             {...register('propertyAddress')}
           />
           {errors.propertyAddress && (
-            <p className="text-xs text-red-400">{errors.propertyAddress.message}</p>
+            <p className="text-xs text-red-600">{errors.propertyAddress.message}</p>
           )}
         </div>
 
@@ -73,8 +73,8 @@ export function StepFirstTransaction({ onNext, onSkip }: StepFirstTransactionPro
               className={cn(
                 'flex-1 rounded-md border py-2 text-sm font-medium transition-colors',
                 side === 'buyer'
-                  ? 'border-blue-600 bg-blue-600/20 text-blue-300'
-                  : 'border-gray-700 bg-gray-900 text-gray-400 hover:border-gray-600'
+                  ? 'border-[#c75c2e] bg-[#c75c2e]/10 text-[#c75c2e]'
+                  : 'border-[#e8e2d9] bg-white text-[#7a6e63] hover:border-[#c75c2e]/50'
               )}
             >
               Buyer
@@ -85,8 +85,8 @@ export function StepFirstTransaction({ onNext, onSkip }: StepFirstTransactionPro
               className={cn(
                 'flex-1 rounded-md border py-2 text-sm font-medium transition-colors',
                 side === 'seller'
-                  ? 'border-blue-600 bg-blue-600/20 text-blue-300'
-                  : 'border-gray-700 bg-gray-900 text-gray-400 hover:border-gray-600'
+                  ? 'border-[#c75c2e] bg-[#c75c2e]/10 text-[#c75c2e]'
+                  : 'border-[#e8e2d9] bg-white text-[#7a6e63] hover:border-[#c75c2e]/50'
               )}
             >
               Seller

@@ -48,6 +48,7 @@ export default function LoginPage() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="space-y-1">
+        <h1 className="font-serif text-2xl text-sd-text">Done Deal</h1>
         <CardTitle>Welcome back</CardTitle>
         <CardDescription>Sign in to your Done Deal account</CardDescription>
       </CardHeader>
@@ -63,7 +64,7 @@ export default function LoginPage() {
               {...register('email')}
             />
             {errors.email && (
-              <p className="text-xs text-red-400">{errors.email.message}</p>
+              <p className="text-xs text-red-500">{errors.email.message}</p>
             )}
           </div>
 
@@ -76,24 +77,24 @@ export default function LoginPage() {
               {...register('password')}
             />
             {errors.password && (
-              <p className="text-xs text-red-400">{errors.password.message}</p>
+              <p className="text-xs text-red-500">{errors.password.message}</p>
             )}
           </div>
 
           {serverError && (
-            <div className="rounded-md bg-red-900/40 border border-red-700 px-3 py-2">
-              <p className="text-sm text-red-300">{serverError}</p>
+            <div className="rounded-md bg-red-50 border border-red-200 px-3 py-2">
+              <p className="text-sm text-red-600">{serverError}</p>
             </div>
           )}
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? 'Signing in…' : 'Sign in with email'}
+            {isSubmitting ? 'Signing in...' : 'Sign in with email'}
           </Button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-gray-500">
+        <p className="mt-4 text-center text-sm text-sd-text-secondary">
           Don&apos;t have an account?{' '}
-          <Link href="/signup" className="text-blue-400 hover:text-blue-300">
+          <Link href="/signup" className="text-[#c75c2e] hover:text-[#b5512a] font-medium">
             Sign up
           </Link>
         </p>

@@ -1,58 +1,85 @@
+'use client'
+
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
+import { usePathname } from 'next/navigation'
+import {
+  Inbox,
+  LayoutDashboard,
+  FileText,
+  Plus,
+  Settings,
+  LogOut,
+} from 'lucide-react'
 import { signOut } from '@/lib/actions/auth'
 
 const NAV_ITEMS = [
-  { label: 'Feed', href: '/feed' },
-  { label: 'Board', href: '/board' },
-  { label: 'Transactions', href: '/transactions' },
-  { label: 'Settings', href: '/settings' },
+  { label: 'Feed', href: '/feed', icon: Inbox },
+  { label: 'Board', href: '/board', icon: LayoutDashboard },
+  { label: 'Transactions', href: '/transactions', icon: FileText },
+  { label: 'New', href: '/transactions/new', icon: Plus },
+  { label: 'Settings', href: '/settings', icon: Settings },
 ]
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
+  const pathname = usePathname()
 
   return (
-    <div className="min-h-screen bg-gray-950">
-      <nav className="border-b border-gray-800 bg-gray-900">
-        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
-          <div className="flex items-center gap-8">
-            <Link href="/feed" className="text-sm font-semibold text-white">
-              Done Deal
-            </Link>
-            <div className="flex items-center gap-1">
-              {NAV_ITEMS.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="rounded-md px-3 py-1.5 text-sm text-gray-400 hover:bg-gray-800 hover:text-gray-200 transition-colors"
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-          <form action={signOut}>
-            <button
-              type="submit"
-              className="text-sm text-gray-500 hover:text-gray-300 transition-colors"
-            >
-              Sign out
-            </button>
-          </form>
-        </div>
-      </nav>
-      <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
+    <div className="min-h-screen bg-sd-bg">
+      {/* Fixed left sidebar — 56px wide */}
+      <aside className="fixed left-0 top-0 z-40 flex h-screen w-14 flex-col items-center border-r border-sd-border bg-sd-bg-warm py-4">
+        {/* Logo */}
+        <Link
+          href="/feed"
+          className="mb-6 flex h-9 w-9 items-center justify-center rounded-lg bg-[#c75c2e] text-xs font-bold text-white"
+        >
+          DD
+        </Link>
+
+        {/* Nav icons */}
+        <nav className="flex flex-1 flex-col items-center gap-1">
+          {NAV_ITEMS.map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+            const Icon = item.icon
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                title={item.label}
+                className={`relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${
+                  isActive
+                    ? 'bg-[rgba(199,92,46,0.08)] text-[#c75c2e]'
+                    : 'text-sd-text-secondary hover:bg-sd-border-subtle hover:text-sd-text'
+                }`}
+              >
+                {isActive && (
+                  <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-[#c75c2e]" />
+                )}
+                <Icon size={18} />
+              </Link>
+            )
+          })}
+        </nav>
+
+        {/* Sign out at bottom */}
+        <form action={signOut}>
+          <button
+            type="submit"
+            title="Sign out"
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-sd-text-muted transition-colors hover:bg-red-50 hover:text-red-600"
+          >
+            <LogOut size={18} />
+          </button>
+        </form>
+      </aside>
+
+      {/* Main content — offset for sidebar */}
+      <main className="pl-14">
+        <div className="mx-auto max-w-7xl px-6 py-8">{children}</div>
+      </main>
     </div>
   )
 }

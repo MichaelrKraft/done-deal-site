@@ -62,7 +62,7 @@ export function OnboardingWizard({ defaultName }: OnboardingWizardProps) {
   return (
     <div className="w-full max-w-lg space-y-6">
       <div className="space-y-1">
-        <div className="flex items-center justify-between text-xs text-gray-500">
+        <div className="flex items-center justify-between text-xs text-[#7a6e63]">
           <span>Step {step} of {TOTAL_STEPS}</span>
           <span>{STEP_LABELS[step - 1]}</span>
         </div>
@@ -70,8 +70,8 @@ export function OnboardingWizard({ defaultName }: OnboardingWizardProps) {
       </div>
 
       {stepError && (
-        <div className="rounded-md bg-red-900/40 border border-red-700 px-3 py-2">
-          <p className="text-sm text-red-300">{stepError}</p>
+        <div className="rounded-md bg-red-50 border border-red-200 px-3 py-2">
+          <p className="text-sm text-red-600">{stepError}</p>
         </div>
       )}
 

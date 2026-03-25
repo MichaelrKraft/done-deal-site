@@ -11,15 +11,15 @@ export function StepConnectOutlook({ onNext, onSkip }: StepConnectOutlookProps) 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-white">Connect Outlook</h2>
-        <p className="mt-1 text-sm text-gray-400">
+        <h2 className="text-xl font-serif text-[#2c2420]">Connect Outlook</h2>
+        <p className="mt-1 text-sm text-[#7a6e63]">
           Your AI TC reads your Outlook inbox to track emails and draft responses for you.
         </p>
       </div>
 
-      <div className="rounded-lg border border-blue-800 bg-blue-950/30 p-4 space-y-2">
-        <p className="text-sm font-medium text-blue-300">Coming in setup</p>
-        <p className="text-sm text-gray-400">
+      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 space-y-2">
+        <p className="text-sm font-medium text-blue-700">Coming in setup</p>
+        <p className="text-sm text-[#7a6e63]">
           Outlook integration will be connected during your full onboarding call. Your TC
           can still work with Telegram notifications in the meantime.
         </p>

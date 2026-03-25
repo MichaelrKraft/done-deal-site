@@ -19,8 +19,8 @@ export default async function FeedPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">Feed</h1>
-        <p className="mt-1 text-sm text-gray-400">
+        <h1 className="text-2xl font-serif text-[#2c2420]">Feed</h1>
+        <p className="mt-1 text-sm text-[#7a6e63]">
           Review and approve actions from your AI transaction coordinator.
         </p>
       </div>

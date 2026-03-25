@@ -101,7 +101,7 @@ export default function NewTransactionPage() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-100 mb-6">New Transaction</h1>
+      <h1 className="text-2xl font-serif text-[#2c2420] mb-6">New Transaction</h1>
 
       <Card className="mb-6">
         <CardHeader>
@@ -124,16 +124,16 @@ export default function NewTransactionPage() {
                 }
               }
             }}
-            className="border-2 border-dashed border-gray-700 rounded-lg p-8 text-center cursor-pointer hover:border-blue-500 transition-colors"
+            className="border-2 border-dashed border-[#e8e2d9] rounded-lg p-8 text-center cursor-pointer hover:border-[#c75c2e] transition-colors"
           >
             {extracting ? (
-              <p className="text-gray-400">Extracting contract data...</p>
+              <p className="text-[#7a6e63]">Extracting contract data...</p>
             ) : extracted ? (
-              <p className="text-green-400">Contract extracted — form pre-filled below</p>
+              <p className="text-[#0F7B0F]">Contract extracted — form pre-filled below</p>
             ) : (
               <>
-                <p className="text-gray-300 font-medium">Drop CBS PDF here</p>
-                <p className="text-gray-500 text-sm mt-1">Auto-fills all fields from your contract</p>
+                <p className="text-[#2c2420] font-medium">Drop CBS PDF here</p>
+                <p className="text-[#b0a698] text-sm mt-1">Auto-fills all fields from your contract</p>
               </>
             )}
           </div>
@@ -151,7 +151,7 @@ export default function NewTransactionPage() {
                 type="button"
                 onClick={() => setSide(s)}
                 className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
-                  side === s ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                  side === s ? 'bg-[#c75c2e] text-white' : 'bg-[#f5f0ea] text-[#7a6e63] hover:bg-[#ece6dd]'
                 }`}
               >
                 {s.charAt(0).toUpperCase() + s.slice(1)}
@@ -195,8 +195,8 @@ export default function NewTransactionPage() {
         </div>
 
         {error && (
-          <div className="rounded-md bg-red-900/40 border border-red-700 px-3 py-2">
-            <p className="text-sm text-red-300">{error}</p>
+          <div className="rounded-md bg-red-50 border border-red-200 px-3 py-2">
+            <p className="text-sm text-red-700">{error}</p>
           </div>
         )}
 

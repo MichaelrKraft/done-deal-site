@@ -50,11 +50,11 @@ export function AutonomyToggle({ transactionId, currentMode }: Props) {
           relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full
           border-2 border-transparent transition-colors duration-200
           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
-          focus-visible:ring-offset-gray-950
+          focus-visible:ring-offset-[#faf8f5]
           disabled:opacity-50 disabled:cursor-not-allowed
           ${isAutonomous
-            ? 'bg-emerald-500 focus-visible:ring-emerald-500'
-            : 'bg-blue-500 focus-visible:ring-blue-500'}
+            ? 'bg-[#0F7B0F] focus-visible:ring-[#0F7B0F]'
+            : 'bg-[#c75c2e] focus-visible:ring-[#c75c2e]'}
         `}
       >
         <span
@@ -67,10 +67,10 @@ export function AutonomyToggle({ transactionId, currentMode }: Props) {
       </button>
 
       <div className="min-w-0">
-        <span className={`text-sm font-medium ${isAutonomous ? 'text-emerald-400' : 'text-blue-400'}`}>
+        <span className={`text-sm font-medium ${isAutonomous ? 'text-[#0F7B0F]' : 'text-[#c75c2e]'}`}>
           {isAutonomous ? 'Autonomous' : 'Supervised'}
         </span>
-        <p className="text-xs text-gray-500 mt-0.5">
+        <p className="text-xs text-[#b0a698] mt-0.5">
           {isAutonomous
             ? 'Low-risk actions (reminders, check-ins) execute automatically.'
             : 'All actions require your approval before sending.'}

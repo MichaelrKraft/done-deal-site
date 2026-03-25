@@ -39,7 +39,7 @@ export default async function TransactionsPage() {
 
   if (!agent) {
     return (
-      <div className="p-6 text-red-400">
+      <div className="p-6 text-red-700">
         Account setup incomplete. Please complete onboarding.
       </div>
     )
@@ -57,16 +57,16 @@ export default async function TransactionsPage() {
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-100">Transactions</h1>
+        <h1 className="text-2xl font-serif text-[#2c2420]">Transactions</h1>
         <Link href="/transactions/new">
           <Button>+ New Transaction</Button>
         </Link>
       </div>
 
       {!transactions || transactions.length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
+        <div className="text-center py-16 text-[#7a6e63]">
           <p className="text-lg mb-2">No transactions yet</p>
-          <p className="text-sm mb-6">Upload a contract PDF to get started in under 60 seconds</p>
+          <p className="text-sm mb-6 text-[#b0a698]">Upload a contract PDF to get started in under 60 seconds</p>
           <Link href="/transactions/new">
             <Button>Create your first transaction</Button>
           </Link>
@@ -75,11 +75,11 @@ export default async function TransactionsPage() {
         <div className="space-y-2">
           {transactions.map((tx: Transaction) => (
             <Link key={tx.id} href={`/transactions/${tx.id}`}>
-              <div className="flex items-center gap-4 p-4 rounded-lg border border-gray-800 bg-gray-900 hover:bg-gray-850 transition-colors cursor-pointer">
+              <div className="flex items-center gap-4 p-4 rounded-xl border border-[#e8e2d9] bg-white hover:shadow-md transition-all shadow-sm cursor-pointer">
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-100 truncate">{tx.property_address}</p>
+                  <p className="font-medium text-[#2c2420] truncate">{tx.property_address}</p>
                   {tx.mec_date && (
-                    <p className="text-xs text-gray-500 mt-0.5">MEC: {tx.mec_date}</p>
+                    <p className="text-xs text-[#b0a698] mt-0.5">MEC: {tx.mec_date}</p>
                   )}
                 </div>
                 <Badge variant={tx.side === 'buyer' ? 'default' : 'secondary'}>
@@ -88,7 +88,7 @@ export default async function TransactionsPage() {
                 <Badge variant={STAGE_VARIANTS[tx.stage] ?? 'secondary'}>
                   {STAGE_LABELS[tx.stage] ?? tx.stage}
                 </Badge>
-                <span className="text-xs text-gray-500 whitespace-nowrap">
+                <span className="text-xs text-[#7a6e63] whitespace-nowrap">
                   Day {daysSince(tx.created_at)}
                 </span>
               </div>

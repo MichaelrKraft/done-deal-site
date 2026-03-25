@@ -35,8 +35,8 @@ export function StepYourInfo({ defaultName, onNext }: StepYourInfoProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-white">Your info</h2>
-        <p className="mt-1 text-sm text-gray-400">
+        <h2 className="text-xl font-serif text-[#2c2420]">Your info</h2>
+        <p className="mt-1 text-sm text-[#7a6e63]">
           Confirm your name and brokerage. This takes about 30 seconds.
         </p>
       </div>
@@ -46,18 +46,18 @@ export function StepYourInfo({ defaultName, onNext }: StepYourInfoProps) {
           <Label htmlFor="name">Full name</Label>
           <Input id="name" type="text" {...register('name')} />
           {errors.name && (
-            <p className="text-xs text-red-400">{errors.name.message}</p>
+            <p className="text-xs text-red-600">{errors.name.message}</p>
           )}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="brokerageCode">Brokerage code</Label>
           <Input id="brokerageCode" type="text" {...register('brokerageCode')} />
-          <p className="text-xs text-gray-500">
-            Your Castle Real Estate agents use <span className="text-gray-300">yourcastle</span>
+          <p className="text-xs text-[#b0a698]">
+            Your Castle Real Estate agents use <span className="text-[#2c2420]">yourcastle</span>
           </p>
           {errors.brokerageCode && (
-            <p className="text-xs text-red-400">{errors.brokerageCode.message}</p>
+            <p className="text-xs text-red-600">{errors.brokerageCode.message}</p>
           )}
         </div>
 

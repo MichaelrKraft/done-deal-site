@@ -21,20 +21,20 @@ function FeedSkeleton() {
       {[1, 2, 3].map((i) => (
         <div
           key={i}
-          className="rounded-lg border border-gray-800 bg-gray-900 p-4 animate-pulse"
+          className="rounded-xl border border-[#e8e2d9] bg-white p-4 animate-pulse shadow-sm"
         >
           <div className="flex items-center gap-2 mb-3">
-            <div className="h-5 w-12 rounded bg-gray-800" />
-            <div className="h-5 w-48 rounded bg-gray-800" />
+            <div className="h-5 w-12 rounded bg-[#f0ebe4]" />
+            <div className="h-5 w-48 rounded bg-[#f0ebe4]" />
           </div>
-          <div className="h-4 w-32 rounded bg-gray-800 mb-3" />
+          <div className="h-4 w-32 rounded bg-[#f0ebe4] mb-3" />
           <div className="space-y-2">
-            <div className="h-3 w-full rounded bg-gray-800" />
-            <div className="h-3 w-3/4 rounded bg-gray-800" />
+            <div className="h-3 w-full rounded bg-[#f0ebe4]" />
+            <div className="h-3 w-3/4 rounded bg-[#f0ebe4]" />
           </div>
           <div className="flex gap-2 mt-4">
-            <div className="h-8 w-28 rounded bg-gray-800" />
-            <div className="h-8 w-16 rounded bg-gray-800" />
+            <div className="h-8 w-28 rounded bg-[#f0ebe4]" />
+            <div className="h-8 w-16 rounded bg-[#f0ebe4]" />
           </div>
         </div>
       ))}
@@ -44,10 +44,10 @@ function FeedSkeleton() {
 
 function EmptyState() {
   return (
-    <div className="rounded-lg border border-gray-800 bg-gray-900 p-12 text-center">
-      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10">
+    <div className="rounded-xl border border-[#e8e2d9] bg-white p-12 text-center shadow-sm">
+      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#c75c2e]/10">
         <svg
-          className="h-6 w-6 text-emerald-400"
+          className="h-6 w-6 text-[#c75c2e]"
           fill="none"
           viewBox="0 0 24 24"
           strokeWidth={2}
@@ -57,8 +57,8 @@ function EmptyState() {
           <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
         </svg>
       </div>
-      <p className="text-sm font-medium text-gray-300">All caught up!</p>
-      <p className="mt-1 text-xs text-gray-500">
+      <p className="text-sm font-medium text-[#2c2420]">All caught up!</p>
+      <p className="mt-1 text-xs text-[#7a6e63]">
         Your AI TC is monitoring your transactions. New actions will appear here.
       </p>
     </div>
@@ -126,11 +126,11 @@ export function FeedList({ agentId }: Props) {
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-6 text-center">
-        <p className="text-sm text-red-400">{error}</p>
+      <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center">
+        <p className="text-sm text-red-700">{error}</p>
         <button
           onClick={() => fetchFeed(true)}
-          className="mt-3 text-xs font-medium text-red-300 underline hover:text-red-200"
+          className="mt-3 text-xs font-medium text-red-600 underline hover:text-red-800"
         >
           Try again
         </button>
@@ -180,9 +180,9 @@ function SectionHeader({
 }) {
   return (
     <div className="flex items-center gap-3 mb-4">
-      <h2 className="text-lg font-semibold text-white">{title}</h2>
+      <h2 className="text-lg font-serif text-[#2c2420]">{title}</h2>
       {!loading && (
-        <span className="inline-flex items-center justify-center rounded-full bg-gray-800 px-2.5 py-0.5 text-xs font-medium text-gray-300">
+        <span className="inline-flex items-center justify-center rounded-full bg-[#f5f0ea] px-2.5 py-0.5 text-xs font-medium text-[#7a6e63]">
           {count}
         </span>
       )}
@@ -195,12 +195,12 @@ function CompletedItem({ action }: { action: AIActionWithTransaction }) {
   const type = action.action_type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 
   return (
-    <div className="rounded-lg border border-gray-800 bg-gray-900 p-3 flex items-center justify-between">
+    <div className="rounded-xl border border-[#e8e2d9] bg-white p-3 flex items-center justify-between shadow-sm">
       <div className="min-w-0">
-        <p className="text-sm text-gray-300 truncate">{address}</p>
-        <p className="text-xs text-gray-500">{type}</p>
+        <p className="text-sm text-[#2c2420] truncate">{address}</p>
+        <p className="text-xs text-[#7a6e63]">{type}</p>
       </div>
-      <span className="flex-shrink-0 text-xs font-medium text-emerald-400">Sent</span>
+      <span className="flex-shrink-0 text-xs font-medium text-[#0F7B0F]">Sent</span>
     </div>
   )
 }

@@ -1,26 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=DM+Serif+Display&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Screen Drop — warm editorial palette */
+  --sd-bg: #faf8f5;
+  --sd-bg-warm: #f5f0ea;
+  --sd-card: #ffffff;
+  --sd-accent: #c75c2e;
+  --sd-accent-hover: #b5512a;
+  --sd-text: #2c2420;
+  --sd-text-secondary: #7a6e63;
+  --sd-text-muted: #b0a698;
+  --sd-border: #e8e2d9;
+  --sd-border-subtle: #f0ebe4;
+  --sd-shadow-sm: 0 1px 2px rgba(44, 36, 32, 0.04);
+  --sd-shadow: 0 2px 8px rgba(44, 36, 32, 0.06);
+  --sd-shadow-md: 0 4px 16px rgba(44, 36, 32, 0.08);
+
+  --background: var(--sd-bg);
+  --foreground: var(--sd-text);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-sd-bg: #faf8f5;
+  --color-sd-bg-warm: #f5f0ea;
+  --color-sd-card: #ffffff;
+  --color-sd-accent: #c75c2e;
+  --color-sd-accent-hover: #b5512a;
+  --color-sd-text: #2c2420;
+  --color-sd-text-secondary: #7a6e63;
+  --color-sd-text-muted: #b0a698;
+  --color-sd-border: #e8e2d9;
+  --color-sd-border-subtle: #f0ebe4;
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-serif: 'DM Serif Display', Georgia, serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--sd-bg);
+  color: var(--sd-text);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Heading font utility */
+.font-serif {
+  font-family: 'DM Serif Display', Georgia, serif;
 }

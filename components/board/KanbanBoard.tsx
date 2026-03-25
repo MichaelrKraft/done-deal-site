@@ -83,7 +83,7 @@ export function KanbanBoard({ initialTransactions }: Props) {
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       {error && (
-        <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-2 rounded-lg text-sm mb-4">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm mb-4">
           {error}
         </div>
       )}

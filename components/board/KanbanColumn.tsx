@@ -18,18 +18,18 @@ export function KanbanColumn({ stage, label, transactions, count }: Props) {
   return (
     <div className="flex flex-col min-w-[220px] w-60 flex-shrink-0">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm font-semibold text-gray-200">{label}</span>
-        <span className="rounded-full bg-gray-700 px-2 py-0.5 text-xs font-medium text-gray-400">
+        <span className="text-sm font-semibold text-[#2c2420]">{label}</span>
+        <span className="rounded-full bg-[#f5f0ea] px-2 py-0.5 text-xs font-medium text-[#7a6e63]">
           {count}
         </span>
       </div>
 
       <div
         ref={setNodeRef}
-        className={`flex-1 rounded-lg border p-2 transition-colors min-h-[120px] ${
+        className={`flex-1 rounded-xl border p-2 transition-colors min-h-[120px] ${
           isOver
-            ? 'border-indigo-500 bg-gray-800/80'
-            : 'border-gray-700 bg-gray-800'
+            ? 'border-[#c75c2e] bg-[#faf8f5]'
+            : 'border-[#e8e2d9] bg-[#faf8f5]'
         }`}
       >
         <SortableContext
@@ -41,7 +41,7 @@ export function KanbanColumn({ stage, label, transactions, count }: Props) {
               <TransactionCard key={tx.id} transaction={tx} />
             ))}
             {transactions.length === 0 && (
-              <p className="py-4 text-center text-xs text-gray-600">No transactions</p>
+              <p className="py-4 text-center text-xs text-[#b0a698]">No transactions</p>
             )}
           </div>
         </SortableContext>

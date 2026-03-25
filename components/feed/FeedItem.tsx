@@ -11,9 +11,9 @@ interface Props {
 }
 
 const RISK_STYLES: Record<RiskLevel, { badge: string; label: string }> = {
-  high: { badge: 'bg-red-500/15 text-red-400 border-red-500/30', label: 'HIGH' },
-  medium: { badge: 'bg-amber-500/15 text-amber-400 border-amber-500/30', label: 'MED' },
-  low: { badge: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30', label: 'LOW' },
+  high: { badge: 'bg-red-50 text-[#d94f4f] border-red-200', label: 'HIGH' },
+  medium: { badge: 'bg-amber-50 text-[#c27b00] border-amber-200', label: 'MED' },
+  low: { badge: 'bg-green-50 text-[#0F7B0F] border-green-200', label: 'LOW' },
 }
 
 const ACTION_TYPE_LABELS: Record<string, string> = {
@@ -91,17 +91,17 @@ export function FeedItem({ action, onAction }: Props) {
               >
                 {risk.label}
               </span>
-              <h3 className="text-sm font-semibold text-white truncate">{address}</h3>
+              <h3 className="text-sm font-semibold text-[#2c2420] truncate">{address}</h3>
             </div>
             {stage && (
-              <p className="mt-0.5 text-xs text-gray-500">{stage}</p>
+              <p className="mt-0.5 text-xs text-[#b0a698]">{stage}</p>
             )}
           </div>
-          <span className="text-xs text-gray-600 whitespace-nowrap">{getTimeAgo(action.created_at)}</span>
+          <span className="text-xs text-[#b0a698] whitespace-nowrap">{getTimeAgo(action.created_at)}</span>
         </div>
 
         {/* Action type */}
-        <p className="text-sm font-medium text-gray-300">{formatActionType(action.action_type)}</p>
+        <p className="text-sm font-medium text-[#2c2420]">{formatActionType(action.action_type)}</p>
 
         {/* Draft preview */}
         <button
@@ -112,7 +112,7 @@ export function FeedItem({ action, onAction }: Props) {
           aria-label={expanded ? 'Collapse draft preview' : 'Expand draft preview'}
         >
           <div
-            className={`rounded-md bg-gray-800/50 border border-gray-700/50 p-3 text-sm text-gray-400 whitespace-pre-wrap ${
+            className={`rounded-md bg-[#faf8f5] border border-[#e8e2d9] p-3 text-sm text-[#7a6e63] whitespace-pre-wrap ${
               expanded ? '' : 'line-clamp-3'
             }`}
           >
@@ -122,7 +122,7 @@ export function FeedItem({ action, onAction }: Props) {
 
         {/* Context summary */}
         {action.context_summary && (
-          <p className="text-xs text-amber-400/80 leading-relaxed">
+          <p className="text-xs text-[#b0a698] italic leading-relaxed">
             {action.context_summary}
           </p>
         )}
@@ -134,7 +134,7 @@ export function FeedItem({ action, onAction }: Props) {
             onClick={() => handleAction('approve')}
             disabled={loading !== null}
             aria-label={`Approve and send action for ${address}`}
-            className="bg-emerald-600 text-white hover:bg-emerald-500 flex-1 sm:flex-none"
+            className="bg-[#c75c2e] text-white hover:bg-[#b5512a] rounded-lg flex-1 sm:flex-none"
           >
             {loading === 'approve' ? 'Sending...' : 'Approve & Send'}
           </Button>
@@ -144,7 +144,7 @@ export function FeedItem({ action, onAction }: Props) {
             onClick={() => handleAction('skip')}
             disabled={loading !== null}
             aria-label={`Skip action for ${address}`}
-            className="text-gray-400 hover:text-gray-200 flex-1 sm:flex-none"
+            className="border border-[#e8e2d9] text-[#7a6e63] hover:bg-[#f5f0ea] rounded-lg flex-1 sm:flex-none"
           >
             {loading === 'skip' ? 'Skipping...' : 'Skip'}
           </Button>

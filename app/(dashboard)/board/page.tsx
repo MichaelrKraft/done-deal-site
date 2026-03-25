@@ -29,8 +29,8 @@ export default async function BoardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">Mission Control</h1>
-        <p className="mt-1 text-sm text-gray-400">
+        <h1 className="text-2xl font-serif text-[#2c2420]">Mission Control</h1>
+        <p className="mt-1 text-sm text-[#7a6e63]">
           Drag transactions between stages to update their status.
         </p>
       </div>

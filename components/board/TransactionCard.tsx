@@ -58,9 +58,9 @@ export function TransactionCard({ transaction }: Props) {
       {...attributes}
       {...listeners}
       onClick={handleClick}
-      className="rounded-lg bg-gray-900 border border-gray-700 p-3 cursor-grab active:cursor-grabbing hover:border-gray-600 transition-colors"
+      className="rounded-xl bg-white border border-[#e8e2d9] p-3 cursor-grab active:cursor-grabbing hover:shadow-md transition-all shadow-sm"
     >
-      <p className="text-sm font-semibold text-white leading-tight mb-2">
+      <p className="text-sm font-medium text-[#2c2420] leading-tight mb-2">
         {transaction.property_address}
       </p>
 
@@ -68,21 +68,21 @@ export function TransactionCard({ transaction }: Props) {
         <span
           className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${
             transaction.side === 'buyer'
-              ? 'bg-blue-900 text-blue-300'
-              : 'bg-green-900 text-green-300'
+              ? 'bg-blue-50 text-blue-700'
+              : 'bg-amber-50 text-amber-700'
           }`}
         >
           {transaction.side === 'buyer' ? 'Buyer' : 'Seller'}
         </span>
 
-        <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-purple-900 text-purple-300">
+        <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-[#f5f0ea] text-[#7a6e63]">
           AI Active
         </span>
       </div>
 
       <div className="mt-2 flex items-center gap-1.5">
         <span className={`h-2 w-2 rounded-full flex-shrink-0 ${urgencyColor}`} />
-        <span className="text-xs text-gray-500">
+        <span className="text-xs text-[#7a6e63]">
           {days === 0 ? 'Today' : `${days}d in stage`}
         </span>
       </div>

@@ -21,20 +21,20 @@ export function StepConnectTelegram({ onNext, onSkip }: StepConnectTelegramProps
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-white">Connect Telegram</h2>
-        <p className="mt-1 text-sm text-gray-400">
+        <h2 className="text-xl font-serif text-[#2c2420]">Connect Telegram</h2>
+        <p className="mt-1 text-sm text-[#7a6e63]">
           Get real-time alerts and approve AI actions from your phone via Telegram.
         </p>
       </div>
 
-      <div className="rounded-lg border border-gray-800 bg-gray-900/50 p-4 space-y-3">
-        <p className="text-sm font-medium text-gray-200">Setup instructions</p>
-        <ol className="text-sm text-gray-400 space-y-2 list-decimal list-inside">
+      <div className="rounded-lg border border-[#e8e2d9] bg-[#faf8f5] p-4 space-y-3">
+        <p className="text-sm font-medium text-[#2c2420]">Setup instructions</p>
+        <ol className="text-sm text-[#7a6e63] space-y-2 list-decimal list-inside">
           <li>
             Open Telegram and search for{' '}
-            <span className="font-mono text-blue-400">@DoneDealBot</span>
+            <span className="font-mono text-[#c75c2e]">@DoneDealBot</span>
           </li>
-          <li>Send the bot a message: <span className="font-mono text-gray-200">/start</span></li>
+          <li>Send the bot a message: <span className="font-mono text-[#2c2420]">/start</span></li>
           <li>Enter your Telegram username below</li>
         </ol>
       </div>
@@ -49,7 +49,7 @@ export function StepConnectTelegram({ onNext, onSkip }: StepConnectTelegramProps
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
-          <p className="text-xs text-gray-500">Optional — you can add this later in settings</p>
+          <p className="text-xs text-[#b0a698]">Optional — you can add this later in settings</p>
         </div>
 
         <Button type="submit" className="w-full">
