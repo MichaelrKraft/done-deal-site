@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS brokerages (
 CREATE TABLE IF NOT EXISTS agents (
   id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   brokerage_id      uuid NOT NULL REFERENCES brokerages(id) ON DELETE CASCADE,
-  auth_user_id      uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  auth_user_id      uuid UNIQUE REFERENCES auth.users(id) ON DELETE SET NULL,
   name              text NOT NULL,
   email             text NOT NULL UNIQUE,
   outlook_token     jsonb,
@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS ai_actions (
                   CHECK (risk_level IN ('low', 'medium', 'high')),
   status          text NOT NULL DEFAULT 'pending'
                   CHECK (status IN ('pending', 'approved', 'rejected', 'executed',
-                                    'auto_executed', 'expired')),
+                                    'auto_executed', 'expired', 'skipped')),
   draft_content   jsonb NOT NULL DEFAULT '{}',
   context_summary text,
   executed_at     timestamptz,
