@@ -16,7 +16,8 @@ interface EmailPayload {
 }
 
 const GRAPH_SEND_URL = 'https://graph.microsoft.com/v1.0/me/sendMail'
-const SCOPES = 'Mail.Send Mail.ReadWrite offline_access'
+const GRAPH_EVENTS_URL = 'https://graph.microsoft.com/v1.0/me/events'
+const SCOPES = 'Mail.Send Mail.ReadWrite Calendars.ReadWrite offline_access'
 
 function getConfig() {
   const clientId = process.env.MICROSOFT_CLIENT_ID ?? ''
@@ -141,6 +142,64 @@ export async function sendEmail(
     const text = await res.text()
     console.error('[microsoft-graph] sendEmail failed:', text)
     return { success: false, error: `Graph API error: ${res.status}` }
+  }
+
+  return { success: true, refreshedTokens: tokens }
+}
+
+interface CalendarEvent {
+  subject: string
+  date: string // YYYY-MM-DD
+  description?: string
+  isAllDay?: boolean
+}
+
+/** Create a calendar event in the agent's Outlook calendar. */
+export async function createCalendarEvent(
+  tokens: OutlookTokens,
+  event: CalendarEvent
+): Promise<{ success: boolean; error?: string; refreshedTokens?: OutlookTokens }> {
+  let accessToken = tokens.access_token
+
+  if (Date.now() > tokens.expires_at - 5 * 60 * 1000) {
+    const refreshed = await refreshTokens(tokens.refresh_token)
+    if (!refreshed) return { success: false, error: 'Token refresh failed' }
+    accessToken = refreshed.access_token
+    tokens = refreshed
+  }
+
+  const body = event.isAllDay !== false
+    ? {
+        subject: event.subject,
+        body: { contentType: 'Text' as const, content: event.description ?? '' },
+        isAllDay: true,
+        start: { dateTime: `${event.date}T00:00:00`, timeZone: 'America/Denver' },
+        end: { dateTime: `${event.date}T23:59:59`, timeZone: 'America/Denver' },
+        isReminderOn: true,
+        reminderMinutesBeforeStart: 1440,
+      }
+    : {
+        subject: event.subject,
+        body: { contentType: 'Text' as const, content: event.description ?? '' },
+        start: { dateTime: `${event.date}T09:00:00`, timeZone: 'America/Denver' },
+        end: { dateTime: `${event.date}T09:30:00`, timeZone: 'America/Denver' },
+        isReminderOn: true,
+        reminderMinutesBeforeStart: 60,
+      }
+
+  const res = await fetch(GRAPH_EVENTS_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    console.error('[microsoft-graph] createCalendarEvent failed:', text)
+    return { success: false, error: `Calendar API error: ${res.status}` }
   }
 
   return { success: true, refreshedTokens: tokens }

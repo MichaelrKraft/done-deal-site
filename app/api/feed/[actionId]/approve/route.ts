@@ -60,6 +60,35 @@ export async function PATCH(
     }
   }
 
+  // Create calendar events in Outlook
+  if (action.action_type === 'calendar_event') {
+    const tokens = agent.outlook_token as unknown as OutlookTokens | null
+    const draft = action.draft_content as { subject?: string; date?: string; description?: string }
+
+    if (tokens && draft.subject && draft.date) {
+      const { createCalendarEvent } = await import('@/integrations/microsoft-graph')
+      const result = await createCalendarEvent(tokens, {
+        subject: draft.subject,
+        date: draft.date,
+        description: draft.description,
+      })
+
+      if (result.refreshedTokens) {
+        const admin = createAdminClient()
+        await admin
+          .from('agents')
+          .update({ outlook_token: result.refreshedTokens as unknown as Record<string, unknown> })
+          .eq('id', agent.id)
+      }
+
+      if (!result.success) {
+        console.warn(`[feed/approve] Calendar event failed for action ${actionId}: ${result.error}`)
+      }
+    } else if (!tokens) {
+      console.warn(`[feed/approve] No Outlook tokens for agent ${agent.id}, skipping calendar event`)
+    }
+  }
+
   // Send email via Outlook for email_draft actions
   if (action.action_type === 'email_draft') {
     const tokens = agent.outlook_token as unknown as OutlookTokens | null

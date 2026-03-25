@@ -4,6 +4,7 @@ import { deadlineReminderDef, executeDeadlineReminder } from './deadline-reminde
 import { transactionSummarizerDef, executeTransactionSummarizer } from './transaction-summarizer'
 import { complianceFlaggerDef, executeComplianceFlagger } from './compliance-flagger'
 import { stageUpdaterDefinition, executeStageUpdate } from './stage-updater'
+import { calendarEventDefinition, executeCalendarEvent } from './calendar-event'
 
 // Re-export shared types
 export type { TCToolDefinition, TCToolResult } from './types'
@@ -19,6 +20,7 @@ export const allToolDefinitions: TCToolDefinition[] = [
   transactionSummarizerDef,
   complianceFlaggerDef,
   stageUpdaterDefinition,
+  calendarEventDefinition,
 ]
 
 // ============================================================
@@ -33,6 +35,7 @@ const EXECUTORS: Record<string, ToolExecutor> = {
   generate_daily_digest: executeTransactionSummarizer as ToolExecutor,
   flag_compliance_issue: executeComplianceFlagger as ToolExecutor,
   update_transaction_stage: executeStageUpdate as ToolExecutor,
+  create_calendar_event: executeCalendarEvent as ToolExecutor,
 }
 
 export async function executeToolCall(
