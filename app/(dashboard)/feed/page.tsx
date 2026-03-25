@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { FeedList } from '@/components/feed/FeedList'
+import { AskTC } from '@/components/feed/AskTC'
 
 export default async function FeedPage() {
   const supabase = await createClient()
@@ -24,6 +25,8 @@ export default async function FeedPage() {
           Review and approve actions from your AI transaction coordinator.
         </p>
       </div>
+
+      <AskTC agentId={agent.id} />
 
       <FeedList agentId={agent.id} />
     </div>
