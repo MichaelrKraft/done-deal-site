@@ -53,12 +53,23 @@ export async function saveAgentInfo(
   if (byDomain?.id) {
     brokerageId = byDomain.id
   } else {
+    // Try name match (e.g., "Your Castle" matches "Your Castle Real Estate")
     const { data: byName } = await adminSupabase
       .from('brokerages')
       .select('id')
       .ilike('name', `%${brokerageCode}%`)
       .single()
-    brokerageId = byName?.id ?? null
+    if (byName?.id) {
+      brokerageId = byName.id
+    } else {
+      // Try email_domain match (e.g., "yourcastle" matches "yourcastle.com")
+      const { data: byCode } = await adminSupabase
+        .from('brokerages')
+        .select('id')
+        .ilike('email_domain', `%${brokerageCode}%`)
+        .single()
+      brokerageId = byCode?.id ?? null
+    }
   }
 
   if (!brokerageId) {
