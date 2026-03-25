@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
+import TaskCard from '@/components/transactions/TaskCard'
 import type { Transaction, Party, Deadline, Task as TaskType, AIAction } from '@/types/database'
 
 const STAGE_LABELS: Record<string, string> = {
@@ -9,24 +10,6 @@ const STAGE_LABELS: Record<string, string> = {
   under_contract: 'Under Contract',
   pre_closing: 'Pre-Closing',
   closed: 'Closed',
-}
-
-const STATUS_CONFIG: Record<string, { dot: string; label: string; textClass: string }> = {
-  completed: { dot: 'bg-emerald-500', label: 'Done', textClass: 'text-[#b0a698] line-through' },
-  in_progress: { dot: 'bg-[#c75c2e]', label: 'AI Working', textClass: 'text-[#2c2420]' },
-  pending: { dot: 'bg-amber-400', label: 'Pending', textClass: 'text-[#2c2420]' },
-  skipped: { dot: 'bg-[#e8e2d9]', label: 'Skipped', textClass: 'text-[#b0a698]' },
-  n_a: { dot: 'bg-[#e8e2d9]', label: 'N/A', textClass: 'text-[#b0a698]' },
-}
-
-const ASSIGNED_LABELS: Record<string, { label: string; color: string }> = {
-  ai: { label: 'AI', color: 'bg-[#c75c2e]/10 text-[#c75c2e]' },
-  agent: { label: 'You', color: 'bg-blue-50 text-blue-700' },
-  lender: { label: 'Lender', color: 'bg-purple-50 text-purple-700' },
-  title: { label: 'Title Co', color: 'bg-emerald-50 text-emerald-700' },
-  inspector: { label: 'Inspector', color: 'bg-amber-50 text-amber-700' },
-  buyer: { label: 'Buyer', color: 'bg-sky-50 text-sky-700' },
-  seller: { label: 'Seller', color: 'bg-orange-50 text-orange-700' },
 }
 
 export default async function TransactionDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -62,7 +45,7 @@ export default async function TransactionDetailPage({ params }: { params: Promis
     .select('*')
     .eq('transaction_id', id)
     .order('created_at', { ascending: false })
-    .limit(5)
+    .limit(50)
 
   const aiActions = (recentActions ?? []) as AIAction[]
 
@@ -72,8 +55,16 @@ export default async function TransactionDetailPage({ params }: { params: Promis
 
   const tasksByStatus = {
     active: transaction.tasks.filter(t => t.status === 'pending' || t.status === 'in_progress'),
-    done: transaction.tasks.filter(t => t.status === 'completed'),
-    other: transaction.tasks.filter(t => t.status === 'skipped' || t.status === 'n_a'),
+    done: transaction.tasks.filter(t => t.status === 'completed' || t.status === 'skipped' || t.status === 'n_a'),
+  }
+
+  // Filter AI actions relevant to a task by matching title keywords in context_summary
+  function actionsForTask(task: TaskType): AIAction[] {
+    const keywords = task.title.toLowerCase().split(/\s+/).filter(w => w.length > 3)
+    return aiActions.filter(a => {
+      const summary = (a.context_summary ?? a.action_type).toLowerCase()
+      return keywords.some(kw => summary.includes(kw))
+    })
   }
 
   const today = new Date()
@@ -98,12 +89,12 @@ export default async function TransactionDetailPage({ params }: { params: Promis
         </div>
       </div>
 
-      {/* AI Activity Feed */}
+      {/* AI Activity Feed (top 5 most recent) */}
       {aiActions.length > 0 && (
         <div>
           <h2 className="text-sm font-semibold text-[#b0a698] uppercase tracking-wider mb-3">Recent AI Activity</h2>
           <div className="space-y-2">
-            {aiActions.map(a => (
+            {aiActions.slice(0, 5).map(a => (
               <div key={a.id} className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white border border-[#e8e2d9]">
                 <span className={`h-2 w-2 rounded-full flex-shrink-0 ${
                   a.status === 'executed' || a.status === 'auto_executed' ? 'bg-emerald-500' :
@@ -133,22 +124,9 @@ export default async function TransactionDetailPage({ params }: { params: Promis
             Active Tasks ({tasksByStatus.active.length})
           </h2>
           <div className="space-y-2">
-            {tasksByStatus.active.map(t => {
-              const status = STATUS_CONFIG[t.status] ?? STATUS_CONFIG.pending
-              const assigned = ASSIGNED_LABELS[t.assigned_to] ?? ASSIGNED_LABELS.agent
-              return (
-                <div key={t.id} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white border border-[#e8e2d9] shadow-sm">
-                  <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${status.dot}`} />
-                  <span className={`flex-1 text-sm font-medium ${status.textClass}`}>{t.title}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${assigned.color}`}>
-                    {assigned.label}
-                  </span>
-                  {t.due_date && (
-                    <span className="text-xs text-[#b0a698]">{t.due_date}</span>
-                  )}
-                </div>
-              )
-            })}
+            {tasksByStatus.active.map(t => (
+              <TaskCard key={t.id} task={t} aiActions={actionsForTask(t)} />
+            ))}
           </div>
         </div>
       )}
@@ -159,12 +137,9 @@ export default async function TransactionDetailPage({ params }: { params: Promis
           <h2 className="text-sm font-semibold text-[#b0a698] uppercase tracking-wider mb-3">
             Completed ({tasksByStatus.done.length})
           </h2>
-          <div className="space-y-1">
+          <div className="space-y-2">
             {tasksByStatus.done.map(t => (
-              <div key={t.id} className="flex items-center gap-3 px-4 py-2 rounded-lg">
-                <span className="h-2 w-2 rounded-full flex-shrink-0 bg-emerald-500" />
-                <span className="flex-1 text-sm text-[#b0a698] line-through">{t.title}</span>
-              </div>
+              <TaskCard key={t.id} task={t} aiActions={actionsForTask(t)} />
             ))}
           </div>
         </div>

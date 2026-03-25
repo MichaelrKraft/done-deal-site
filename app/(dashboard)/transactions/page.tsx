@@ -2,7 +2,11 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import type { Transaction } from '@/types/database'
+import type { Transaction, TaskStatus } from '@/types/database'
+
+interface TransactionWithTasks extends Transaction {
+  tasks: Array<{ id: string; status: TaskStatus }>
+}
 
 const STAGE_LABELS: Record<string, string> = {
   pre_listing: 'Pre-Listing',
@@ -47,12 +51,12 @@ export default async function TransactionsPage() {
 
   const { data: rawTransactions } = await supabase
     .from('transactions')
-    .select('*')
+    .select('*, tasks(id, status)')
     .eq('agent_id', agent.id)
     .neq('stage', 'archived')
     .order('created_at', { ascending: false })
 
-  const transactions = rawTransactions as Transaction[] | null
+  const transactions = rawTransactions as TransactionWithTasks[] | null
 
   return (
     <div className="p-6">
@@ -73,27 +77,45 @@ export default async function TransactionsPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {transactions.map((tx: Transaction) => (
-            <Link key={tx.id} href={`/transactions/${tx.id}`}>
-              <div className="flex items-center gap-4 p-4 rounded-xl border border-[#e8e2d9] bg-white hover:shadow-md transition-all shadow-sm cursor-pointer">
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-[#2c2420] truncate">{tx.property_address}</p>
-                  {tx.mec_date && (
-                    <p className="text-xs text-[#b0a698] mt-0.5">MEC: {tx.mec_date}</p>
+          {transactions.map((tx) => {
+            const totalTasks = tx.tasks.length
+            const doneTasks = tx.tasks.filter(t => t.status === 'completed').length
+            const pct = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0
+            const progressColor = pct >= 75 ? 'bg-emerald-500' : pct >= 25 ? 'bg-amber-400' : 'bg-red-400'
+            const progressTextColor = pct >= 75 ? 'text-emerald-700' : pct >= 25 ? 'text-amber-700' : 'text-red-600'
+
+            return (
+              <Link key={tx.id} href={`/transactions/${tx.id}`}>
+                <div className="flex items-center gap-4 p-4 rounded-xl border border-[#e8e2d9] bg-white hover:shadow-md transition-all shadow-sm cursor-pointer">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-[#2c2420] truncate">{tx.property_address}</p>
+                    {tx.mec_date && (
+                      <p className="text-xs text-[#b0a698] mt-0.5">MEC: {tx.mec_date}</p>
+                    )}
+                  </div>
+                  {totalTasks > 0 && (
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="w-16 h-1.5 rounded-full bg-[#f5f0ea] overflow-hidden">
+                        <div className={`h-full rounded-full ${progressColor}`} style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className={`text-xs font-medium whitespace-nowrap ${progressTextColor}`}>
+                        {doneTasks}/{totalTasks}
+                      </span>
+                    </div>
                   )}
+                  <Badge variant={tx.side === 'buyer' ? 'default' : 'secondary'}>
+                    {tx.side === 'buyer' ? 'Buyer' : 'Seller'}
+                  </Badge>
+                  <Badge variant={STAGE_VARIANTS[tx.stage] ?? 'secondary'}>
+                    {STAGE_LABELS[tx.stage] ?? tx.stage}
+                  </Badge>
+                  <span className="text-xs text-[#7a6e63] whitespace-nowrap">
+                    Day {daysSince(tx.created_at)}
+                  </span>
                 </div>
-                <Badge variant={tx.side === 'buyer' ? 'default' : 'secondary'}>
-                  {tx.side === 'buyer' ? 'Buyer' : 'Seller'}
-                </Badge>
-                <Badge variant={STAGE_VARIANTS[tx.stage] ?? 'secondary'}>
-                  {STAGE_LABELS[tx.stage] ?? tx.stage}
-                </Badge>
-                <span className="text-xs text-[#7a6e63] whitespace-nowrap">
-                  Day {daysSince(tx.created_at)}
-                </span>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            )
+          })}
         </div>
       )}
     </div>
