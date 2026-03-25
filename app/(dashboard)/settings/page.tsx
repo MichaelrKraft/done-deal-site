@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import MemoriesSection from '@/components/settings/MemoriesSection'
 import SoulSection from '@/components/settings/SoulSection'
 import TemplatesSection from '@/components/settings/TemplatesSection'
+import TelegramSection from '@/components/settings/TelegramSection'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -12,7 +13,7 @@ export default async function SettingsPage() {
 
   const { data: agent } = await supabase
     .from('agents')
-    .select('id, name, email, autonomy_default, telegram_id, outlook_token, brokerage_id, soul_document')
+    .select('id, name, email, autonomy_default, telegram_id, outlook_token, google_token, email_provider, calendar_provider, brokerage_id, soul_document')
     .eq('auth_user_id', user.id)
     .single()
 
@@ -100,26 +101,30 @@ export default async function SettingsPage() {
           <div className="px-4 py-3">
             <div className="flex justify-between items-center">
               <div>
-                <span className="text-sm text-[#2c2420] font-medium">Telegram</span>
-                <p className="text-xs text-[#b0a698] mt-0.5">Push notifications &amp; approve by reply</p>
+                <span className="text-sm text-[#2c2420] font-medium">Google Workspace</span>
+                <p className="text-xs text-[#b0a698] mt-0.5">Send emails via Gmail &amp; create Google Calendar events</p>
               </div>
-              {agent.telegram_id ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  Configured
-                </span>
+              {agent.google_token ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-[#7a6e63]">
+                    {(agent.google_token as Record<string, unknown>).email as string || 'Connected'}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    Connected
+                  </span>
+                </div>
               ) : (
-                <span className="text-xs text-[#b0a698]">Not connected</span>
+                <a
+                  href="/api/auth/google"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#c75c2e] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#b5512a] transition-colors"
+                >
+                  Connect
+                </a>
               )}
             </div>
-            {!agent.telegram_id && (
-              <div className="mt-2 rounded-lg bg-[#faf8f5] border border-[#f0ebe4] p-3 text-xs text-[#7a6e63] space-y-1">
-                <p>1. Search for your Done Deal bot on Telegram</p>
-                <p>2. Send <span className="font-mono bg-[#f0ebe4] px-1 rounded">/start</span></p>
-                <p>3. Copy the Chat ID and ask your admin to add it</p>
-              </div>
-            )}
           </div>
+          <TelegramSection initialTelegramId={agent.telegram_id} />
           <div className="px-4 py-3">
             <div className="flex justify-between items-center">
               <div>

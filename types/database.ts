@@ -7,6 +7,9 @@
 
 export type AutonomyMode = 'supervised' | 'autonomous'
 
+export type EmailProvider = 'none' | 'outlook' | 'google'
+export type CalendarProvider = 'none' | 'outlook' | 'google'
+
 export type TransactionSide = 'buyer' | 'seller'
 
 export type TransactionStage =
@@ -118,6 +121,9 @@ export type Database = {
           name: string
           email: string
           outlook_token: Record<string, unknown> | null
+          google_token: Record<string, unknown> | null
+          email_provider: EmailProvider
+          calendar_provider: CalendarProvider
           telegram_id: string | null
           whatsapp_id: string | null
           autonomy_default: AutonomyMode
@@ -132,6 +138,9 @@ export type Database = {
           name: string
           email: string
           outlook_token?: Record<string, unknown> | null
+          google_token?: Record<string, unknown> | null
+          email_provider?: EmailProvider
+          calendar_provider?: CalendarProvider
           telegram_id?: string | null
           whatsapp_id?: string | null
           autonomy_default?: AutonomyMode
@@ -146,6 +155,9 @@ export type Database = {
           name?: string
           email?: string
           outlook_token?: Record<string, unknown> | null
+          google_token?: Record<string, unknown> | null
+          email_provider?: EmailProvider
+          calendar_provider?: CalendarProvider
           telegram_id?: string | null
           whatsapp_id?: string | null
           autonomy_default?: AutonomyMode
@@ -620,6 +632,45 @@ export type Database = {
         }
         Relationships: []
       }
+      portal_links: {
+        Row: {
+          id: string
+          transaction_id: string
+          token: string
+          party_role: 'buyer' | 'seller'
+          created_by: string
+          is_active: boolean
+          expires_at: string | null
+          access_count: number
+          last_accessed_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          transaction_id: string
+          token: string
+          party_role: 'buyer' | 'seller'
+          created_by: string
+          is_active?: boolean
+          expires_at?: string | null
+          access_count?: number
+          last_accessed_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          transaction_id?: string
+          token?: string
+          party_role?: 'buyer' | 'seller'
+          created_by?: string
+          is_active?: boolean
+          expires_at?: string | null
+          access_count?: number
+          last_accessed_at?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>
@@ -672,6 +723,21 @@ export interface EmailTemplateRow {
 }
 export type EmailTemplateInsert = Omit<EmailTemplateRow, 'id' | 'created_at' | 'updated_at' | 'usage_count'>
 export type EmailTemplateUpdate = Partial<Omit<EmailTemplateRow, 'id' | 'created_at' | 'updated_at'>>
+
+// Portal links
+export interface PortalLinkRow {
+  id: string
+  transaction_id: string
+  token: string
+  party_role: 'buyer' | 'seller'
+  created_by: string
+  is_active: boolean
+  expires_at: string | null
+  access_count: number
+  last_accessed_at: string | null
+  created_at: string
+}
+export type PortalLinkInsert = Omit<PortalLinkRow, 'id' | 'created_at' | 'access_count' | 'last_accessed_at'>
 
 // Enriched type returned by /api/feed (AIAction + joined transaction fields)
 export interface AIActionWithTransaction extends AIAction {

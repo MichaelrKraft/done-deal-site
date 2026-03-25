@@ -9,6 +9,7 @@ import {
   Calendar,
   FileText,
   Plus,
+  BookOpen,
   Settings,
   LogOut,
 } from 'lucide-react'
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { label: 'Calendar', href: '/calendar', icon: Calendar },
   { label: 'Transactions', href: '/transactions', icon: FileText },
   { label: 'New', href: '/transactions/new', icon: Plus },
+  { label: 'Resources', href: '/resources', icon: BookOpen },
   { label: 'Settings', href: '/settings', icon: Settings },
 ]
 

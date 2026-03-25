@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/server-admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendEmail, type OutlookTokens } from '@/integrations/microsoft-graph'
+import { sendGmailEmail, createGoogleCalendarEvent, type GoogleTokens } from '@/integrations/google-workspace'
 
 export async function PATCH(
   _request: NextRequest,
@@ -15,7 +16,7 @@ export async function PATCH(
 
   const { data: agent } = await supabase
     .from('agents')
-    .select('id, outlook_token')
+    .select('id, outlook_token, google_token, email_provider, calendar_provider')
     .eq('auth_user_id', user.id)
     .single()
 
@@ -60,60 +61,110 @@ export async function PATCH(
     }
   }
 
-  // Create calendar events in Outlook
+  // Create calendar events via the agent's configured provider
   if (action.action_type === 'calendar_event') {
-    const tokens = agent.outlook_token as unknown as OutlookTokens | null
     const draft = action.draft_content as { subject?: string; date?: string; description?: string }
 
-    if (tokens && draft.subject && draft.date) {
-      const { createCalendarEvent } = await import('@/integrations/microsoft-graph')
-      const result = await createCalendarEvent(tokens, {
-        subject: draft.subject,
-        date: draft.date,
-        description: draft.description,
-      })
-
-      if (result.refreshedTokens) {
-        const admin = createAdminClient()
-        await admin
-          .from('agents')
-          .update({ outlook_token: result.refreshedTokens as unknown as Record<string, unknown> })
-          .eq('id', agent.id)
+    if (draft.subject && draft.date) {
+      if (agent.calendar_provider === 'google') {
+        const gTokens = agent.google_token as unknown as GoogleTokens | null
+        if (gTokens) {
+          const result = await createGoogleCalendarEvent(gTokens, {
+            subject: draft.subject,
+            date: draft.date,
+            description: draft.description,
+          })
+          if (result.refreshedTokens) {
+            const admin = createAdminClient()
+            await admin
+              .from('agents')
+              .update({ google_token: result.refreshedTokens as unknown as Record<string, unknown> })
+              .eq('id', agent.id)
+          }
+          if (!result.success) {
+            console.warn(`[feed/approve] Google calendar event failed for action ${actionId}: ${result.error}`)
+          }
+        } else {
+          console.warn(`[feed/approve] No Google tokens for agent ${agent.id}, skipping calendar event`)
+        }
+      } else if (agent.calendar_provider === 'outlook') {
+        const oTokens = agent.outlook_token as unknown as OutlookTokens | null
+        if (oTokens) {
+          const { createCalendarEvent } = await import('@/integrations/microsoft-graph')
+          const result = await createCalendarEvent(oTokens, {
+            subject: draft.subject,
+            date: draft.date,
+            description: draft.description,
+          })
+          if (result.refreshedTokens) {
+            const admin = createAdminClient()
+            await admin
+              .from('agents')
+              .update({ outlook_token: result.refreshedTokens as unknown as Record<string, unknown> })
+              .eq('id', agent.id)
+          }
+          if (!result.success) {
+            console.warn(`[feed/approve] Outlook calendar event failed for action ${actionId}: ${result.error}`)
+          }
+        } else {
+          console.warn(`[feed/approve] No Outlook tokens for agent ${agent.id}, skipping calendar event`)
+        }
+      } else {
+        console.warn(`[feed/approve] No calendar provider configured for agent ${agent.id}`)
       }
-
-      if (!result.success) {
-        console.warn(`[feed/approve] Calendar event failed for action ${actionId}: ${result.error}`)
-      }
-    } else if (!tokens) {
-      console.warn(`[feed/approve] No Outlook tokens for agent ${agent.id}, skipping calendar event`)
     }
   }
 
-  // Send email via Outlook for email_draft actions
+  // Send email via the agent's configured provider
   if (action.action_type === 'email_draft') {
-    const tokens = agent.outlook_token as unknown as OutlookTokens | null
     const draft = action.draft_content as { to?: string; subject?: string; body?: string }
 
-    if (tokens && draft.to && draft.subject && draft.body) {
-      const result = await sendEmail(tokens, {
-        to: draft.to,
-        subject: draft.subject,
-        body: draft.body,
-      })
-
-      if (result.refreshedTokens) {
-        const admin = createAdminClient()
-        await admin
-          .from('agents')
-          .update({ outlook_token: result.refreshedTokens as unknown as Record<string, unknown> })
-          .eq('id', agent.id)
+    if (draft.to && draft.subject && draft.body) {
+      if (agent.email_provider === 'google') {
+        const gTokens = agent.google_token as unknown as GoogleTokens | null
+        if (gTokens) {
+          const result = await sendGmailEmail(gTokens, {
+            to: draft.to,
+            subject: draft.subject,
+            body: draft.body,
+          })
+          if (result.refreshedTokens) {
+            const admin = createAdminClient()
+            await admin
+              .from('agents')
+              .update({ google_token: result.refreshedTokens as unknown as Record<string, unknown> })
+              .eq('id', agent.id)
+          }
+          if (!result.success) {
+            console.warn(`[feed/approve] Gmail send failed for action ${actionId}: ${result.error}`)
+          }
+        } else {
+          console.warn(`[feed/approve] No Google tokens for agent ${agent.id}, skipping email send`)
+        }
+      } else if (agent.email_provider === 'outlook') {
+        const oTokens = agent.outlook_token as unknown as OutlookTokens | null
+        if (oTokens) {
+          const result = await sendEmail(oTokens, {
+            to: draft.to,
+            subject: draft.subject,
+            body: draft.body,
+          })
+          if (result.refreshedTokens) {
+            const admin = createAdminClient()
+            await admin
+              .from('agents')
+              .update({ outlook_token: result.refreshedTokens as unknown as Record<string, unknown> })
+              .eq('id', agent.id)
+          }
+          if (!result.success) {
+            console.warn(`[feed/approve] Outlook email send failed for action ${actionId}: ${result.error}`)
+          }
+        } else {
+          console.warn(`[feed/approve] No Outlook tokens for agent ${agent.id}, skipping email send`)
+        }
+      } else {
+        console.warn(`[feed/approve] No email provider configured for agent ${agent.id}`)
       }
-
-      if (!result.success) {
-        console.warn(`[feed/approve] Email send failed for action ${actionId}: ${result.error}`)
-      }
-    } else if (!tokens) {
-      console.warn(`[feed/approve] No Outlook tokens for agent ${agent.id}, skipping email send`)
     }
   }
 

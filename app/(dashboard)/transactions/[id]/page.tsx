@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import TaskList from '@/components/transactions/TaskList'
 import type { Transaction, Party, Deadline, Task as TaskType, AIAction, TaskNoteRow, Document as DocumentType } from '@/types/database'
 import DocumentChecklistSection from '@/components/documents/DocumentChecklistSection'
+import SharePortalButton from '@/components/transactions/SharePortalButton'
 
 const STAGE_LABELS: Record<string, string> = {
   pre_listing: 'Pre-Listing',
@@ -86,17 +87,20 @@ export default async function TransactionDetailPage({ params }: { params: Promis
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-serif text-[#2c2420]">{transaction.property_address}</h1>
-        <div className="flex gap-2 mt-2">
-          <Badge variant={transaction.side === 'buyer' ? 'default' : 'secondary'}>
-            {transaction.side === 'buyer' ? 'Buyer' : 'Seller'}
-          </Badge>
-          <Badge variant="outline">{STAGE_LABELS[transaction.stage] ?? transaction.stage}</Badge>
-          <Badge variant="outline" className="bg-[#c75c2e]/10 text-[#c75c2e] border-[#c75c2e]/20">
-            AI Active
-          </Badge>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-serif text-[#2c2420]">{transaction.property_address}</h1>
+          <div className="flex gap-2 mt-2">
+            <Badge variant={transaction.side === 'buyer' ? 'default' : 'secondary'}>
+              {transaction.side === 'buyer' ? 'Buyer' : 'Seller'}
+            </Badge>
+            <Badge variant="outline">{STAGE_LABELS[transaction.stage] ?? transaction.stage}</Badge>
+            <Badge variant="outline" className="bg-[#c75c2e]/10 text-[#c75c2e] border-[#c75c2e]/20">
+              AI Active
+            </Badge>
+          </div>
         </div>
+        <SharePortalButton transactionId={id} />
       </div>
 
       {/* AI Activity Feed (top 5 most recent) */}

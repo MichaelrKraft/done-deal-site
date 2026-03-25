@@ -31,6 +31,11 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 
   const { pathname } = request.nextUrl
 
+  // Public routes — skip auth entirely
+  if (pathname.startsWith('/portal')) {
+    return supabaseResponse
+  }
+
   const isDashboardRoute =
     pathname.startsWith('/feed') ||
     pathname.startsWith('/board') ||
