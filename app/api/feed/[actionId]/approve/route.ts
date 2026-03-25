@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server-admin'
 import { NextRequest, NextResponse } from 'next/server'
+import { sendEmail, type OutlookTokens } from '@/integrations/microsoft-graph'
 
 export async function PATCH(
   _request: NextRequest,
@@ -13,7 +15,7 @@ export async function PATCH(
 
   const { data: agent } = await supabase
     .from('agents')
-    .select('id')
+    .select('id, outlook_token')
     .eq('auth_user_id', user.id)
     .single()
 
@@ -22,7 +24,7 @@ export async function PATCH(
   // IDOR: verify action belongs to this agent
   const { data: action } = await supabase
     .from('ai_actions')
-    .select('id, agent_id, status, action_type')
+    .select('id, agent_id, status, action_type, draft_content')
     .eq('id', actionId)
     .single()
 
@@ -46,9 +48,32 @@ export async function PATCH(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // STUB: Email sending for email_draft actions
+  // Send email via Outlook for email_draft actions
   if (action.action_type === 'email_draft') {
-    console.log(`[feed/approve] Email would be sent via Outlook for action ${actionId}`)
+    const tokens = agent.outlook_token as unknown as OutlookTokens | null
+    const draft = action.draft_content as { to?: string; subject?: string; body?: string }
+
+    if (tokens && draft.to && draft.subject && draft.body) {
+      const result = await sendEmail(tokens, {
+        to: draft.to,
+        subject: draft.subject,
+        body: draft.body,
+      })
+
+      if (result.refreshedTokens) {
+        const admin = createAdminClient()
+        await admin
+          .from('agents')
+          .update({ outlook_token: result.refreshedTokens as unknown as Record<string, unknown> })
+          .eq('id', agent.id)
+      }
+
+      if (!result.success) {
+        console.warn(`[feed/approve] Email send failed for action ${actionId}: ${result.error}`)
+      }
+    } else if (!tokens) {
+      console.warn(`[feed/approve] No Outlook tokens for agent ${agent.id}, skipping email send`)
+    }
   }
 
   return NextResponse.json(updated)
