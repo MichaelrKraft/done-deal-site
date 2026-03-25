@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
-import type { Transaction, Party, Deadline, Task } from '@/types/database'
+import type { Transaction, Party, Deadline, Task as TaskType, AIAction } from '@/types/database'
 
 const STAGE_LABELS: Record<string, string> = {
   pre_listing: 'Pre-Listing',
@@ -9,6 +9,24 @@ const STAGE_LABELS: Record<string, string> = {
   under_contract: 'Under Contract',
   pre_closing: 'Pre-Closing',
   closed: 'Closed',
+}
+
+const STATUS_CONFIG: Record<string, { dot: string; label: string; textClass: string }> = {
+  completed: { dot: 'bg-emerald-500', label: 'Done', textClass: 'text-[#b0a698] line-through' },
+  in_progress: { dot: 'bg-[#c75c2e]', label: 'AI Working', textClass: 'text-[#2c2420]' },
+  pending: { dot: 'bg-amber-400', label: 'Pending', textClass: 'text-[#2c2420]' },
+  skipped: { dot: 'bg-[#e8e2d9]', label: 'Skipped', textClass: 'text-[#b0a698]' },
+  n_a: { dot: 'bg-[#e8e2d9]', label: 'N/A', textClass: 'text-[#b0a698]' },
+}
+
+const ASSIGNED_LABELS: Record<string, { label: string; color: string }> = {
+  ai: { label: 'AI', color: 'bg-[#c75c2e]/10 text-[#c75c2e]' },
+  agent: { label: 'You', color: 'bg-blue-50 text-blue-700' },
+  lender: { label: 'Lender', color: 'bg-purple-50 text-purple-700' },
+  title: { label: 'Title Co', color: 'bg-emerald-50 text-emerald-700' },
+  inspector: { label: 'Inspector', color: 'bg-amber-50 text-amber-700' },
+  buyer: { label: 'Buyer', color: 'bg-sky-50 text-sky-700' },
+  seller: { label: 'Seller', color: 'bg-orange-50 text-orange-700' },
 }
 
 export default async function TransactionDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -35,12 +53,28 @@ export default async function TransactionDetailPage({ params }: { params: Promis
   const transaction = rawTransaction as Transaction & {
     parties: Party[]
     deadlines: Deadline[]
-    tasks: Task[]
+    tasks: TaskType[]
   }
+
+  // Get recent AI actions for this transaction
+  const { data: recentActions } = await supabase
+    .from('ai_actions')
+    .select('*')
+    .eq('transaction_id', id)
+    .order('created_at', { ascending: false })
+    .limit(5)
+
+  const aiActions = (recentActions ?? []) as AIAction[]
 
   const deadlinesSorted = [...transaction.deadlines].sort(
     (a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
   )
+
+  const tasksByStatus = {
+    active: transaction.tasks.filter(t => t.status === 'pending' || t.status === 'in_progress'),
+    done: transaction.tasks.filter(t => t.status === 'completed'),
+    other: transaction.tasks.filter(t => t.status === 'skipped' || t.status === 'n_a'),
+  }
 
   const today = new Date()
 
@@ -49,29 +83,87 @@ export default async function TransactionDetailPage({ params }: { params: Promis
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-100">{transaction.property_address}</h1>
-          <div className="flex gap-2 mt-2">
-            <Badge variant={transaction.side === 'buyer' ? 'default' : 'secondary'}>
-              {transaction.side === 'buyer' ? 'Buyer' : 'Seller'}
-            </Badge>
-            <Badge variant="outline">{STAGE_LABELS[transaction.stage] ?? transaction.stage}</Badge>
-          </div>
+    <div className="p-6 max-w-4xl mx-auto space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-serif text-[#2c2420]">{transaction.property_address}</h1>
+        <div className="flex gap-2 mt-2">
+          <Badge variant={transaction.side === 'buyer' ? 'default' : 'secondary'}>
+            {transaction.side === 'buyer' ? 'Buyer' : 'Seller'}
+          </Badge>
+          <Badge variant="outline">{STAGE_LABELS[transaction.stage] ?? transaction.stage}</Badge>
+          <Badge variant="outline" className="bg-[#c75c2e]/10 text-[#c75c2e] border-[#c75c2e]/20">
+            AI Active
+          </Badge>
         </div>
       </div>
 
-      {/* Parties */}
-      {transaction.parties.length > 0 && (
+      {/* AI Activity Feed */}
+      {aiActions.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-gray-200 mb-3">Parties</h2>
+          <h2 className="text-sm font-semibold text-[#b0a698] uppercase tracking-wider mb-3">Recent AI Activity</h2>
           <div className="space-y-2">
-            {transaction.parties.map(p => (
-              <div key={p.id} className="flex items-center gap-3 p-3 rounded-lg bg-gray-900 border border-gray-800">
-                <span className="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full capitalize">{p.role.replace('_', ' ')}</span>
-                <span className="text-gray-200 font-medium">{p.name}</span>
-                {p.email && <span className="text-gray-500 text-sm">{p.email}</span>}
+            {aiActions.map(a => (
+              <div key={a.id} className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white border border-[#e8e2d9]">
+                <span className={`h-2 w-2 rounded-full flex-shrink-0 ${
+                  a.status === 'executed' || a.status === 'auto_executed' ? 'bg-emerald-500' :
+                  a.status === 'pending' ? 'bg-amber-400' :
+                  'bg-[#e8e2d9]'
+                }`} />
+                <span className="flex-1 text-sm text-[#2c2420]">
+                  {a.context_summary ?? a.action_type.replace(/_/g, ' ')}
+                </span>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                  a.status === 'pending' ? 'bg-amber-50 text-amber-700' :
+                  a.status === 'executed' || a.status === 'auto_executed' ? 'bg-emerald-50 text-emerald-700' :
+                  'bg-[#f5f0ea] text-[#7a6e63]'
+                }`}>
+                  {a.status === 'auto_executed' ? 'Auto' : a.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Tasks — Active */}
+      {tasksByStatus.active.length > 0 && (
+        <div>
+          <h2 className="text-sm font-semibold text-[#b0a698] uppercase tracking-wider mb-3">
+            Active Tasks ({tasksByStatus.active.length})
+          </h2>
+          <div className="space-y-2">
+            {tasksByStatus.active.map(t => {
+              const status = STATUS_CONFIG[t.status] ?? STATUS_CONFIG.pending
+              const assigned = ASSIGNED_LABELS[t.assigned_to] ?? ASSIGNED_LABELS.agent
+              return (
+                <div key={t.id} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white border border-[#e8e2d9] shadow-sm">
+                  <span className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${status.dot}`} />
+                  <span className={`flex-1 text-sm font-medium ${status.textClass}`}>{t.title}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${assigned.color}`}>
+                    {assigned.label}
+                  </span>
+                  {t.due_date && (
+                    <span className="text-xs text-[#b0a698]">{t.due_date}</span>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Tasks — Completed */}
+      {tasksByStatus.done.length > 0 && (
+        <div>
+          <h2 className="text-sm font-semibold text-[#b0a698] uppercase tracking-wider mb-3">
+            Completed ({tasksByStatus.done.length})
+          </h2>
+          <div className="space-y-1">
+            {tasksByStatus.done.map(t => (
+              <div key={t.id} className="flex items-center gap-3 px-4 py-2 rounded-lg">
+                <span className="h-2 w-2 rounded-full flex-shrink-0 bg-emerald-500" />
+                <span className="flex-1 text-sm text-[#b0a698] line-through">{t.title}</span>
               </div>
             ))}
           </div>
@@ -81,18 +173,19 @@ export default async function TransactionDetailPage({ params }: { params: Promis
       {/* Deadlines */}
       {deadlinesSorted.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-gray-200 mb-3">Deadlines</h2>
+          <h2 className="text-sm font-semibold text-[#b0a698] uppercase tracking-wider mb-3">Deadlines</h2>
           <div className="space-y-2">
             {deadlinesSorted.map(d => {
               const days = daysUntil(d.due_date)
               return (
-                <div key={d.id} className="flex items-center gap-3 p-3 rounded-lg bg-gray-900 border border-gray-800">
-                  <span className="flex-1 text-gray-200">{d.name}</span>
-                  <span className="text-sm text-gray-400">{d.due_date}</span>
+                <div key={d.id} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white border border-[#e8e2d9]">
+                  <span className="flex-1 text-sm text-[#2c2420] font-medium">{d.name}</span>
+                  <span className="text-xs text-[#b0a698]">{d.due_date}</span>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                    days < 0 ? 'bg-red-900 text-red-300' :
-                    days <= 3 ? 'bg-yellow-900 text-yellow-300' :
-                    'bg-gray-800 text-gray-400'
+                    days < 0 ? 'bg-red-50 text-red-700' :
+                    days <= 3 ? 'bg-amber-50 text-amber-700' :
+                    days <= 7 ? 'bg-blue-50 text-blue-700' :
+                    'bg-[#f5f0ea] text-[#7a6e63]'
                   }`}>
                     {days < 0 ? `${Math.abs(days)}d overdue` : days === 0 ? 'Today' : `${days}d`}
                   </span>
@@ -103,21 +196,20 @@ export default async function TransactionDetailPage({ params }: { params: Promis
         </div>
       )}
 
-      {/* Tasks */}
-      {transaction.tasks.length > 0 && (
+      {/* Parties */}
+      {transaction.parties.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-gray-200 mb-3">Tasks</h2>
-          <div className="space-y-1">
-            {transaction.tasks.map(t => (
-              <div key={t.id} className="flex items-center gap-3 p-3 rounded-lg bg-gray-900 border border-gray-800">
-                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                  t.status === 'completed' ? 'bg-green-500' :
-                  t.status === 'in_progress' ? 'bg-blue-500' :
-                  'bg-gray-600'
-                }`} />
-                <span className={`flex-1 text-sm ${t.status === 'completed' ? 'text-gray-500 line-through' : 'text-gray-200'}`}>
-                  {t.title}
+          <h2 className="text-sm font-semibold text-[#b0a698] uppercase tracking-wider mb-3">Parties</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {transaction.parties.map(p => (
+              <div key={p.id} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white border border-[#e8e2d9]">
+                <span className="text-xs bg-[#f5f0ea] text-[#7a6e63] px-2 py-0.5 rounded-full capitalize font-medium">
+                  {p.role.replace('_', ' ')}
                 </span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm text-[#2c2420] font-medium">{p.name}</span>
+                  {p.email && <span className="text-xs text-[#b0a698] ml-2">{p.email}</span>}
+                </div>
               </div>
             ))}
           </div>
@@ -126,8 +218,11 @@ export default async function TransactionDetailPage({ params }: { params: Promis
 
       {/* Empty state */}
       {transaction.parties.length === 0 && deadlinesSorted.length === 0 && transaction.tasks.length === 0 && (
-        <div className="text-center py-12 text-gray-400">
-          <p>No data yet. The AI TC agent will populate tasks and deadlines once your MEC date is set.</p>
+        <div className="text-center py-16">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#f5f0ea] mb-4">
+            <span className="text-[#c75c2e] text-xl">&#9672;</span>
+          </div>
+          <p className="text-[#7a6e63]">No data yet. The AI TC agent will populate tasks and deadlines once your MEC date is set.</p>
         </div>
       )}
     </div>
