@@ -46,7 +46,11 @@ export type TaskAssignedTo =
   | 'buyer'
   | 'seller'
 
-export type DocumentStatus = 'missing' | 'uploaded' | 'sent' | 'signed' | 'n_a'
+export type DocumentStatus = 'missing' | 'uploaded' | 'sent' | 'signed' | 'n_a' | 'superseded'
+
+export type DocumentUploadedVia = 'ui' | 'inbound_email' | 'client_portal' | 'docusign'
+
+export type DocumentVisibility = 'agent_only' | 'shared' | 'client_visible'
 
 export type AIActionStatus =
   | 'pending'
@@ -60,6 +64,14 @@ export type AIActionStatus =
 export type MemoryType = 'rule' | 'preference' | 'context' | 'correction'
 
 export type ComplianceStatus = 'pending' | 'in_progress' | 'complete' | 'n_a' | 'waived'
+
+export type EmailTemplateCategory =
+  | 'general'
+  | 'under_contract'
+  | 'pre_closing'
+  | 'post_close'
+  | 'follow_up'
+  | 'compliance'
 
 // ============================================================
 // DATABASE TYPE MAP
@@ -337,6 +349,14 @@ export type Database = {
           file_path: string | null
           docusign_envelope_id: string | null
           notes: string | null
+          version: number
+          previous_version_id: string | null
+          uploaded_by: string | null
+          uploaded_via: DocumentUploadedVia
+          file_size_bytes: number | null
+          content_type: string | null
+          content_hash: string | null
+          visibility: DocumentVisibility
           created_at: string
           updated_at: string
         }
@@ -350,6 +370,14 @@ export type Database = {
           file_path?: string | null
           docusign_envelope_id?: string | null
           notes?: string | null
+          version?: number
+          previous_version_id?: string | null
+          uploaded_by?: string | null
+          uploaded_via?: DocumentUploadedVia
+          file_size_bytes?: number | null
+          content_type?: string | null
+          content_hash?: string | null
+          visibility?: DocumentVisibility
           created_at?: string
           updated_at?: string
         }
@@ -363,6 +391,14 @@ export type Database = {
           file_path?: string | null
           docusign_envelope_id?: string | null
           notes?: string | null
+          version?: number
+          previous_version_id?: string | null
+          uploaded_by?: string | null
+          uploaded_via?: DocumentUploadedVia
+          file_size_bytes?: number | null
+          content_type?: string | null
+          content_hash?: string | null
+          visibility?: DocumentVisibility
           created_at?: string
           updated_at?: string
         }
@@ -539,6 +575,51 @@ export type Database = {
         }
         Relationships: []
       }
+      email_templates: {
+        Row: {
+          id: string
+          agent_id: string | null
+          brokerage_id: string
+          name: string
+          category: EmailTemplateCategory
+          subject: string
+          body: string
+          variables: string[]
+          is_shared: boolean
+          usage_count: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          agent_id?: string | null
+          brokerage_id: string
+          name: string
+          category?: EmailTemplateCategory
+          subject: string
+          body: string
+          variables?: string[]
+          is_shared?: boolean
+          usage_count?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          agent_id?: string | null
+          brokerage_id?: string
+          name?: string
+          category?: EmailTemplateCategory
+          subject?: string
+          body?: string
+          variables?: string[]
+          is_shared?: boolean
+          usage_count?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>
@@ -561,6 +642,7 @@ export type AIAction = Database['public']['Tables']['ai_actions']['Row']
 export type AgentMemory = Database['public']['Tables']['agent_memories']['Row']
 export type ComplianceRequirement = Database['public']['Tables']['compliance_requirements']['Row']
 export type EmailThread = Database['public']['Tables']['email_threads']['Row']
+export type EmailTemplate = Database['public']['Tables']['email_templates']['Row']
 
 // Task notes
 export interface TaskNoteRow {
@@ -572,6 +654,24 @@ export interface TaskNoteRow {
   created_at: string
 }
 export type TaskNoteInsert = Omit<TaskNoteRow, 'id' | 'created_at'>
+
+// Email templates
+export interface EmailTemplateRow {
+  id: string
+  agent_id: string | null
+  brokerage_id: string
+  name: string
+  category: EmailTemplateCategory
+  subject: string
+  body: string
+  variables: string[]
+  is_shared: boolean
+  usage_count: number
+  created_at: string
+  updated_at: string
+}
+export type EmailTemplateInsert = Omit<EmailTemplateRow, 'id' | 'created_at' | 'updated_at' | 'usage_count'>
+export type EmailTemplateUpdate = Partial<Omit<EmailTemplateRow, 'id' | 'created_at' | 'updated_at'>>
 
 // Enriched type returned by /api/feed (AIAction + joined transaction fields)
 export interface AIActionWithTransaction extends AIAction {
@@ -593,6 +693,7 @@ export type AIActionInsert = Database['public']['Tables']['ai_actions']['Insert'
 export type AgentMemoryInsert = Database['public']['Tables']['agent_memories']['Insert']
 export type ComplianceRequirementInsert = Database['public']['Tables']['compliance_requirements']['Insert']
 export type EmailThreadInsert = Database['public']['Tables']['email_threads']['Insert']
+export type EmailTemplateDbInsert = Database['public']['Tables']['email_templates']['Insert']
 
 // Update types
 export type BrokerageUpdate = Database['public']['Tables']['brokerages']['Update']
@@ -606,3 +707,4 @@ export type AIActionUpdate = Database['public']['Tables']['ai_actions']['Update'
 export type AgentMemoryUpdate = Database['public']['Tables']['agent_memories']['Update']
 export type ComplianceRequirementUpdate = Database['public']['Tables']['compliance_requirements']['Update']
 export type EmailThreadUpdate = Database['public']['Tables']['email_threads']['Update']
+export type EmailTemplateDbUpdate = Database['public']['Tables']['email_templates']['Update']

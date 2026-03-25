@@ -10,6 +10,7 @@ interface EmailDrafterInput {
   recipient_party_role: string
   purpose: string
   key_points: string[]
+  template_name?: string
 }
 
 // ============================================================
@@ -25,6 +26,7 @@ export const emailDrafterDef: TCToolDefinition = defineTool(
       recipient_party_role: { type: 'string', description: 'Role of the recipient (e.g. buyer, seller, lender, title)' },
       purpose: { type: 'string', description: 'Brief purpose of the email (e.g. "request inspection report")' },
       key_points: { type: 'array', items: { type: 'string' }, description: 'Key points to include in the email body' },
+      template_name: { type: 'string', description: 'Name of a saved email template to use as the base' },
     },
     required: ['transaction_id', 'recipient_party_role', 'purpose', 'key_points'],
   }
@@ -35,7 +37,7 @@ export const emailDrafterDef: TCToolDefinition = defineTool(
 // ============================================================
 
 export function executeEmailDrafter(input: EmailDrafterInput): TCToolResult {
-  const { recipient_party_role, purpose, key_points } = input
+  const { recipient_party_role, purpose, key_points, template_name } = input
 
   const subject = `Action Required: ${purpose}`
   const body = [
@@ -50,14 +52,19 @@ export function executeEmailDrafter(input: EmailDrafterInput): TCToolResult {
     'Best regards',
   ].join('\n')
 
+  const templateNote = template_name
+    ? ` Using template "${template_name}".`
+    : ''
+
   return {
     success: true,
-    summary: `Drafted email to ${recipient_party_role} re: ${purpose} (${key_points.length} key points).`,
+    summary: `Drafted email to ${recipient_party_role} re: ${purpose} (${key_points.length} key points).${templateNote}`,
     actionType: 'email_draft',
     draftContent: {
       to: recipient_party_role,
       subject,
       body,
+      ...(template_name ? { template_name } : {}),
     },
   }
 }

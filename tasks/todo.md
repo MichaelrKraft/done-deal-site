@@ -23,8 +23,8 @@
   - [x] 1B.7: Run `npx tsc --noEmit` to verify zero type errors
 
 ## Phase 2: Document System
-- [ ] 2A: Document Storage & Tracking
-- [ ] 2B: Custom Email Templates
+- [x] 2A: Document Storage & Tracking
+- [x] 2B: Custom Email Templates
 
 ## Phase 3: Inbound Email + Client Portal
 - [ ] 3A: Inbound Email Inbox

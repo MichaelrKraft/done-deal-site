@@ -2,7 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import TaskList from '@/components/transactions/TaskList'
-import type { Transaction, Party, Deadline, Task as TaskType, AIAction, TaskNoteRow } from '@/types/database'
+import type { Transaction, Party, Deadline, Task as TaskType, AIAction, TaskNoteRow, Document as DocumentType } from '@/types/database'
+import DocumentChecklistSection from '@/components/documents/DocumentChecklistSection'
 
 const STAGE_LABELS: Record<string, string> = {
   pre_listing: 'Pre-Listing',
@@ -60,6 +61,17 @@ export default async function TransactionDetailPage({ params }: { params: Promis
     : { data: [] }
 
   const taskNotes = (rawNotes ?? []) as TaskNoteRow[]
+
+  // Get documents for this transaction
+  const { data: rawDocuments } = await supabase
+    .from('documents')
+    .select('*')
+    .eq('transaction_id', id)
+    .neq('status', 'superseded')
+    .order('doc_type', { ascending: true })
+    .order('version', { ascending: false })
+
+  const documents = (rawDocuments ?? []) as DocumentType[]
 
   const deadlinesSorted = [...transaction.deadlines].sort(
     (a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
@@ -122,6 +134,9 @@ export default async function TransactionDetailPage({ params }: { params: Promis
         transactionId={id}
         initialNotes={taskNotes}
       />
+
+      {/* Documents */}
+      <DocumentChecklistSection documents={documents} transactionId={id} />
 
       {/* Deadlines */}
       {deadlinesSorted.length > 0 && (

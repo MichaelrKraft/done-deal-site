@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import MemoriesSection from '@/components/settings/MemoriesSection'
 import SoulSection from '@/components/settings/SoulSection'
+import TemplatesSection from '@/components/settings/TemplatesSection'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -175,6 +176,9 @@ export default async function SettingsPage() {
           </div>
         </div>
       </section>
+
+      {/* Email Templates */}
+      <TemplatesSection />
 
       {/* Memories */}
       <MemoriesSection initial={memories ?? []} />
