@@ -48,6 +48,18 @@ export async function PATCH(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+  // Execute stage updates immediately
+  if (action.action_type === 'stage_update') {
+    const draft = action.draft_content as { transaction_id?: string; new_stage?: string }
+    if (draft.transaction_id && draft.new_stage) {
+      await supabase
+        .from('transactions')
+        .update({ stage: draft.new_stage as 'pre_listing' | 'active_listing' | 'under_contract' | 'pre_closing' | 'closed' | 'archived' })
+        .eq('id', draft.transaction_id)
+        .eq('agent_id', agent.id)
+    }
+  }
+
   // Send email via Outlook for email_draft actions
   if (action.action_type === 'email_draft') {
     const tokens = agent.outlook_token as unknown as OutlookTokens | null
