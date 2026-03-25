@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS agents (
   autonomy_default  text NOT NULL DEFAULT 'supervised'
                     CHECK (autonomy_default IN ('supervised', 'autonomous')),
   preferences       jsonb NOT NULL DEFAULT '{}',
+  soul_document     text NOT NULL DEFAULT '',
   created_at        timestamptz NOT NULL DEFAULT now()
 );
 

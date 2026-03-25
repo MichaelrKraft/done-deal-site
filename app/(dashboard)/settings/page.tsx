@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import MemoriesSection from '@/components/settings/MemoriesSection'
+import SoulSection from '@/components/settings/SoulSection'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -9,7 +10,7 @@ export default async function SettingsPage() {
 
   const { data: agent } = await supabase
     .from('agents')
-    .select('id, name, email, autonomy_default, telegram_id, outlook_token, brokerage_id')
+    .select('id, name, email, autonomy_default, telegram_id, outlook_token, brokerage_id, soul_document')
     .eq('auth_user_id', user.id)
     .single()
 
@@ -173,6 +174,9 @@ export default async function SettingsPage() {
 
       {/* Memories */}
       <MemoriesSection initial={memories ?? []} />
+
+      {/* Soul Document */}
+      <SoulSection initial={agent.soul_document ?? ''} />
 
       {/* Privacy & Data */}
       <section>

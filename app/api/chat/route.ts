@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
   // 2. Agent lookup
   const { data: agent } = await supabase
     .from('agents')
-    .select('id, name, preferences')
+    .select('id, name, preferences, soul_document')
     .eq('auth_user_id', user.id)
     .single()
   if (!agent) return NextResponse.json({ error: 'Agent not found' }, { status: 404 })
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 1024,
-      system: `PERSONALITY & COMMUNICATION STYLE:
+      system: `${agent.soul_document ? agent.soul_document + '\n\n' : ''}PERSONALITY & COMMUNICATION STYLE:
 You are a friendly, confident, and experienced transaction coordinator — ${preferredName}'s most reliable team member. You genuinely care about getting deals closed smoothly.
 
 - Be warm but professional. Address the agent as "${preferredName}".

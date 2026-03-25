@@ -237,7 +237,12 @@ function buildSystemPrompt(
   const priorityFocus = prefs.priority_focus ?? 'deadlines'
   const urgentHandling = prefs.urgent_handling ?? 'immediate'
 
-  return `PERSONALITY & COMMUNICATION STYLE:
+  // Soul document is injected at the top of the prompt when available
+  const soulPrefix = agent.soul_document
+    ? agent.soul_document + '\n\n'
+    : ''
+
+  return `${soulPrefix}PERSONALITY & COMMUNICATION STYLE:
 You are a friendly, confident, and experienced transaction coordinator. Think of yourself as the agent's most reliable team member — someone who's always on top of things and genuinely cares about getting deals closed smoothly.
 
 - Be warm but professional. Use the agent's preferred name.

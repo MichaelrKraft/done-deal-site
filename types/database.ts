@@ -110,6 +110,7 @@ export type Database = {
           whatsapp_id: string | null
           autonomy_default: AutonomyMode
           preferences: Record<string, unknown>
+          soul_document: string
           created_at: string
         }
         Insert: {
@@ -123,6 +124,7 @@ export type Database = {
           whatsapp_id?: string | null
           autonomy_default?: AutonomyMode
           preferences?: Record<string, unknown>
+          soul_document?: string
           created_at?: string
         }
         Update: {
@@ -136,6 +138,7 @@ export type Database = {
           whatsapp_id?: string | null
           autonomy_default?: AutonomyMode
           preferences?: Record<string, unknown>
+          soul_document?: string
           created_at?: string
         }
         Relationships: []
