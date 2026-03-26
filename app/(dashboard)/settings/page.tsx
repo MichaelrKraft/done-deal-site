@@ -6,6 +6,7 @@ import SoulSection from '@/components/settings/SoulSection'
 import TemplatesSection from '@/components/settings/TemplatesSection'
 import TelegramSection from '@/components/settings/TelegramSection'
 import InboxAddressSection from '@/components/settings/InboxAddressSection'
+import AIConfigSection from '@/components/settings/AIConfigSection'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -26,6 +27,7 @@ export default async function SettingsPage() {
     email: string
     brokerage_id: string
     autonomy_default: string
+    preferred_model?: string
     telegram_id: string | null
     outlook_token: unknown
     google_token?: unknown
@@ -58,7 +60,7 @@ export default async function SettingsPage() {
   return (
     <div className="p-8 max-w-xl mx-auto space-y-8">
       <div className="flex items-center gap-4">
-        <Image src="/done-deal-logo.png" alt="Done Deal" width={64} height={64} />
+        <Image src="/done-deal-skinny-text.png" alt="Done Deal" width={64} height={64} />
         <div>
           <h1 className="text-2xl font-serif text-[#2c2420]">Settings</h1>
           <p className="text-sm text-[#7a6e63] mt-1">Configure your Done Deal instance</p>
@@ -177,49 +179,10 @@ export default async function SettingsPage() {
       </section>
 
       {/* AI Configuration */}
-      <section>
-        <div className="flex items-center gap-2 mb-4">
-          <svg className="w-4 h-4 text-[#7a6e63]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
-          <h2 className="text-sm font-semibold text-[#2c2420]">AI Configuration</h2>
-        </div>
-        <div className="rounded-2xl border border-[#e8e2d9] bg-white divide-y divide-[#f0ebe4]">
-          <div className="px-4 py-3">
-            <div className="flex justify-between items-center">
-              <div>
-                <span className="text-sm text-[#2c2420] font-medium">Default Autonomy Mode</span>
-                <p className="text-xs text-[#b0a698] mt-0.5">Controls how your AI TC handles new transactions</p>
-              </div>
-              <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
-                agent.autonomy_default === 'autonomous'
-                  ? 'bg-emerald-50 text-emerald-700'
-                  : 'bg-blue-50 text-blue-700'
-              }`}>
-                {agent.autonomy_default === 'autonomous' ? 'Autonomous' : 'Supervised'}
-              </span>
-            </div>
-          </div>
-          <div className="px-4 py-3">
-            <div className="flex justify-between items-center">
-              <div>
-                <span className="text-sm text-[#2c2420] font-medium">AI Model</span>
-                <p className="text-xs text-[#b0a698] mt-0.5">Powers your transaction coordinator</p>
-              </div>
-              <span className="inline-flex items-center rounded-full bg-[#f5f0ea] px-2.5 py-1 text-xs font-medium text-[#7a6e63]">
-                Claude Sonnet 4.6
-              </span>
-            </div>
-          </div>
-          <div className="px-4 py-3">
-            <div className="flex justify-between items-center">
-              <div>
-                <span className="text-sm text-[#2c2420] font-medium">Schedule</span>
-                <p className="text-xs text-[#b0a698] mt-0.5">When your AI TC runs daily checks</p>
-              </div>
-              <span className="text-xs text-[#7a6e63]">7am, 12pm, 5pm, 9pm</span>
-            </div>
-          </div>
-        </div>
-      </section>
+      <AIConfigSection
+        initialAutonomy={agent.autonomy_default ?? 'supervised'}
+        initialModel={(agent.preferred_model as string) ?? 'claude-sonnet-4-6'}
+      />
 
       {/* Email Templates */}
       <TemplatesSection />

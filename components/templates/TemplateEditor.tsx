@@ -114,9 +114,21 @@ export default function TemplateEditor({ template, onSave, onCancel }: TemplateE
 
   return (
     <div className="rounded-2xl border border-[#e8e2d9] bg-white p-5 space-y-4">
-      <h3 className="text-sm font-semibold text-[#2c2420]">
-        {template ? 'Edit Template' : 'New Template'}
-      </h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-[#2c2420]">
+          {template ? 'Edit Template' : 'New Template'}
+        </h3>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="text-[#b0a698] hover:text-[#2c2420] transition-colors"
+          aria-label="Close editor"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 3L13 13M13 3L3 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        </button>
+      </div>
 
       {error && (
         <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">

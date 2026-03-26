@@ -74,6 +74,19 @@ export default function TemplatesSection() {
     setEditingTemplate(undefined)
   }
 
+  async function handleSeedTemplates() {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/templates/seed', { method: 'POST' })
+      if (res.ok) {
+        const data = await res.json() as { templates: EmailTemplateRow[] }
+        setTemplates(data.templates)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
   async function handleDelete(id: string) {
     setDeletingId(id)
     try {
@@ -130,6 +143,12 @@ export default function TemplatesSection() {
           <p className="text-sm text-[#b0a698]">
             No email templates yet. Create one to speed up your AI email drafting.
           </p>
+          <button
+            onClick={handleSeedTemplates}
+            className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#84c9d1] px-4 py-2 text-xs font-medium text-white hover:bg-[#6fb8c0] transition-colors"
+          >
+            Load Starter Templates
+          </button>
         </div>
       ) : templates.length > 0 ? (
         <div className="rounded-2xl border border-[#e8e2d9] bg-white divide-y divide-[#f0ebe4]">
