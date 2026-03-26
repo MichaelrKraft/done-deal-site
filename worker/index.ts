@@ -1,3 +1,10 @@
+import * as Sentry from '@sentry/node'
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  tracesSampleRate: 0.1,
+})
+
 import { Worker, type Job } from 'bullmq'
 import { createClient } from '@supabase/supabase-js'
 import { getBullMQConnection } from '@/lib/redis'
@@ -38,6 +45,10 @@ tcAgentWorker.on('failed', (job, err) => {
     agentId: (job?.data as unknown as Record<string, unknown>)?.agentId,
     error: err.message,
   })
+  Sentry.captureException(err, {
+    tags: { worker: 'tc-agent', jobName: job?.name ?? 'unknown' },
+    extra: { jobId: job?.id, attemptsMade: job?.attemptsMade },
+  })
 })
 
 eventWorker.on('failed', (job, err) => {
@@ -45,6 +56,10 @@ eventWorker.on('failed', (job, err) => {
     jobName: job?.name,
     transactionId: (job?.data as unknown as Record<string, unknown>)?.transactionId,
     error: err.message,
+  })
+  Sentry.captureException(err, {
+    tags: { worker: 'tc-events', jobName: job?.name ?? 'unknown' },
+    extra: { jobId: job?.id, attemptsMade: job?.attemptsMade },
   })
 })
 
