@@ -28,6 +28,8 @@ type SignupFormValues = z.infer<typeof signupSchema>
 export default function SignupPage() {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false)
+  const [submittedEmail, setSubmittedEmail] = useState('')
 
   const {
     register,
@@ -39,6 +41,7 @@ export default function SignupPage() {
 
   async function onSubmit(values: SignupFormValues) {
     setServerError(null)
+    setSubmittedEmail(values.email)
     try {
       const formData = new FormData()
       formData.set('name', values.name)
@@ -50,6 +53,10 @@ export default function SignupPage() {
         setServerError(result.error)
         return
       }
+      if (result.needsConfirmation) {
+        setAwaitingConfirmation(true)
+        return
+      }
       router.push('/onboarding')
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error'
@@ -57,10 +64,36 @@ export default function SignupPage() {
     }
   }
 
+  if (awaitingConfirmation) {
+    return (
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <Image src="/done-deal-skinny-text.png" alt="Done Deal" width={180} height={180} className="mx-auto" priority />
+          <CardTitle>Check your email</CardTitle>
+          <CardDescription>
+            We sent a confirmation link to <strong>{submittedEmail}</strong>.
+            Click the link to activate your account.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-sd-text-secondary text-center">
+            Didn&apos;t receive it? Check your spam folder, or{' '}
+            <button
+              onClick={() => setAwaitingConfirmation(false)}
+              className="text-[#84c9d1] hover:text-[#6fb8c0] font-medium"
+            >
+              try a different email
+            </button>
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="space-y-1">
-        <Image src="/done-deal-logo.png" alt="Done Deal" width={180} height={180} className="mx-auto" priority />
+        <Image src="/done-deal-skinny-text.png" alt="Done Deal" width={180} height={180} className="mx-auto" priority />
         <CardTitle>Create your account</CardTitle>
         <CardDescription>Get your AI transaction coordinator set up in 5 minutes</CardDescription>
       </CardHeader>

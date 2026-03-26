@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -20,8 +20,10 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const resetSuccess = searchParams.get('reset') === 'success'
   const [serverError, setServerError] = useState<string | null>(null)
 
   const {
@@ -49,11 +51,16 @@ export default function LoginPage() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="space-y-1">
-        <Image src="/done-deal-logo.png" alt="Done Deal" width={180} height={180} className="mx-auto" priority />
+        <Image src="/done-deal-skinny-text.png" alt="Done Deal" width={180} height={180} className="mx-auto" priority />
         <CardTitle>Welcome back</CardTitle>
         <CardDescription>Sign in to your account</CardDescription>
       </CardHeader>
       <CardContent>
+        {resetSuccess && (
+          <div className="mb-4 rounded-md bg-green-50 border border-green-200 px-3 py-2">
+            <p className="text-sm text-green-700">Password updated successfully. Sign in with your new password.</p>
+          </div>
+        )}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -91,6 +98,12 @@ export default function LoginPage() {
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? 'Signing in...' : 'Sign in with email'}
           </Button>
+
+          <div className="text-center">
+            <Link href="/forgot-password" className="text-xs text-[#b0a698] hover:text-[#2c2420]">
+              Forgot password?
+            </Link>
+          </div>
         </form>
 
         <p className="mt-4 text-center text-sm text-sd-text-secondary">
@@ -101,5 +114,13 @@ export default function LoginPage() {
         </p>
       </CardContent>
     </Card>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<Card className="w-full max-w-md"><CardContent className="py-8 text-center text-sm text-[#b0a698]">Loading...</CardContent></Card>}>
+      <LoginForm />
+    </Suspense>
   )
 }

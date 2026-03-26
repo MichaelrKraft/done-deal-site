@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 
 interface AuthResult {
   error: string | null
+  needsConfirmation?: boolean
 }
 
 const signUpSchema = z.object({
@@ -44,11 +45,9 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
     return { error: error.message }
   }
 
-  if (data.user) {
-    // Create agent record linked to the auth user
-    // Default brokerage_id for Your Castle agents — looked up at onboarding step 1
-    // We defer full agent creation to onboarding Step 1 where brokerage is confirmed
-    // Store name in user metadata for onboarding prefill
+  // Email confirmation enabled in Supabase → session is null until confirmed
+  if (!data.session) {
+    return { error: null, needsConfirmation: true }
   }
 
   return { error: null }
@@ -73,6 +72,27 @@ export async function signIn(formData: FormData): Promise<AuthResult> {
   }
 
   return { error: null }
+}
+
+export async function requestPasswordReset(
+  formData: FormData
+): Promise<{ error: string | null; sent: boolean }> {
+  const emailParse = z.string().email().safeParse(formData.get('email'))
+  if (!emailParse.success) return { error: 'Enter a valid email address', sent: false }
+
+  const supabase = await createClient()
+  const origin = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+
+  try {
+    await supabase.auth.resetPasswordForEmail(emailParse.data, {
+      redirectTo: `${origin}/reset-password`,
+    })
+  } catch {
+    return { error: 'Something went wrong. Please try again.', sent: false }
+  }
+
+  // Supabase always returns success regardless of whether email exists (security best practice)
+  return { error: null, sent: true }
 }
 
 export async function signOut(): Promise<void> {
