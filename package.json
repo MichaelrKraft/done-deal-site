@@ -17,7 +17,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "migrate": "tsx scripts/migrate.ts",
-    "migrate:status": "tsx scripts/migrate.ts"
+    "migrate:status": "tsx scripts/migrate.ts",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
@@ -60,11 +61,13 @@
     "@types/pdf-parse": "^1.1.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^4.1.1",
     "eslint": "^9",
     "eslint-config-next": "15.5.14",
     "pm2": "^5.4.3",
     "tailwindcss": "^4",
     "tsx": "^4.19.2",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.1"
   }
 }
