@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimit } from '@/lib/rate-limit'
 
 export async function PATCH(
   _request: NextRequest,
@@ -18,6 +19,9 @@ export async function PATCH(
     .single()
 
   if (!agent) return NextResponse.json({ error: 'Agent not found' }, { status: 404 })
+
+  const limited = await rateLimit(agent.id, 'feed-skip', 30, 60_000)
+  if (limited) return limited
 
   // IDOR: verify action belongs to this agent
   const { data: action } = await supabase

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/server-admin'
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimit } from '@/lib/rate-limit'
 import { sendEmail, type OutlookTokens } from '@/integrations/microsoft-graph'
 import { sendGmailEmail, createGoogleCalendarEvent, type GoogleTokens } from '@/integrations/google-workspace'
 
@@ -22,10 +23,13 @@ export async function PATCH(
 
   if (!agent) return NextResponse.json({ error: 'Agent not found' }, { status: 404 })
 
+  const limited = await rateLimit(agent.id, 'feed-approve', 30, 60_000)
+  if (limited) return limited
+
   // IDOR: verify action belongs to this agent
   const { data: action } = await supabase
     .from('ai_actions')
-    .select('id, agent_id, status, action_type, draft_content')
+    .select('id, agent_id, status, action_type, draft_content, transaction_id')
     .eq('id', actionId)
     .single()
 
@@ -66,6 +70,16 @@ export async function PATCH(
     const draft = action.draft_content as { subject?: string; date?: string; description?: string }
 
     if (draft.subject && draft.date) {
+      // Always write to the in-app deadlines table so it shows on the calendar
+      const { error: dlError } = await supabase.from('deadlines').insert({
+        transaction_id: action.transaction_id,
+        name: draft.subject,
+        due_date: draft.date,
+        deadline_type: 'other',
+        status: 'pending',
+      })
+      if (dlError) console.warn(`[feed/approve] Failed to insert deadline for calendar event: ${dlError.message}`)
+
       if (agent.calendar_provider === 'google') {
         const gTokens = agent.google_token as unknown as GoogleTokens | null
         if (gTokens) {
