@@ -165,6 +165,69 @@ async function fetchUserInfo(
   }
 }
 
+/** Send a document to one or more recipients for e-signature via DocuSign. */
+export async function sendForSignature(params: {
+  tokens: DocuSignTokens
+  document: { fileName: string; base64Content: string; fileExtension: string }
+  recipients: Array<{ name: string; email: string }>
+  emailSubject: string
+}): Promise<{ success: boolean; envelopeId?: string; error?: string; refreshedTokens?: DocuSignTokens }> {
+  const { document: doc, recipients, emailSubject } = params
+  let { tokens } = params
+
+  // Refresh if token expires within 5 minutes
+  if (Date.now() > tokens.expires_at - 5 * 60 * 1000) {
+    const refreshed = await refreshDocuSignTokens(
+      tokens.refresh_token,
+      tokens.account_id,
+      tokens.base_uri
+    )
+    if (!refreshed) return { success: false, error: 'Token refresh failed' }
+    tokens = refreshed
+  }
+
+  const url = `${tokens.base_uri}/restapi/v2.1/accounts/${tokens.account_id}/envelopes`
+
+  const envelope = {
+    emailSubject,
+    documents: [
+      {
+        documentBase64: doc.base64Content,
+        name: doc.fileName,
+        fileExtension: doc.fileExtension,
+        documentId: '1',
+      },
+    ],
+    recipients: {
+      signers: recipients.map((r, i) => ({
+        email: r.email,
+        name: r.name,
+        recipientId: String(i + 1),
+        routingOrder: String(i + 1),
+      })),
+    },
+    status: 'sent',
+  }
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${tokens.access_token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(envelope),
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    console.error('[docusign] sendForSignature failed:', text)
+    return { success: false, error: `DocuSign API error: ${res.status}` }
+  }
+
+  const data = await res.json() as { envelopeId: string }
+  return { success: true, envelopeId: data.envelopeId, refreshedTokens: tokens }
+}
+
 /** Get the status of a DocuSign envelope and its signers. */
 export async function getEnvelopeStatus(
   tokens: DocuSignTokens,

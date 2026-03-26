@@ -25,7 +25,7 @@ export default async function TransactionDetailPage({ params }: { params: Promis
 
   const { data: agent } = await supabase
     .from('agents')
-    .select('id')
+    .select('id, docusign_token')
     .eq('auth_user_id', user.id)
     .single()
 
@@ -152,7 +152,7 @@ export default async function TransactionDetailPage({ params }: { params: Promis
       />
 
       {/* Documents */}
-      <DocumentChecklistSection documents={documents} transactionId={id} />
+      <DocumentChecklistSection documents={documents} transactionId={id} side={transaction.side} hasDocuSign={!!agent?.docusign_token} />
 
       {/* Deadlines */}
       {deadlinesSorted.length > 0 && (
