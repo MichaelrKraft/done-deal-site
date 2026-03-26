@@ -29,6 +29,10 @@ async function scheduleDailyJobs(agentId: string, dateKey: string): Promise<void
       {
         jobId: makeJobId(agentId, job.type, dateKey), // dedup: one job per agent per day
         delay: job.delay,
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 10_000 },
+        removeOnComplete: 100,
+        removeOnFail: 50,
       }
     )
   }

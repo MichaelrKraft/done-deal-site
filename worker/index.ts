@@ -33,11 +33,19 @@ const eventWorker = new Worker<TCEventJobData>(
 )
 
 tcAgentWorker.on('failed', (job, err) => {
-  console.error(`[TC Worker] Job ${job?.id} failed:`, err.message)
+  console.error(`[TC Worker] Job ${job?.id} FAILED after ${job?.attemptsMade} attempts`, {
+    jobName: job?.name,
+    agentId: (job?.data as unknown as Record<string, unknown>)?.agentId,
+    error: err.message,
+  })
 })
 
 eventWorker.on('failed', (job, err) => {
-  console.error(`[Event Worker] Job ${job?.id} failed:`, err.message)
+  console.error(`[Event Worker] Job ${job?.id} FAILED after ${job?.attemptsMade} attempts`, {
+    jobName: job?.name,
+    transactionId: (job?.data as unknown as Record<string, unknown>)?.transactionId,
+    error: err.message,
+  })
 })
 
 // Graceful shutdown
