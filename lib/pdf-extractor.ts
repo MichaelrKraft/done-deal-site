@@ -58,20 +58,22 @@ export async function extractContractData(pdfBuffer: Buffer): Promise<ExtractedC
     result.buyer_name = raw
   }
 
-  // Seller names — CBS uses "Seller(s):"
-  const sellerMatch = text.match(/Seller\(?s?\)?[:\s]+([A-Z][a-zA-Z ]+?)(?:\s+Property|\s+Address|\n)/m)
+  // Seller names — CBS uses "Seller(s):" — capture names, stop before section keywords
+  const sellerMatch = text.match(/Seller\(?s?\)?[:\s]+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)*(?:\s+and\s+[A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)*)*)/m)
   if (sellerMatch) {
-    const raw = sellerMatch[1].trim().replace(/\s+and\s+/g, ' & ')
-    result.seller_name = raw
+    let raw = sellerMatch[1].trim()
+    // Remove trailing section keywords that may have been captured
+    raw = raw.replace(/\s+(?:Property|Address|Buyer|Seller|Contract).*$/i, '')
+    result.seller_name = raw.replace(/\s+and\s+/g, ' & ')
   }
 
   // Dates — support both "MM/DD/YYYY" and "Month DD, YYYY" formats
   const allNumericDates = [...text.matchAll(/(\d{1,2})\/(\d{1,2})\/(\d{4})/g)]
   const allWrittenDates = [...text.matchAll(/(\w+)\s+(\d{1,2}),?\s+(\d{4})/g)]
 
-  // MEC date
-  const mecNumeric = text.match(/(?:MEC|Mutual Execution|Contract Date|Date of Contract)[:\s]+(\d{1,2})\/(\d{1,2})\/(\d{4})/i)
-  const mecWritten = text.match(/(?:MEC|Mutual Execution|Contract Date|Date of Contract)[:\s]+(\w+)\s+(\d{1,2}),?\s+(\d{4})/i)
+  // MEC date — CBS uses "Approved Form Date:" or "Date:" near top
+  const mecNumeric = text.match(/(?:MEC|Mutual Execution|Contract Date|Date of Contract|Approved Form Date|Date)[:\s]+(\d{1,2})\/(\d{1,2})\/(\d{4})/i)
+  const mecWritten = text.match(/(?:MEC|Mutual Execution|Contract Date|Date of Contract|Approved Form Date|Date)[:\s]+(\w+)\s+(\d{1,2}),?\s+(\d{4})/i)
   if (mecNumeric) {
     result.mec_date = `${mecNumeric[3]}-${mecNumeric[1].padStart(2, '0')}-${mecNumeric[2].padStart(2, '0')}`
   } else if (mecWritten && MONTH_MAP[mecWritten[1].toLowerCase()]) {
@@ -129,12 +131,12 @@ export async function extractContractData(pdfBuffer: Buffer): Promise<ExtractedC
   if (emails.length > 0) result.buyer_agent_email = emails[0]
   if (emails.length > 1) result.seller_agent_email = emails[1]
 
-  // Title company
-  const titleMatch = text.match(/(?:Title Company|Title Insurance|Closing Company)[:\s]+([^\n]{5,60})/i)
-  if (titleMatch) result.title_company = titleMatch[1].trim()
+  // Title company — stop at common delimiters
+  const titleMatch = text.match(/(?:Title Company|Title Insurance|Closing Company)[:\s]+([A-Za-z0-9 &'.,-]{5,50})/i)
+  if (titleMatch) result.title_company = titleMatch[1].trim().replace(/\s+Closing.*$/, '')
 
-  // Lender
-  const lenderMatch = text.match(/(?:Lender|Mortgage Company|Loan Company)[:\s]+([^\n]{5,60})/i)
+  // Lender — require "Lender:" label specifically (avoid matching "Lender" in generic contract text)
+  const lenderMatch = text.match(/(?:^|\n)\s*(?:Lender|Mortgage Company|Loan Company)\s*:\s*([A-Za-z0-9 &'.,-]{5,50})/im)
   if (lenderMatch) result.lender_name = lenderMatch[1].trim()
 
   // Property characteristics

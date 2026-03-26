@@ -148,6 +148,7 @@ export type Database = {
           soul_document: string
           docusign_token: Record<string, unknown> | null
           inbox_address: string | null
+          preferred_model: string
           created_at: string
         }
         Insert: {
@@ -167,6 +168,7 @@ export type Database = {
           soul_document?: string
           docusign_token?: Record<string, unknown> | null
           inbox_address?: string | null
+          preferred_model?: string
           created_at?: string
         }
         Update: {
@@ -186,6 +188,7 @@ export type Database = {
           soul_document?: string
           docusign_token?: Record<string, unknown> | null
           inbox_address?: string | null
+          preferred_model?: string
           created_at?: string
         }
         Relationships: []

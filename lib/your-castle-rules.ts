@@ -219,4 +219,11 @@ All dates and deadlines are strict and absolute. Failure to perform on time cons
 - Buyer must perform a well inspection: flow test, potability test. Use a mountain inspector for mountain properties — regular home inspectors typically don't do well tests.
 - If a well has radon, nitrates, e. coli, or coliform, proper remediation steps are needed.
 - Augmented water rights can be purchased through water court for additional uses beyond the permit.
+
+### 10. DOCUMENT SUBMISSION COMPLIANCE
+- All executed contracts must be submitted within 5 business days of MEC date
+- Late fee: $50 initial + $10/day until received
+- Submit to: documents@yourcastle.org
+- Terminated files must include all executed contracts and disclosures prior to termination
+- Required documents vary by transaction side (buyer vs seller) — see Internal Document Checklist
 `

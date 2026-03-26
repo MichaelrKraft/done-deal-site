@@ -25,6 +25,8 @@ const LOW_RISK_ACTIONS = [
   'thank_you_email',
   'task_completion',
   'mls_update_prompt',
+  'calendar_event',
+  'daily_digest',
 ] as const
 
 // ============================================================
@@ -82,5 +84,9 @@ export function shouldAutoExecute(
   riskLevel: RiskLevel,
   autonomyMode: AutonomyMode
 ): boolean {
-  return riskLevel === 'low' && autonomyMode === 'autonomous'
+  // LOW risk actions are always routine — auto-execute regardless of mode
+  if (riskLevel === 'low') return true
+  // MEDIUM/HIGH always require approval
+  void autonomyMode
+  return false
 }
