@@ -119,7 +119,7 @@ export async function runTCAgent(agentId: string, jobType: TCJobType): Promise<v
 
   for (let i = 0; i < MAX_ITERATIONS; i++) {
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
+      model: (agent as Record<string, unknown>).preferred_model as string ?? 'claude-sonnet-4-6',
       max_tokens: 4096,
       system: systemPrompt,
       messages,
@@ -167,6 +167,21 @@ export async function runTCAgent(agentId: string, jobType: TCJobType): Promise<v
 
       if (insertError) {
         console.error('[TC Agent] Failed to insert ai_action:', insertError.message)
+      }
+
+      // When a calendar_event is auto-executed, also write to deadlines for in-app calendar
+      if (autoExecute && result.actionType === 'calendar_event') {
+        const draft = result.draftContent as { subject?: string; date?: string }
+        if (draft.subject && draft.date) {
+          const { error: dlError } = await supabase.from('deadlines').insert({
+            transaction_id: transactionId,
+            name: draft.subject,
+            due_date: draft.date,
+            deadline_type: 'other',
+            status: 'pending',
+          })
+          if (dlError) console.error('[TC Agent] Failed to insert calendar deadline:', dlError.message)
+        }
       }
 
       toolResults.push({
