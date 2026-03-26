@@ -70,6 +70,7 @@ export function FeedList({ agentId }: Props) {
   const [completed, setCompleted] = useState<AIActionWithTransaction[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [visibleCount, setVisibleCount] = useState(5)
 
   const fetchFeed = useCallback(async (showLoading = false) => {
     if (showLoading) setIsLoading(true)
@@ -147,9 +148,17 @@ export function FeedList({ agentId }: Props) {
           <EmptyState />
         ) : (
           <div className="space-y-3">
-            {pending.map((action) => (
+            {pending.slice(0, visibleCount).map((action) => (
               <FeedItem key={action.id} action={action} onAction={handleAction} />
             ))}
+            {Math.max(0, pending.length - visibleCount) > 0 && (
+              <button
+                onClick={() => setVisibleCount((c) => c + 5)}
+                className="w-full py-2 text-sm text-[#7a6e63] hover:text-[#2c2420] border border-[#e8e2d9] rounded-xl bg-white transition-colors"
+              >
+                Show {Math.max(0, pending.length - visibleCount)} more
+              </button>
+            )}
           </div>
         )}
       </section>

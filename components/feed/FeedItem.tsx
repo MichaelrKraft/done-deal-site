@@ -68,7 +68,6 @@ export function FeedItem({ action, onAction }: Props) {
       const res = await fetch(`/api/feed/${action.id}/${type}`, { method: 'PATCH' })
       if (!res.ok) throw new Error('Request failed')
       setDismissed(true)
-      // Wait for fade-out animation then notify parent
       setTimeout(() => onAction(action.id, type), 300)
     } catch {
       setLoading(null)
@@ -78,56 +77,61 @@ export function FeedItem({ action, onAction }: Props) {
   return (
     <Card
       className={`transition-all duration-300 ${
-        dismissed ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+        dismissed ? 'opacity-0 scale-95' : 'opacity-100 scale-100 hover:-translate-y-1 hover:shadow-md cursor-pointer'
       }`}
     >
       <div className="p-4 space-y-3">
-        {/* Header: risk badge + address + stage */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span
-                className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold ${risk.badge}`}
-              >
-                {risk.label}
-              </span>
-              <h3 className="text-sm font-semibold text-[#2c2420] truncate">{address}</h3>
-            </div>
-            {stage && (
-              <p className="mt-0.5 text-xs text-[#b0a698]">{stage}</p>
-            )}
-          </div>
-          <span className="text-xs text-[#b0a698] whitespace-nowrap">{getTimeAgo(action.created_at)}</span>
-        </div>
-
-        {/* Action type */}
-        <p className="text-sm font-medium text-[#2c2420]">{formatActionType(action.action_type)}</p>
-
-        {/* Draft preview */}
+        {/* Clickable header — toggles expand/collapse */}
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
           className="w-full text-left"
           aria-expanded={expanded}
-          aria-label={expanded ? 'Collapse draft preview' : 'Expand draft preview'}
         >
-          <div
-            className={`rounded-md bg-[#faf8f5] border border-[#e8e2d9] p-3 text-sm text-[#7a6e63] whitespace-pre-wrap ${
-              expanded ? '' : 'line-clamp-3'
-            }`}
-          >
-            {preview}
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span
+                  className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold ${risk.badge}`}
+                >
+                  {risk.label}
+                </span>
+                <h3 className="text-sm font-semibold text-[#2c2420] truncate">{address}</h3>
+              </div>
+              {stage && <p className="mt-0.5 text-xs text-[#b0a698]">{stage}</p>}
+              <p className="mt-1 text-sm font-medium text-[#2c2420]">{formatActionType(action.action_type)}</p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-xs text-[#b0a698] whitespace-nowrap">{getTimeAgo(action.created_at)}</span>
+              <svg
+                className={`h-4 w-4 text-[#b0a698] transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
+            </div>
           </div>
         </button>
 
-        {/* Context summary */}
-        {action.context_summary && (
-          <p className="text-xs text-[#b0a698] italic leading-relaxed">
-            {action.context_summary}
-          </p>
+        {/* Expanded content: draft preview + context summary */}
+        {expanded && (
+          <div className="space-y-3">
+            <div className="rounded-md bg-[#faf8f5] border border-[#e8e2d9] p-3 text-sm text-[#7a6e63] whitespace-pre-wrap">
+              {preview}
+            </div>
+            {action.context_summary && (
+              <p className="text-xs text-[#b0a698] italic leading-relaxed">
+                {action.context_summary}
+              </p>
+            )}
+          </div>
         )}
 
-        {/* Action buttons */}
+        {/* Action buttons — always visible */}
         <div className="flex items-center gap-2 pt-1">
           <Button
             size="sm"

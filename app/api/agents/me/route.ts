@@ -24,6 +24,9 @@ function validateTelegramId(raw: unknown): { valid: boolean; value: string | nul
   return { valid: true, value: cleaned }
 }
 
+const VALID_AUTONOMY_MODES = ['supervised', 'autonomous']
+const VALID_MODELS = ['claude-haiku-4-5-20251001', 'claude-sonnet-4-6', 'claude-opus-4-6']
+
 export async function PATCH(request: NextRequest) {
   const supabase = await createClient()
 
@@ -39,21 +42,42 @@ export async function PATCH(request: NextRequest) {
   if (!agent) return NextResponse.json({ error: 'Agent not found' }, { status: 404 })
 
   const body = await request.json() as Record<string, unknown>
+  const updateData: Record<string, unknown> = {}
 
-  if (!('telegram_id' in body)) {
-    return NextResponse.json({ error: 'Missing telegram_id field' }, { status: 400 })
+  // telegram_id
+  if ('telegram_id' in body) {
+    const validation = validateTelegramId(body.telegram_id)
+    if (!validation.valid) {
+      return NextResponse.json({ error: validation.error }, { status: 400 })
+    }
+    updateData.telegram_id = validation.value
   }
 
-  const validation = validateTelegramId(body.telegram_id)
-  if (!validation.valid) {
-    return NextResponse.json({ error: validation.error }, { status: 400 })
+  // autonomy_default
+  if ('autonomy_default' in body) {
+    if (!VALID_AUTONOMY_MODES.includes(body.autonomy_default as string)) {
+      return NextResponse.json({ error: 'autonomy_default must be supervised or autonomous' }, { status: 400 })
+    }
+    updateData.autonomy_default = body.autonomy_default
+  }
+
+  // preferred_model
+  if ('preferred_model' in body) {
+    if (!VALID_MODELS.includes(body.preferred_model as string)) {
+      return NextResponse.json({ error: 'Invalid model selection' }, { status: 400 })
+    }
+    updateData.preferred_model = body.preferred_model
+  }
+
+  if (Object.keys(updateData).length === 0) {
+    return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
   }
 
   const { data: updated, error } = await supabase
     .from('agents')
-    .update({ telegram_id: validation.value })
+    .update(updateData)
     .eq('id', agent.id)
-    .select('id, name, email, telegram_id')
+    .select('*')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

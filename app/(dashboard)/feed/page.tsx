@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { FeedList } from '@/components/feed/FeedList'
 import { AskTC } from '@/components/feed/AskTC'
+import { RunAgentButton } from '@/components/feed/RunAgentButton'
 
 export default async function FeedPage() {
   const supabase = await createClient()
@@ -19,11 +20,14 @@ export default async function FeedPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-serif text-[#2c2420]">Feed</h1>
-        <p className="mt-1 text-sm text-[#7a6e63]">
-          Review and approve actions from your AI transaction coordinator.
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-serif text-[#2c2420]">Feed</h1>
+          <p className="mt-1 text-sm text-[#7a6e63]">
+            Review and approve actions from your AI transaction coordinator.
+          </p>
+        </div>
+        <RunAgentButton />
       </div>
 
       <AskTC agentId={agent.id} />

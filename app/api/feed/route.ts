@@ -46,7 +46,9 @@ export async function GET(request: NextRequest) {
   const { data, count, error } = await query
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+  const RISK_ORDER: Record<string, number> = { high: 0, medium: 1, low: 2 }
   const actions = (data ?? []) as AIAction[]
+  actions.sort((a, b) => (RISK_ORDER[a.risk_level] ?? 1) - (RISK_ORDER[b.risk_level] ?? 1))
 
   // Fetch transaction details for each action's transaction_id
   const txnIds = [...new Set(actions.map(a => a.transaction_id))]
