@@ -62,15 +62,22 @@ function StatusCircle({ status, clickable, onClick }: { status: string; clickabl
   if (status === 'completed') {
     return (
       <span
-        className={`flex-shrink-0 w-5 h-5 rounded-full border-2 border-emerald-500 bg-emerald-500 flex items-center justify-center${interactiveClasses}`}
+        className={`group flex-shrink-0 w-5 h-5 rounded-full border-2 border-emerald-500 bg-emerald-500 flex items-center justify-center${interactiveClasses}${clickable ? ' hover:bg-red-400 hover:border-red-400' : ''}`}
         onClick={onClick}
         role={clickable ? 'button' : undefined}
         tabIndex={clickable ? 0 : undefined}
         aria-label={clickable ? 'Mark as pending' : undefined}
       >
-        <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+        {/* checkmark: visible by default, hidden on hover when clickable */}
+        <svg width="10" height="8" viewBox="0 0 10 8" fill="none" className={clickable ? 'group-hover:hidden' : ''}>
           <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
+        {/* undo X: only shown on hover when clickable */}
+        {clickable && (
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="none" className="hidden group-hover:block">
+            <path d="M1 1L7 7M7 1L1 7" stroke="white" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        )}
       </span>
     )
   }

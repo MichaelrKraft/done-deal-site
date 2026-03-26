@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import type { PartyRole, RiskLevel, TaskAssignedTo } from '@/types/database'
 import { checkCompliance, buildComplianceInput } from '@/lib/compliance-engine'
+import { tcAgentQueue } from '@/worker/queues'
 
 export async function GET() {
   const supabase = await createClient()
@@ -134,6 +135,17 @@ export async function POST(request: Request) {
         console.error('Compliance tasks insert failed:', compTaskError.message)
       }
     }
+  }
+
+  // Immediately trigger the TC agent so it picks up the new transaction
+  if (transaction) {
+    await tcAgentQueue.add(
+      'morning_sweep',
+      { agent_id: agent.id, job_type: 'morning_sweep' },
+      { jobId: `new-txn-sweep-${agent.id}-${Date.now()}` }
+    ).catch((err: Error) => {
+      console.error('[Transactions] Failed to enqueue TC sweep:', err.message)
+    })
   }
 
   return NextResponse.json({ transactionId: transaction?.id }, { status: 201 })

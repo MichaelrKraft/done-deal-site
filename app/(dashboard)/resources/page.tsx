@@ -68,7 +68,7 @@ export default function ResourcesPage() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex items-center gap-4 mb-8">
-        <Image src="/done-deal-logo.png" alt="Done Deal" width={48} height={48} />
+        <Image src="/done-deal-skinny-text.png" alt="Done Deal" width={48} height={48} />
         <div>
           <h1 className="text-2xl font-serif text-[#2c2420]">Resources</h1>
           <p className="text-sm text-[#7a6e63] mt-1">
