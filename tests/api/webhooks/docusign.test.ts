@@ -33,7 +33,7 @@ function mockAdminClient(singleResult: { data: unknown; error: unknown }) {
   const mockEq = vi.fn().mockReturnValue({ select: mockSelect })
   const mockUpdate = vi.fn().mockReturnValue({ eq: mockEq })
   const mockFrom = vi.fn().mockReturnValue({ update: mockUpdate })
-  vi.mocked(createAdminClient).mockReturnValue({ from: mockFrom } as ReturnType<typeof createAdminClient>)
+  vi.mocked(createAdminClient).mockReturnValue({ from: mockFrom } as unknown as ReturnType<typeof createAdminClient>)
 }
 
 beforeEach(() => {

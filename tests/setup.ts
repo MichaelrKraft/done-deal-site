@@ -1,3 +1,5 @@
+import { vi } from 'vitest'
+
 // Global test setup
 // Suppress console.log in tests unless DEBUG=true
 if (!process.env.DEBUG) {
