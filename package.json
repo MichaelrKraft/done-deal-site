@@ -16,7 +16,8 @@
     "monit": "pm2 monit",
     "test": "vitest",
     "test:run": "vitest run",
-    "migrate": "tsx scripts/migrate.ts"
+    "migrate": "tsx scripts/migrate.ts",
+    "migrate:status": "tsx scripts/migrate.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
