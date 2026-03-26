@@ -99,9 +99,9 @@ export default function AIConfigSection({ initialAutonomy, initialModel }: AICon
               }`}
             >
               <span className={`text-xs font-medium ${autonomy === 'supervised' ? 'text-blue-700' : 'text-[#2c2420]'}`}>
-                Supervised
+                Supervised — recommended
               </span>
-              <p className="text-[11px] text-[#b0a698] mt-0.5">AI creates drafts, you approve</p>
+              <p className="text-[11px] text-[#b0a698] mt-0.5">You approve every AI action before it executes</p>
             </button>
             <button
               type="button"
@@ -116,9 +116,23 @@ export default function AIConfigSection({ initialAutonomy, initialModel }: AICon
               <span className={`text-xs font-medium ${autonomy === 'autonomous' ? 'text-emerald-700' : 'text-[#2c2420]'}`}>
                 Autonomous
               </span>
-              <p className="text-[11px] text-[#b0a698] mt-0.5">AI auto-executes LOW risk actions</p>
+              <p className="text-[11px] text-[#b0a698] mt-0.5">AI executes LOW risk actions without review</p>
             </button>
           </div>
+          {autonomy === 'autonomous' && (
+            <div className="rounded-lg bg-amber-50 border border-amber-300 px-4 py-3 mt-2">
+              <p className="text-sm font-semibold text-amber-800">
+                Autonomous mode is active
+              </p>
+              <p className="text-xs text-amber-700 mt-1">
+                The AI will send emails and update deal stages without your review.
+                Only use this if you fully trust the AI for all actions on all active deals.
+              </p>
+              <p className="text-xs font-semibold text-amber-800 mt-1">
+                Recommended for production: keep Supervised mode enabled.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* AI Model */}
