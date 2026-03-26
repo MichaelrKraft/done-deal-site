@@ -64,6 +64,35 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     }
   }
 
+  // Subscription gating — block expired trials and canceled subscriptions from dashboard routes
+  const isBillingRoute = pathname.startsWith('/billing')
+  const isSettingsRoute = pathname.startsWith('/settings')
+  const isGatedRoute = isDashboardRoute && !isBillingRoute && !isSettingsRoute
+
+  if (user && isGatedRoute) {
+    const { data: agentBilling } = await supabase
+      .from('agents')
+      .select('subscription_status, trial_ends_at')
+      .eq('auth_user_id', user.id)
+      .single()
+
+    if (agentBilling) {
+      const trialExpired =
+        agentBilling.subscription_status === 'trialing' &&
+        agentBilling.trial_ends_at != null &&
+        new Date(agentBilling.trial_ends_at) < new Date()
+
+      const blocked =
+        agentBilling.subscription_status === 'canceled' ||
+        agentBilling.subscription_status === 'unpaid' ||
+        trialExpired
+
+      if (blocked) {
+        return NextResponse.redirect(new URL('/billing', request.url))
+      }
+    }
+  }
+
   return supabaseResponse
 }
 

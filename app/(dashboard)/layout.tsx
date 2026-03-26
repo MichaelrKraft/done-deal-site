@@ -14,6 +14,7 @@ import {
   BarChart3,
   Users,
   Settings,
+  CreditCard,
   LogOut,
 } from 'lucide-react'
 import { signOut } from '@/lib/actions/auth'
@@ -28,6 +29,7 @@ const NAV_ITEMS = [
   { label: 'Analytics', href: '/analytics', icon: BarChart3 },
   { label: 'Team', href: '/team', icon: Users },
   { label: 'Settings', href: '/settings', icon: Settings },
+  { label: 'Billing', href: '/billing', icon: CreditCard },
 ]
 
 export default function DashboardLayout({

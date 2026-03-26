@@ -150,6 +150,11 @@ export type Database = {
           inbox_address: string | null
           preferred_model: string
           created_at: string
+          stripe_customer_id: string | null
+          plan: 'trial' | 'starter' | 'professional' | 'team' | 'canceled'
+          subscription_status: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid'
+          trial_ends_at: string | null
+          stripe_subscription_id: string | null
         }
         Insert: {
           id?: string
@@ -170,6 +175,11 @@ export type Database = {
           inbox_address?: string | null
           preferred_model?: string
           created_at?: string
+          stripe_customer_id?: string | null
+          plan?: 'trial' | 'starter' | 'professional' | 'team' | 'canceled'
+          subscription_status?: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid'
+          trial_ends_at?: string | null
+          stripe_subscription_id?: string | null
         }
         Update: {
           id?: string
@@ -190,6 +200,11 @@ export type Database = {
           inbox_address?: string | null
           preferred_model?: string
           created_at?: string
+          stripe_customer_id?: string | null
+          plan?: 'trial' | 'starter' | 'professional' | 'team' | 'canceled'
+          subscription_status?: 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid'
+          trial_ends_at?: string | null
+          stripe_subscription_id?: string | null
         }
         Relationships: []
       }
