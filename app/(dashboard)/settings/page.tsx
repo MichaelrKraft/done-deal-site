@@ -7,6 +7,7 @@ import TemplatesSection from '@/components/settings/TemplatesSection'
 import TelegramSection from '@/components/settings/TelegramSection'
 import InboxAddressSection from '@/components/settings/InboxAddressSection'
 import AIConfigSection from '@/components/settings/AIConfigSection'
+import VendorsSection from '@/components/settings/VendorsSection'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -186,6 +187,9 @@ export default async function SettingsPage() {
 
       {/* Email Templates */}
       <TemplatesSection />
+
+      {/* Preferred Vendors */}
+      <VendorsSection />
 
       {/* Memories */}
       <MemoriesSection initial={memories ?? []} />

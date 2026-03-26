@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/server-admin'
 import { notFound } from 'next/navigation'
 import type { TransactionStage, DeadlineStatus, DocumentStatus, PortalLinkRow } from '@/types/database'
+import MilestoneTracker from '@/components/portal/MilestoneTracker'
 
 const STAGE_ORDER: TransactionStage[] = [
   'pre_listing',
@@ -150,6 +151,13 @@ export default async function PortalPage({
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-8 space-y-8">
+        {/* Milestone Tracker */}
+        <MilestoneTracker
+          currentStage={transaction.stage}
+          closingDate={transaction.closing_date}
+        />
+        <p className="text-sm text-[#7a6e63] mb-6">Here's where your transaction stands today.</p>
+
         {/* Progress Bar */}
         <section>
           <h2 className="text-xs uppercase tracking-wider text-[#b0a698] font-semibold mb-4">

@@ -84,9 +84,8 @@ export function shouldAutoExecute(
   riskLevel: RiskLevel,
   autonomyMode: AutonomyMode
 ): boolean {
-  // LOW risk actions are always routine — auto-execute regardless of mode
-  if (riskLevel === 'low') return true
+  // LOW risk actions auto-execute only in autonomous mode
+  if (riskLevel === 'low' && autonomyMode === 'autonomous') return true
   // MEDIUM/HIGH always require approval
-  void autonomyMode
   return false
 }

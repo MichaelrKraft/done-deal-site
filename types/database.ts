@@ -79,6 +79,8 @@ export interface TeamPermissions {
   can_view_analytics: boolean
 }
 
+export type VendorCategory = 'title' | 'lender' | 'inspector' | 'attorney' | 'hoa'
+
 export type ComplianceStatus = 'pending' | 'in_progress' | 'complete' | 'n_a' | 'waived'
 
 export type InboundEmailProcessingStatus = 'received' | 'processing' | 'completed' | 'failed' | 'duplicate'
@@ -414,6 +416,8 @@ export type Database = {
           esign_status: EsignStatus | null
           esign_provider: EsignProvider | null
           esign_metadata: Record<string, unknown>
+          scan_findings: Array<{ text: string; severity: 'error' | 'warning' | 'info' }> | null
+          scan_status: 'pending' | 'scanning' | 'complete' | 'failed' | null
           created_at: string
           updated_at: string
         }
@@ -438,6 +442,8 @@ export type Database = {
           esign_status?: EsignStatus | null
           esign_provider?: EsignProvider | null
           esign_metadata?: Record<string, unknown>
+          scan_findings?: Array<{ text: string; severity: 'error' | 'warning' | 'info' }> | null
+          scan_status?: 'pending' | 'scanning' | 'complete' | 'failed' | null
           created_at?: string
           updated_at?: string
         }
@@ -462,6 +468,8 @@ export type Database = {
           esign_status?: EsignStatus | null
           esign_provider?: EsignProvider | null
           esign_metadata?: Record<string, unknown>
+          scan_findings?: Array<{ text: string; severity: 'error' | 'warning' | 'info' }> | null
+          scan_status?: 'pending' | 'scanning' | 'complete' | 'failed' | null
           created_at?: string
           updated_at?: string
         }
@@ -878,6 +886,48 @@ export type Database = {
         }
         Relationships: []
       }
+      preferred_vendors: {
+        Row: {
+          id: string
+          agent_id: string
+          category: VendorCategory
+          name: string
+          company: string | null
+          email: string | null
+          phone: string | null
+          notes: string | null
+          is_brokerage_shared: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          agent_id: string
+          category: VendorCategory
+          name: string
+          company?: string | null
+          email?: string | null
+          phone?: string | null
+          notes?: string | null
+          is_brokerage_shared?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          agent_id?: string
+          category?: VendorCategory
+          name?: string
+          company?: string | null
+          email?: string | null
+          phone?: string | null
+          notes?: string | null
+          is_brokerage_shared?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>
@@ -1008,6 +1058,26 @@ export interface TeamMembershipRow {
 }
 export type TeamMembershipInsert = Omit<TeamMembershipRow, 'id' | 'created_at'>
   & Partial<Pick<TeamMembershipRow, 'permissions'>>
+
+// Preferred vendors
+export interface PreferredVendor {
+  id: string
+  agent_id: string
+  category: VendorCategory
+  name: string
+  company: string | null
+  email: string | null
+  phone: string | null
+  notes: string | null
+  is_brokerage_shared: boolean
+  created_at: string
+}
+
+// Document scan finding (matches scan_findings JSONB column)
+export interface ScanFinding {
+  text: string
+  severity: 'error' | 'warning' | 'info'
+}
 
 // Enriched type returned by /api/feed (AIAction + joined transaction fields)
 export interface AIActionWithTransaction extends AIAction {

@@ -5,6 +5,7 @@ import { transactionSummarizerDef, executeTransactionSummarizer } from './transa
 import { complianceFlaggerDef, executeComplianceFlagger } from './compliance-flagger'
 import { stageUpdaterDefinition, executeStageUpdate } from './stage-updater'
 import { calendarEventDefinition, executeCalendarEvent } from './calendar-event'
+import { bulkEmailDrafterDef, executeBulkEmailDrafter } from './bulk-email-drafter'
 
 // Re-export shared types
 export type { TCToolDefinition, TCToolResult } from './types'
@@ -21,6 +22,7 @@ export const allToolDefinitions: TCToolDefinition[] = [
   complianceFlaggerDef,
   stageUpdaterDefinition,
   calendarEventDefinition,
+  bulkEmailDrafterDef,
 ]
 
 // ============================================================
@@ -36,6 +38,7 @@ const EXECUTORS: Record<string, ToolExecutor> = {
   flag_compliance_issue: executeComplianceFlagger as ToolExecutor,
   update_transaction_stage: executeStageUpdate as ToolExecutor,
   create_calendar_event: executeCalendarEvent as ToolExecutor,
+  draft_bulk_emails: executeBulkEmailDrafter as ToolExecutor,
 }
 
 export async function executeToolCall(

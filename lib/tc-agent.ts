@@ -170,8 +170,9 @@ export async function runTCAgent(agentId: string, jobType: TCJobType): Promise<v
       }
 
       // When a calendar_event is auto-executed, also write to deadlines for in-app calendar
+      // and create a real calendar event via Google Calendar or Outlook
       if (autoExecute && result.actionType === 'calendar_event') {
-        const draft = result.draftContent as { subject?: string; date?: string }
+        const draft = result.draftContent as { subject?: string; date?: string; description?: string }
         if (draft.subject && draft.date) {
           const { error: dlError } = await supabase.from('deadlines').insert({
             transaction_id: transactionId,
@@ -181,6 +182,43 @@ export async function runTCAgent(agentId: string, jobType: TCJobType): Promise<v
             status: 'pending',
           })
           if (dlError) console.error('[TC Agent] Failed to insert calendar deadline:', dlError.message)
+
+          // Create real calendar event via connected calendar provider
+          try {
+            const { data: agentTokens } = await supabase
+              .from('agents')
+              .select('google_token, outlook_token')
+              .eq('id', agentId)
+              .single()
+
+            if (agentTokens?.google_token) {
+              const { createGoogleCalendarEvent } = await import('@/integrations/google-workspace')
+              const tokens = agentTokens.google_token as unknown as import('@/integrations/google-workspace').GoogleTokens
+              const calResult = await createGoogleCalendarEvent(tokens, {
+                subject: draft.subject,
+                date: draft.date,
+                description: draft.description,
+              })
+              if (calResult.refreshedTokens) {
+                await supabase.from('agents').update({ google_token: calResult.refreshedTokens as unknown as Record<string, unknown> }).eq('id', agentId)
+              }
+              if (calResult.success) console.log(`[TC Agent] Google Calendar event created: ${draft.subject}`)
+            } else if (agentTokens?.outlook_token) {
+              const { createCalendarEvent: createOutlookEvent } = await import('@/integrations/microsoft-graph')
+              const tokens = agentTokens.outlook_token as unknown as import('@/integrations/microsoft-graph').OutlookTokens
+              const calResult = await createOutlookEvent(tokens, {
+                subject: draft.subject,
+                date: draft.date,
+                description: draft.description,
+              })
+              if (calResult.refreshedTokens) {
+                await supabase.from('agents').update({ outlook_token: calResult.refreshedTokens as unknown as Record<string, unknown> }).eq('id', agentId)
+              }
+              if (calResult.success) console.log(`[TC Agent] Outlook Calendar event created: ${draft.subject}`)
+            }
+          } catch (calErr) {
+            console.error('[TC Agent] Calendar API call failed (non-fatal):', calErr)
+          }
         }
       }
 
