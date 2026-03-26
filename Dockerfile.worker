@@ -1,0 +1,15 @@
+FROM node:20-slim AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+
+FROM node:20-slim AS runner
+WORKDIR /app
+# Copy node_modules and source
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app .
+
+ENV NODE_ENV=production
+
+CMD ["npx", "tsx", "worker/index.ts"]

@@ -1,0 +1,20 @@
+services:
+  - type: worker
+    name: done-deal-worker
+    env: docker
+    dockerfilePath: ./Dockerfile.worker
+    branch: main
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false
