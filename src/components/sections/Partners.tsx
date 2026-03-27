@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import AnimatedSection from '@/components/AnimatedSection';
 
 const partners = [
   {
@@ -23,46 +23,38 @@ export default function Partners() {
     <section className="py-20 bg-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-16">
+        <AnimatedSection className="text-center mb-16">
           <span className="text-[#00BEFF] font-semibold uppercase tracking-wider">
             OUR PARTNERS
           </span>
           <h2 className="text-4xl md:text-5xl font-bold mt-4">
             Used by some of the top agents in the Country
           </h2>
-        </div>
+        </AnimatedSection>
 
         {/* Partners */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16 max-w-3xl mx-auto">
           {partners.map((partner, index) => (
-            <motion.div
+            <AnimatedSection
               key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
+              delay={index * 0.2}
               className="text-center"
             >
               <h3 className="text-xl font-bold text-[#00BEFF]">{partner.name}</h3>
               <p className="text-gray-400">{partner.title}</p>
-            </motion.div>
+            </AnimatedSection>
           ))}
         </div>
 
         {/* Featured Testimonial */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="max-w-4xl mx-auto text-center"
-        >
+        <AnimatedSection delay={0.4} className="max-w-4xl mx-auto text-center">
           <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
             <p className="text-2xl md:text-3xl text-white font-light italic mb-6">
               &quot;{featuredTestimonial.quote}&quot;
             </p>
             <p className="text-[#00BEFF] font-semibold">{featuredTestimonial.name}</p>
           </div>
-        </motion.div>
+        </AnimatedSection>
       </div>
     </section>
   );

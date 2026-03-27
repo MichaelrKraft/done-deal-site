@@ -1,13 +1,18 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { useInView } from 'framer-motion';
+import AnimatedSection from '@/components/AnimatedSection';
 
 interface CounterProps {
   end: number;
   suffix?: string;
   prefix?: string;
   duration?: number;
+}
+
+function easeOutCubic(t: number): number {
+  return 1 - Math.pow(1 - t, 3);
 }
 
 function Counter({ end, suffix = '', prefix = '', duration = 2 }: CounterProps) {
@@ -23,11 +28,12 @@ function Counter({ end, suffix = '', prefix = '', duration = 2 }: CounterProps) 
 
     const animate = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / (duration * 1000), 1);
+      const linearProgress = Math.min((timestamp - startTime) / (duration * 1000), 1);
+      const easedProgress = easeOutCubic(linearProgress);
 
-      setCount(Math.floor(progress * end));
+      setCount(Math.floor(easedProgress * end));
 
-      if (progress < 1) {
+      if (linearProgress < 1) {
         animationFrame = requestAnimationFrame(animate);
       }
     };
@@ -45,34 +51,29 @@ function Counter({ end, suffix = '', prefix = '', duration = 2 }: CounterProps) 
 }
 
 const stats = [
-  { value: 10000, suffix: '+', label: 'Deals Completed' },
-  { value: 5000, suffix: '+', label: 'Active Leads' },
-  { value: 50, prefix: '$', suffix: 'M+', label: 'Transactions' },
+  { value: 21, suffix: '+', label: 'Hours Saved Per Transaction' },
+  { value: 50, prefix: '$', suffix: '', label: 'Average Cost Per Deal' },
+  { value: 99, suffix: '.9%', label: 'Uptime' },
 ];
 
 export default function Stats() {
   return (
-    <section className="py-16 bg-gradient-to-r from-[#00BEFF]/10 via-[#8b5cf6]/10 to-[#00BEFF]/10">
+    <section className="py-16 bg-gradient-to-r from-[#00BEFF]/10 via-[#8b5cf6]/10 to-[#00BEFF]/10 parallax-bg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {stats.map((stat, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.2 }}
-              className="text-center"
-            >
-              <div className="text-5xl md:text-6xl font-bold text-[#00BEFF] mb-2">
-                <Counter
-                  end={stat.value}
-                  suffix={stat.suffix}
-                  prefix={stat.prefix}
-                />
+            <AnimatedSection key={index} delay={index * 0.2}>
+              <div className="text-center">
+                <div className="text-5xl md:text-6xl font-bold text-[#00BEFF] mb-2">
+                  <Counter
+                    end={stat.value}
+                    suffix={stat.suffix}
+                    prefix={stat.prefix}
+                  />
+                </div>
+                <p className="text-gray-400 text-lg">{stat.label}</p>
               </div>
-              <p className="text-gray-400 text-lg">{stat.label}</p>
-            </motion.div>
+            </AnimatedSection>
           ))}
         </div>
       </div>

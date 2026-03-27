@@ -1,16 +1,12 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import AnimatedSection from '@/components/AnimatedSection';
 
 export default function VoiceDemo() {
   return (
-    <section className="py-20 bg-gradient-to-br from-[#00BEFF]/10 via-black to-[#8b5cf6]/10">
+    <section className="parallax-bg py-20 bg-gradient-to-br from-[#00BEFF]/10 via-black to-[#8b5cf6]/10">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
+        <AnimatedSection>
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             Listen to how our AI Transaction Coordinator sounds.
           </h2>
@@ -27,11 +23,12 @@ export default function VoiceDemo() {
                 height="400"
                 className="rounded-xl"
                 title="AI Voice Demo"
+                aria-label="Done Deal AI Transaction Coordinator voice demo. Click to interact with the AI assistant."
                 allow="microphone"
               />
             </div>
           </div>
-        </motion.div>
+        </AnimatedSection>
       </div>
     </section>
   );

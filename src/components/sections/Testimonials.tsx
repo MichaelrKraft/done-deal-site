@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import AnimatedSection from '@/components/AnimatedSection';
 
 const testimonials = [
   {
@@ -65,12 +65,15 @@ const testimonials = [
   },
 ];
 
+// Duplicate for seamless infinite scroll
+const duplicatedTestimonials = [...testimonials, ...testimonials];
+
 export default function Testimonials() {
   return (
     <section className="py-20 bg-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-12">
+        <AnimatedSection className="text-center mb-12">
           <span className="text-[#00BEFF] font-semibold uppercase tracking-wider">
             TESTIMONIALS
           </span>
@@ -84,18 +87,16 @@ export default function Testimonials() {
             Explore the experiences of top Brokers using Done-Deal for seamless
             transaction coordination and appointment setting.
           </p>
-        </div>
+        </AnimatedSection>
+      </div>
 
-        {/* Testimonials Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {testimonials.map((testimonial, index) => (
-            <motion.div
+      {/* Auto-scrolling Carousel */}
+      <div className="overflow-hidden">
+        <div className="flex gap-6 animate-scroll-left hover:[animation-play-state:paused]">
+          {duplicatedTestimonials.map((testimonial, index) => (
+            <div
               key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-[#00BEFF]/50 transition-colors"
+              className="card-glow min-w-[350px] max-w-[350px] flex-shrink-0 bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-[#00BEFF]/50 transition-colors"
             >
               {/* Stars */}
               <div className="text-yellow-400 mb-4">★★★★★</div>
@@ -115,7 +116,7 @@ export default function Testimonials() {
                   <p className="text-gray-500 text-sm">{testimonial.title}</p>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

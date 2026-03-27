@@ -1,7 +1,7 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import Link from 'next/link';
+import AnimatedSection from '@/components/AnimatedSection';
 
 const benefits = [
   {
@@ -18,16 +18,16 @@ const benefits = [
   },
   {
     title: 'Scalable Solutions',
-    description: 'Easily scale your business without hiring additional staff.',
+    description: 'Easily scale your business without hiring additional staff. Done Deal grows with you as you take on more deals.',
   },
 ];
 
 export default function Benefits() {
   return (
-    <section className="py-20 bg-gradient-to-br from-black via-[#00BEFF]/5 to-black">
+    <section className="parallax-bg py-20 bg-gradient-to-br from-black via-[#00BEFF]/5 to-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-16">
+        <AnimatedSection className="text-center mb-16">
           <span className="text-[#00BEFF] font-semibold uppercase tracking-wider">
             AI IS BETTER
           </span>
@@ -40,36 +40,37 @@ export default function Benefits() {
             important dates, to reminding all parties about dates, to coordinating client
             closing gifts.
           </p>
-        </div>
+        </AnimatedSection>
 
         {/* Benefits Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           {benefits.map((benefit, index) => (
-            <motion.div
+            <AnimatedSection
               key={index}
-              initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-white/5 rounded-2xl p-8 border border-white/10"
+              delay={index * 0.12}
+              direction={index % 2 === 0 ? 'left' : 'right'}
             >
-              <h3 className="text-xl font-bold text-[#00BEFF] mb-3">
-                {benefit.title}:
-              </h3>
-              <p className="text-gray-300">&quot;{benefit.description}&quot;</p>
-            </motion.div>
+              <div className="card-glow bg-white/5 rounded-2xl p-8 border border-white/10">
+                <h3 className="text-xl font-bold text-[#00BEFF] mb-3">
+                  {benefit.title}:
+                </h3>
+                <p className="text-gray-300">&quot;{benefit.description}&quot;</p>
+              </div>
+            </AnimatedSection>
           ))}
         </div>
 
         {/* CTA */}
-        <div className="text-center">
-          <Link
-            href="/contact"
-            className="cyan-button inline-block px-8 py-4 rounded-full font-semibold text-lg"
-          >
-            Book my Free Demo
-          </Link>
-        </div>
+        <AnimatedSection delay={0.5}>
+          <div className="text-center">
+            <Link
+              href="/contact"
+              className="cyan-button inline-block px-8 py-4 rounded-full font-semibold text-lg"
+            >
+              Book my Free Demo
+            </Link>
+          </div>
+        </AnimatedSection>
       </div>
     </section>
   );

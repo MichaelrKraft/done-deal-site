@@ -1,58 +1,64 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '#pricing', label: 'Pricing' },
-  { href: 'https://appointwise.firstpromoter.com/', label: 'Affiliate', external: true },
   { href: '/contact', label: 'Contact' },
 ];
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b border-white/10">
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? 'bg-black/90 backdrop-blur-md border-b border-white/10 shadow-lg shadow-black/20'
+          : 'bg-transparent border-b border-transparent'
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <span className="text-2xl font-bold">
-              <span className="text-[#00BEFF]">Done</span>
-              <span className="text-[#8b5cf6]">:</span>
-              <span className="text-white">Deal</span>
-            </span>
+            <Image
+              src="/dd-logo-landing.png"
+              alt="Done Deal"
+              width={200}
+              height={80}
+              className="h-14 w-auto"
+              priority
+            />
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
-              link.external ? (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-300 hover:text-white transition-colors"
-                >
-                  {link.label}
-                </a>
-              ) : (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-gray-300 hover:text-white transition-colors"
-                >
-                  {link.label}
-                </Link>
-              )
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-gray-300 hover:text-white transition-colors"
+              >
+                {link.label}
+              </Link>
             ))}
           </div>
 
-          {/* CTA Buttons */}
+          {/* CTA Button */}
           <div className="hidden md:flex items-center gap-4">
             <Link
               href="/contact"
@@ -60,14 +66,6 @@ export default function Navbar() {
             >
               See a Demo
             </Link>
-            <a
-              href="https://www.app.appointwise.io/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="gradient-button px-6 py-2 rounded-full font-semibold text-white"
-            >
-              Log in
-            </a>
           </div>
 
           {/* Mobile Menu Button */}
@@ -106,27 +104,14 @@ export default function Navbar() {
           <div className="md:hidden py-4 border-t border-white/10">
             <div className="flex flex-col gap-4">
               {navLinks.map((link) => (
-                link.external ? (
-                  <a
-                    key={link.href}
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-300 hover:text-white transition-colors px-4 py-2"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {link.label}
-                  </a>
-                ) : (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="text-gray-300 hover:text-white transition-colors px-4 py-2"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {link.label}
-                  </Link>
-                )
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-gray-300 hover:text-white transition-colors px-4 py-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {link.label}
+                </Link>
               ))}
               <div className="flex flex-col gap-2 px-4 pt-4 border-t border-white/10">
                 <Link
@@ -136,14 +121,6 @@ export default function Navbar() {
                 >
                   See a Demo
                 </Link>
-                <a
-                  href="https://www.app.appointwise.io/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="gradient-button px-6 py-2 rounded-full font-semibold text-white text-center"
-                >
-                  Log in
-                </a>
               </div>
             </div>
           </div>

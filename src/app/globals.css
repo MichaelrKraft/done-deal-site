@@ -77,3 +77,77 @@ html {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Parallax section helper */
+.parallax-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.parallax-bg::before {
+  content: "";
+  position: absolute;
+  inset: -20% 0;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    rgba(0, 190, 255, 0.06) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Card glow hover effect */
+.card-glow {
+  transition: all 0.3s ease;
+}
+
+.card-glow:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0 30px rgba(0, 190, 255, 0.15), 0 0 60px rgba(0, 190, 255, 0.05);
+}
+
+/* Testimonial carousel */
+@keyframes scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-scroll-left {
+  animation: scroll-left 40s linear infinite;
+}
+
+.animate-scroll-left:hover {
+  animation-play-state: paused;
+}
+
+/* Shimmer icon effect — 7s cycle, diagonal sweep */
+@keyframes shimmer-sweep {
+  0% { left: -50%; }
+  14% { left: 150%; }
+  100% { left: 150%; }
+}
+
+.shimmer-icon {
+  overflow: hidden;
+  position: relative;
+}
+
+.shimmer-icon::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  width: 30%;
+  height: 200%;
+  transform: skewX(-25deg);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 35%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.3) 65%,
+    transparent 100%
+  );
+  animation: shimmer-sweep 7s linear infinite;
+  pointer-events: none;
+}

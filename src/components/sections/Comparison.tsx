@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import AnimatedSection from '@/components/AnimatedSection';
 
 const comparisonData = [
   { feature: 'Availability', ai: '24/7', human: 'Business Hours' },
@@ -26,25 +27,26 @@ export default function Comparison() {
     <section className="py-20 bg-gradient-to-br from-black via-[#00BEFF]/5 to-black">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Table */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="bg-white/5 rounded-2xl overflow-hidden border border-white/10"
-        >
+        <div className="bg-white/5 rounded-2xl overflow-hidden border border-white/10">
           {/* Header */}
-          <div className="grid grid-cols-3 bg-white/10">
-            <div className="p-4 font-semibold text-white">Features</div>
-            <div className="p-4 font-semibold text-[#00BEFF] text-center">
-              Done Deal (AI TC)
+          <AnimatedSection>
+            <div className="grid grid-cols-3 bg-white/10">
+              <div className="p-4 font-semibold text-white">Features</div>
+              <div className="p-4 font-semibold text-[#00BEFF] text-center">
+                Done Deal (AI TC)
+              </div>
+              <div className="p-4 font-semibold text-gray-400 text-center">Human TC</div>
             </div>
-            <div className="p-4 font-semibold text-gray-400 text-center">Human TC</div>
-          </div>
+          </AnimatedSection>
 
           {/* Rows */}
           {comparisonData.map((row, index) => (
-            <div
+            <motion.div
               key={index}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.05, duration: 0.4, ease: 'easeOut' }}
               className="grid grid-cols-3 border-t border-white/5 hover:bg-white/5 transition-colors"
             >
               <div className="p-4 text-gray-300">{row.feature}</div>
@@ -54,9 +56,9 @@ export default function Comparison() {
               <div className="p-4 text-gray-500 text-center flex items-center justify-center gap-2">
                 <span className="text-red-500">✗</span> {row.human}
               </div>
-            </div>
+            </motion.div>
           ))}
-        </motion.div>
+        </div>
 
         {/* CTA */}
         <div className="text-center mt-12">

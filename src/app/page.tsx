@@ -7,6 +7,7 @@ import Problem from '@/components/sections/Problem';
 import Benefits from '@/components/sections/Benefits';
 import HowItWorks from '@/components/sections/HowItWorks';
 import Stats from '@/components/sections/Stats';
+import ROICalculator from '@/components/sections/ROICalculator';
 import Pricing from '@/components/sections/Pricing';
 import Comparison from '@/components/sections/Comparison';
 import FeatureCards from '@/components/sections/FeatureCards';
@@ -26,6 +27,7 @@ export default function Home() {
         <Benefits />
         <HowItWorks />
         <Stats />
+        <ROICalculator />
         <Pricing />
         <Comparison />
         <FeatureCards />

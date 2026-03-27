@@ -70,7 +70,7 @@ export default function ContactPage() {
           <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
             {isSubmitted ? (
               <div className="text-center py-12">
-                <div className="text-6xl mb-4">✅</div>
+                <div className="flex justify-center mb-4"><svg className="w-16 h-16 shimmer-icon" viewBox="0 0 24 24" fill="none" stroke="#00BEFF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg></div>
                 <h2 className="text-2xl font-bold text-white mb-2">
                   Thanks for reaching out!
                 </h2>

@@ -2,51 +2,40 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import AnimatedSection from '@/components/AnimatedSection';
 
 const faqs = [
   {
-    question: 'How does Done Deal help agencies convert more leads into customers?',
-    answer: 'Our AI-powered chatbots instantly engage, qualify, and convert leads into appointments through human-like conversations and follow-ups.',
+    question: 'What is Done Deal?',
+    answer: 'Done Deal is an AI-powered transaction coordination platform for real estate professionals. It automates task tracking, deadline management, document collection, and vendor communication so you can close more deals with less stress.',
   },
   {
-    question: 'What languages can the AI speak?',
-    answer: 'The AI can speak English, French, German, Spanish, Italian, Portuguese, Dutch, Swedish, Danish, Norwegian (Bokmål and Nynorsk), Icelandic, Finnish, Catalan, Galician, Afrikaans, and Faroese.',
+    question: 'How does the AI transaction coordinator work?',
+    answer: 'Our AI TC monitors your active transactions 24/7, automatically tracks deadlines, sends follow-up emails, schedules appointments, and flags compliance issues — all while keeping you in control with an approval-based workflow.',
   },
   {
-    question: 'Is Done Deal compatible with Go High Level CRM?',
-    answer: 'Yes, Done Deal seamlessly integrates with Go High Level CRM, allowing you to streamline your lead conversion process. We provide a step-by-step process of integrating your customized AI chatbots into your GHL lead flows.',
+    question: 'What types of transactions does Done Deal support?',
+    answer: 'Done Deal supports buyer-side, seller-side, and dual-agency transactions. Whether it\'s a residential listing, a purchase, or a commercial deal, our system adapts to your workflow.',
   },
   {
-    question: "Can I customize the chatbot to match my brand's voice and style?",
-    answer: "Absolutely, Done Deal offers complete customization, enabling you to tailor the chatbot's responses and interactions to align with your brand.",
+    question: 'How long does it take to set up?',
+    answer: 'Most agents are up and running within 24 hours. We provide a live onboarding session where we configure your transaction templates, vendor contacts, and notification preferences.',
   },
   {
-    question: 'What industries can benefit from using Done Deal?',
-    answer: 'Done Deal caters to a wide range of industries, including SMMA owners, Pay Per Lead specialists, and AI Automation Agencies, while also catering to individual service business owners. Solar, Law, Real Estate, Medical, Finance/Insurance are just a few examples.',
+    question: 'Can I manage multiple transactions at once?',
+    answer: 'Absolutely. Done Deal is built for scale — manage dozens of concurrent transactions from a single dashboard with real-time status updates and priority-based task sorting.',
   },
   {
-    question: 'How quickly can I set up Done Deal for my agency?',
-    answer: 'Setting up Done Deal is quick and easy. Within minutes, you can customize your chatbot, integrate it with Go High Level, and start converting leads.',
+    question: 'Is my data secure?',
+    answer: 'Yes. We use bank-level encryption, secure cloud infrastructure, and strict access controls. Your client data and transaction documents are never shared or used for training.',
   },
   {
-    question: "Can I charge clients for using Done Deal's lead conversion services?",
-    answer: "Definitely! Many agencies charge their clients for integrating Done Deal's lead conversion services, creating a new revenue stream. (Set up fees or monthly retainers)",
+    question: 'What integrations are available?',
+    answer: 'Done Deal integrates with popular real estate tools including DocuSign, Google Calendar, and email providers. We\'re continuously adding new integrations based on user feedback.',
   },
   {
-    question: 'Does Done Deal offer support for technical setup and customization?',
-    answer: 'Yes, our support team is here to assist you with any technical setup or customization questions you may have along the way.',
-  },
-  {
-    question: 'How can Done Deal help me differentiate my agency from competitors?',
-    answer: 'By offering cutting-edge AI-powered lead conversion, you can set your agency apart, impress clients, and demonstrate your commitment to innovation.',
-  },
-  {
-    question: 'What results can I expect from using Done Deal for my agency?',
-    answer: 'Agencies that use Done Deal typically experience increased lead conversion rates, improved customer engagement, and higher ROI on their lead generation efforts.',
-  },
-  {
-    question: 'Is there a trial period available for Done Deal?',
-    answer: 'Yes, we offer a free 14 day trial period depending on the plan, that allows you to experience the benefits of Done Deal first hand before making any commitment.',
+    question: 'Is there a free trial?',
+    answer: 'Yes! We offer a 14-day free trial with full access to all features. No credit card required to get started.',
   },
 ];
 
@@ -57,17 +46,19 @@ export default function FAQ() {
     <section className="py-20 bg-black">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-16">
-          <span className="text-[#00BEFF] font-semibold uppercase tracking-wider">
-            QUERIES
-          </span>
-          <h2 className="text-4xl md:text-5xl font-bold mt-4">
-            Got Questions? We&apos;ve
-          </h2>
-          <h3 className="text-4xl md:text-5xl font-bold text-[#00BEFF]">
-            Got Answers
-          </h3>
-        </div>
+        <AnimatedSection>
+          <div className="text-center mb-16">
+            <span className="text-[#00BEFF] font-semibold uppercase tracking-wider">
+              QUERIES
+            </span>
+            <h2 className="text-4xl md:text-5xl font-bold mt-4">
+              Got Questions? We&apos;ve
+            </h2>
+            <h3 className="text-4xl md:text-5xl font-bold text-[#00BEFF]">
+              Got Answers
+            </h3>
+          </div>
+        </AnimatedSection>
 
         {/* FAQ List */}
         <div className="space-y-4">
@@ -85,21 +76,21 @@ export default function FAQ() {
                 className="w-full px-6 py-4 text-left flex items-center justify-between bg-white/5 hover:bg-white/10 transition-colors"
               >
                 <span className="font-semibold text-white pr-4">{faq.question}</span>
-                <span
-                  className={`text-[#00BEFF] text-2xl transition-transform ${
-                    openIndex === index ? 'rotate-45' : ''
-                  }`}
+                <motion.span
+                  animate={{ rotate: openIndex === index ? 45 : 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-[#00BEFF] text-2xl flex-shrink-0"
                 >
                   +
-                </span>
+                </motion.span>
               </button>
-              <AnimatePresence>
+              <AnimatePresence initial={false}>
                 {openIndex === index && (
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
                     className="overflow-hidden"
                   >
                     <div className="px-6 py-4 text-gray-400 bg-black/50">
