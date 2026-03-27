@@ -122,7 +122,7 @@ export default function Hero() {
               </div>
               <div className="flex items-center gap-2 justify-center">
                 <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="#00BEFF" stroke="none"><polygon points="12 2 22 12 12 22 2 12" /></svg>
-                <span className="text-gray-300">Scale Your Brokerage Faster</span>
+                <span className="text-gray-300">Scale Your Business Faster</span>
               </div>
             </motion.div>
           </div>
