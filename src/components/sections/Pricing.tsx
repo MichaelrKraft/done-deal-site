@@ -44,7 +44,7 @@ export default function Pricing() {
               The Rest Are Nearly Free.
             </h3>
             <p className="text-gray-400 mt-4 max-w-2xl mx-auto">
-              Human TCs charge $400+ per transaction. With Done Deal, your first deal covers the annual cost — every deal after that is just $15.
+              Human TCs can charge $400+ per transaction. With Done Deal, your first deal covers the annual cost — every deal after that is just $15.
             </p>
           </div>
         </AnimatedSection>
