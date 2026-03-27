@@ -81,7 +81,7 @@ export default function Testimonials() {
             Why Brokers can&apos;t stop talking
           </h2>
           <h3 className="text-4xl md:text-5xl font-bold text-[#00BEFF]">
-            about Done-Deal.ai
+            about Done-Deal
           </h3>
           <p className="text-gray-400 mt-4 max-w-2xl mx-auto">
             Explore the experiences of top Brokers using Done-Deal for seamless
