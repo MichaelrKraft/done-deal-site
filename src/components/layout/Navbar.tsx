@@ -7,7 +7,6 @@ import Image from 'next/image';
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '#pricing', label: 'Pricing' },
-  { href: '/contact', label: 'Contact' },
 ];
 
 export default function Navbar() {
@@ -61,10 +60,16 @@ export default function Navbar() {
           {/* CTA Button */}
           <div className="hidden md:flex items-center gap-4">
             <Link
-              href="/contact"
+              href="https://app.done-deal.info/login"
+              className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+            >
+              Sign In
+            </Link>
+            <Link
+              href="https://app.done-deal.info/signup"
               className="cyan-button px-6 py-2 rounded-full font-semibold"
             >
-              See a Demo
+              Start Free Trial
             </Link>
           </div>
 
@@ -115,11 +120,11 @@ export default function Navbar() {
               ))}
               <div className="flex flex-col gap-2 px-4 pt-4 border-t border-white/10">
                 <Link
-                  href="/contact"
+                  href="https://app.done-deal.info/signup"
                   className="cyan-button px-6 py-2 rounded-full font-semibold text-center"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  See a Demo
+                  Start Free Trial
                 </Link>
               </div>
             </div>

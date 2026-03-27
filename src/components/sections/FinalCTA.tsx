@@ -10,7 +10,7 @@ export default function FinalCTA() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <AnimatedSection>
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Book My Free Demo
+            Start Your Free Trial
           </h2>
           <p className="text-xl text-gray-300 mb-4">
             Start exploring Done-Deal and experience
@@ -25,10 +25,10 @@ export default function FinalCTA() {
             className="inline-block"
           >
             <Link
-              href="/contact"
+              href="https://app.done-deal.info/signup"
               className="cyan-button inline-block px-12 py-5 rounded-full font-semibold text-xl"
             >
-              Book My Demo
+              Start Free Trial
             </Link>
           </motion.div>
         </AnimatedSection>

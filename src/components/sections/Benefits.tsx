@@ -64,10 +64,10 @@ export default function Benefits() {
         <AnimatedSection delay={0.5}>
           <div className="text-center">
             <Link
-              href="/contact"
+              href="https://app.done-deal.info/signup"
               className="cyan-button inline-block px-8 py-4 rounded-full font-semibold text-lg"
             >
-              Book my Free Demo
+              Start Free Trial
             </Link>
           </div>
         </AnimatedSection>

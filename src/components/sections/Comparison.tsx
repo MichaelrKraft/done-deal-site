@@ -65,13 +65,13 @@ export default function Comparison() {
           <p className="text-gray-400 mb-6">Start your free trial now:</p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
-              href="/contact"
+              href="https://app.done-deal.info/signup"
               className="cyan-button px-8 py-4 rounded-full font-semibold"
             >
               Start 14-day Free Trial →
             </Link>
             <Link
-              href="/contact"
+              href="https://app.done-deal.info/signup"
               className="px-8 py-4 rounded-full font-semibold border border-white/20 hover:border-[#00BEFF] transition-colors"
             >
               Get Started →

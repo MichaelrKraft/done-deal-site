@@ -55,7 +55,7 @@ export default function HowItWorks() {
 
             <AnimatedSection delay={0.8}>
               <Link
-                href="/contact"
+                href="https://app.done-deal.info/signup"
                 className="cyan-button inline-block px-8 py-4 rounded-full font-semibold"
               >
                 Build my FREE Ai Bot

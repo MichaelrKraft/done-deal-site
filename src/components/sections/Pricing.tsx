@@ -78,7 +78,7 @@ export default function Pricing() {
               </ul>
 
               <Link
-                href="/contact"
+                href="https://app.done-deal.info/signup"
                 className="w-full block text-center px-6 py-3 rounded-full font-semibold text-sm border border-white/20 text-gray-300 hover:bg-white/5 transition-colors"
               >
                 Get Started
@@ -143,7 +143,7 @@ export default function Pricing() {
 
                   {/* CTA */}
                   <Link
-                    href="/contact"
+                    href="https://app.done-deal.info/signup"
                     className="w-full cyan-button block text-center px-8 py-4 rounded-full font-semibold text-lg"
                   >
                     Start Your Free Trial

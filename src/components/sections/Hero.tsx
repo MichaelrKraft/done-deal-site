@@ -87,7 +87,7 @@ export default function Hero() {
               className="flex flex-wrap items-center gap-4 justify-center"
             >
               <Link
-                href="/contact"
+                href="https://app.done-deal.info/signup"
                 className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-[#00BEFF] text-black font-semibold text-lg hover:bg-[#00a8d9] transition-colors"
               >
                 Start Free Trial
@@ -96,7 +96,7 @@ export default function Hero() {
                 </svg>
               </Link>
               <Link
-                href="https://done-deal.info/login"
+                href="https://app.done-deal.info/login"
                 className="text-lg font-medium text-white hover:text-[#00BEFF] transition-colors"
               >
                 Sign In
