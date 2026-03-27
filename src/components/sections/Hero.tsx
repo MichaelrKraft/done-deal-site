@@ -84,13 +84,22 @@ export default function Hero() {
 
             <motion.div
               {...fadeUp(stagger.cta)}
-              className="flex flex-wrap gap-4 justify-center"
+              className="flex flex-wrap items-center gap-4 justify-center"
             >
               <Link
                 href="/contact"
-                className="cyan-button px-8 py-4 rounded-full font-semibold text-lg"
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-[#00BEFF] text-black font-semibold text-lg hover:bg-[#00a8d9] transition-colors"
               >
-                Book my Demo
+                Start Free Trial
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </Link>
+              <Link
+                href="https://done-deal.info/login"
+                className="text-lg font-medium text-white hover:text-[#00BEFF] transition-colors"
+              >
+                Sign In
               </Link>
             </motion.div>
 
