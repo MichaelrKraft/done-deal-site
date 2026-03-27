@@ -39,7 +39,7 @@ export default function Hero() {
       {/* Gradient overlay on top of dots */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#00BEFF]/5 via-transparent to-[#8b5cf6]/5" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-20 relative z-10">
         <div className="flex justify-center">
           {/* Centered Content */}
           <div className="space-y-8 text-center max-w-3xl">
