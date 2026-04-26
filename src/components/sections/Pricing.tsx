@@ -109,18 +109,11 @@ export default function Pricing() {
 
                   {/* Price */}
                   <div className="mb-2">
-                    <span className="text-5xl font-bold text-white">$797</span>
+                    <span className="text-5xl font-bold text-white">$997</span>
                     <span className="text-gray-400"> / year</span>
                   </div>
                   <div className="mb-6">
-                    <span className="text-gray-400 text-sm">Up to 20 transactions</span>
-                  </div>
-
-                  {/* Break-even callout */}
-                  <div className="bg-[#00BEFF]/10 border border-[#00BEFF]/30 rounded-lg p-3 mb-6 text-center">
-                    <p className="text-[#00BEFF] text-sm font-semibold">
-                      Just ~$40/deal vs $400+ for a human TC
-                    </p>
+                    <span className="text-gray-400 text-sm">Up to 10 transactions</span>
                   </div>
 
                   {/* Features */}
