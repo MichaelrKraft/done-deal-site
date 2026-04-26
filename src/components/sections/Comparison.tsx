@@ -6,7 +6,7 @@ import AnimatedSection from '@/components/AnimatedSection';
 
 const comparisonData = [
   { feature: 'Availability', ai: '24/7', human: 'Business Hours' },
-  { feature: 'Cost', ai: 'Flat Monthly Fee', human: 'Per Transaction / Hourly' },
+  { feature: 'Cost', ai: 'Starting at $197/deal', human: '$400+ Per Transaction' },
   { feature: 'Response Time', ai: 'Instant', human: 'Varies' },
   { feature: 'Error Rate', ai: 'Consistent AI Logic', human: 'Human Error Risk' },
   { feature: 'Scalability', ai: 'Unlimited Tasks', human: 'Limited Capacity' },

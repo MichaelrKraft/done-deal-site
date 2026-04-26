@@ -8,7 +8,7 @@ import { ReactNode } from 'react';
 const problems: { title: string; description: string; icon: ReactNode }[] = [
   {
     title: 'Too Expensive',
-    description: "Most live TC's charge over $400 per month",
+    description: "Most live TC's charge over $400 per transaction",
     icon: <IconDollarCross />,
   },
   {

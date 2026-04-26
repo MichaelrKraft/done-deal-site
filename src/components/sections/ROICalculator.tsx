@@ -4,14 +4,27 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import AnimatedSection from '@/components/AnimatedSection';
 
-const DONE_DEAL_ANNUAL = 397;
-const DONE_DEAL_PER_DEAL = 15;
+const PER_TRANSACTION_PRICE = 197;
+const ANNUAL_STANDARD_PRICE = 997;
+const ANNUAL_STANDARD_LIMIT = 10;
+const ANNUAL_UNLIMITED_PRICE = 2500;
 const HUMAN_TC_PER_DEAL = 400;
+
+function getBestPlan(deals: number): { name: string; annual: number } {
+  const paygo = deals * PER_TRANSACTION_PRICE;
+  const standard = deals <= ANNUAL_STANDARD_LIMIT ? ANNUAL_STANDARD_PRICE : Infinity;
+  const unlimited = ANNUAL_UNLIMITED_PRICE;
+
+  if (paygo <= standard && paygo <= unlimited) return { name: 'Pay-Per-Transaction', annual: paygo };
+  if (standard <= unlimited) return { name: 'Annual Standard', annual: standard };
+  return { name: 'Annual Unlimited', annual: unlimited };
+}
 
 export default function ROICalculator() {
   const [deals, setDeals] = useState(10);
 
-  const annualDoneDeal = DONE_DEAL_ANNUAL + (deals * DONE_DEAL_PER_DEAL);
+  const best = getBestPlan(deals);
+  const annualDoneDeal = best.annual;
   const annualHumanTC = deals * HUMAN_TC_PER_DEAL;
   const costPerDeal = deals > 0 ? Math.round(annualDoneDeal / deals) : 0;
   const savings = annualHumanTC - annualDoneDeal;
@@ -98,10 +111,17 @@ export default function ROICalculator() {
               </motion.div>
             </div>
 
+            {/* Best plan indicator */}
+            <div className="text-center mb-4">
+              <span className="text-[#00BEFF] text-sm font-medium">
+                Best plan for {deals} deals/year: <strong>{best.name}</strong>
+              </span>
+            </div>
+
             {/* Bottom comparison bar */}
             <div className="bg-white/5 rounded-lg p-4 flex items-center justify-between">
               <div className="text-center flex-1">
-                <p className="text-gray-500 text-xs">Done Deal Annual</p>
+                <p className="text-gray-500 text-xs">Done Deal ({best.name})</p>
                 <p className="text-white font-bold">${annualDoneDeal.toLocaleString()}/yr</p>
               </div>
               <div className="text-gray-600 px-4">vs</div>
