@@ -4,20 +4,14 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import AnimatedSection from '@/components/AnimatedSection';
 
-const annualFeatures = [
-  'Unlimited AI Transaction Coordination',
+const sharedFeatures = [
+  'AI Transaction Coordination',
   'Automated Deadline Tracking & Alerts',
   'Email Drafting & Follow-Up Automation',
   'Real-Time Compliance Monitoring',
   'Multi-Transaction Dashboard',
   'Vendor Scheduling & Calendar Sync',
   'Document Management & Scanning',
-];
-
-const paygoFeatures = [
-  'Full AI Transaction Coordination',
-  'All Platform Features Included',
-  'No Commitment Required',
 ];
 
 const planIncludes = [
@@ -38,43 +32,49 @@ export default function Pricing() {
               PRICING
             </span>
             <h2 className="text-4xl md:text-5xl font-bold mt-4">
-              Break Even After One Deal.
+              Half the Cost of a Human TC.
             </h2>
             <h3 className="text-4xl md:text-5xl font-bold text-[#00BEFF]">
-              The Rest Are Nearly Free.
+              All of the Results.
             </h3>
             <p className="text-gray-400 mt-4 max-w-2xl mx-auto">
-              Human TCs can charge $400+ per transaction. With Done Deal, your first deal covers the annual cost — every deal after that is just $15.
+              Human TCs charge $400+ per transaction. With Done Deal&apos;s annual plan, your cost drops to just $40/deal.
             </p>
           </div>
         </AnimatedSection>
 
         {/* Pricing Cards */}
-        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-5 gap-8 items-start">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
 
-          {/* Pay-As-You-Go (smaller, muted) */}
-          <AnimatedSection delay={0.3} className="md:col-span-2">
+          {/* Pay-Per-Transaction */}
+          <AnimatedSection delay={0.3}>
             <div className="bg-white/5 rounded-2xl p-6 border border-white/10 h-full">
               <p className="text-gray-400 font-semibold uppercase tracking-wider text-sm mb-4">
-                Pay-As-You-Go
+                Pay-Per-Transaction
               </p>
 
               <div className="mb-6">
-                <span className="text-4xl font-bold text-white">$200</span>
-                <span className="text-gray-400"> / deal</span>
+                <span className="text-4xl font-bold text-white">$197</span>
+                <span className="text-gray-400"> / transaction</span>
               </div>
 
               <p className="text-gray-500 text-sm mb-6">
-                No annual commitment. Pay only when you close.
+                No commitment. Pay only when you close a deal.
               </p>
 
               <ul className="space-y-3 mb-8">
-                {paygoFeatures.map((feature, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <span className="text-gray-500 mt-1">&#10003;</span>
-                    <span className="text-gray-400 text-sm">{feature}</span>
-                  </li>
-                ))}
+                <li className="flex items-start gap-3">
+                  <span className="text-gray-500 mt-1">&#10003;</span>
+                  <span className="text-gray-400 text-sm">Full AI Transaction Coordination</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-gray-500 mt-1">&#10003;</span>
+                  <span className="text-gray-400 text-sm">All Platform Features Included</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-gray-500 mt-1">&#10003;</span>
+                  <span className="text-gray-400 text-sm">No Annual Commitment</span>
+                </li>
               </ul>
 
               <Link
@@ -86,10 +86,10 @@ export default function Pricing() {
             </div>
           </AnimatedSection>
 
-          {/* Annual Plan (hero, highlighted) */}
-          <AnimatedSection delay={0.1} className="md:col-span-3">
+          {/* Annual Standard (highlighted) */}
+          <AnimatedSection delay={0.1}>
             <div className="relative">
-              {/* Best Value Badge */}
+              {/* Most Popular Badge */}
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
                 <motion.span
                   initial={{ opacity: 0, y: 10 }}
@@ -97,36 +97,35 @@ export default function Pricing() {
                   viewport={{ once: true }}
                   className="bg-[#00BEFF] text-black text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full"
                 >
-                  Best Value
+                  Most Popular
                 </motion.span>
               </div>
 
               <div className="bg-gradient-to-br from-[#00BEFF]/20 to-[#8b5cf6]/20 rounded-2xl p-1 card-glow">
                 <div className="bg-black rounded-2xl p-8">
                   <p className="text-[#00BEFF] font-semibold uppercase tracking-wider mb-4">
-                    Annual Plan
+                    Annual Standard
                   </p>
 
                   {/* Price */}
                   <div className="mb-2">
-                    <span className="text-5xl font-bold text-white">$397</span>
+                    <span className="text-5xl font-bold text-white">$797</span>
                     <span className="text-gray-400"> / year</span>
                   </div>
                   <div className="mb-6">
-                    <span className="text-2xl font-bold text-[#00BEFF]">+ $15</span>
-                    <span className="text-gray-400"> per transaction</span>
+                    <span className="text-gray-400 text-sm">Up to 20 transactions</span>
                   </div>
 
                   {/* Break-even callout */}
                   <div className="bg-[#00BEFF]/10 border border-[#00BEFF]/30 rounded-lg p-3 mb-6 text-center">
                     <p className="text-[#00BEFF] text-sm font-semibold">
-                      10 deals/year = just $55/deal vs $400+ for a human TC
+                      Just ~$40/deal vs $400+ for a human TC
                     </p>
                   </div>
 
                   {/* Features */}
                   <ul className="space-y-4 mb-8">
-                    {annualFeatures.map((feature, index) => (
+                    {sharedFeatures.map((feature, index) => (
                       <motion.li
                         key={index}
                         initial={{ opacity: 0, x: -10 }}
@@ -155,12 +154,59 @@ export default function Pricing() {
               </div>
             </div>
           </AnimatedSection>
+
+          {/* Annual Unlimited */}
+          <AnimatedSection delay={0.2}>
+            <div className="relative">
+              {/* Best Value Badge */}
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                <motion.span
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="bg-[#8b5cf6] text-white text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full"
+                >
+                  Best Value
+                </motion.span>
+              </div>
+
+              <div className="bg-white/5 rounded-2xl p-6 border border-[#8b5cf6]/30 h-full">
+                <p className="text-[#8b5cf6] font-semibold uppercase tracking-wider text-sm mb-4">
+                  Annual Unlimited
+                </p>
+
+                <div className="mb-2">
+                  <span className="text-4xl font-bold text-white">$2,500</span>
+                  <span className="text-gray-400"> / year</span>
+                </div>
+                <div className="mb-6">
+                  <span className="text-gray-400 text-sm">Unlimited transactions</span>
+                </div>
+
+                <ul className="space-y-3 mb-8">
+                  {sharedFeatures.map((feature, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <span className="text-[#8b5cf6] mt-1">&#10003;</span>
+                      <span className="text-gray-300 text-sm">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Link
+                  href="https://app.done-deal.info/signup"
+                  className="w-full block text-center px-6 py-3 rounded-full font-semibold text-sm border border-[#8b5cf6]/40 text-white hover:bg-[#8b5cf6]/10 transition-colors"
+                >
+                  Get Started
+                </Link>
+              </div>
+            </div>
+          </AnimatedSection>
         </div>
 
         {/* Plan Includes */}
         <div className="mt-16">
           <AnimatedSection>
-            <h3 className="text-2xl font-bold text-center mb-8">Both Plans Include</h3>
+            <h3 className="text-2xl font-bold text-center mb-8">All Plans Include</h3>
           </AnimatedSection>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
             {planIncludes.map((item, index) => (
