@@ -37,6 +37,14 @@ const faqs = [
     question: 'Is there a free trial?',
     answer: 'Yes! We offer a 14-day free trial with full access to all features. No credit card required to get started.',
   },
+  {
+    question: 'How is Done Deal different from hiring a human transaction coordinator?',
+    answer: 'A human TC costs $300–$500 per transaction, works business hours only, and can only juggle so many files at once. Done Deal\'s AI works 24/7, never misses a deadline, scales to any volume, and costs a fraction of the price — while still putting you in control of every email and decision that goes out.',
+  },
+  {
+    question: 'What happens if something goes wrong or a deadline is missed?',
+    answer: 'Done Deal sends escalating alerts before any deadline becomes critical — you\'ll know days in advance, not hours. If a deadline is breached, the system flags it as high-risk and surfaces it at the top of your dashboard immediately. You\'re never left in the dark.',
+  },
 ];
 
 export default function FAQ() {
