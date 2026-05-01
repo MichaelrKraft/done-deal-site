@@ -15,7 +15,7 @@ mkdirSync(AUDIO_DIR, { recursive: true });
 const SCRIPTS = [
   {
     file: 'remi-intro.wav',
-    text: "Hi! I'm Remi, your AI transaction coordinator with Done Deal. I manage your entire workflow from contract acceptance through closing — calculating Colorado deadlines from your MEC date, drafting emails to lenders, inspectors, and title, and keeping every party informed. You review and approve everything before it goes out. When you hand over your transaction to me, it's a done deal.",
+    text: "Hi! I'm Reme, your AI transaction coordinator with Done Deal. I manage your entire workflow from contract acceptance through closing — calculating Colorado deadlines from your MEC date, drafting emails to lenders, inspectors, and title, and keeping every party informed. You review and approve everything before it goes out. When you hand over your transaction to me, it's a done deal.",
   },
   {
     file: 'remi-qa-deadlines.wav',

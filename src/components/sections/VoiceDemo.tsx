@@ -55,7 +55,7 @@ export default function VoiceDemo() {
               HEAR IT IN ACTION
             </span>
             <h2 className="text-4xl md:text-5xl font-bold mt-3 mb-3">
-              Meet Remi.
+              Meet Reme.
             </h2>
             <p className="text-xl text-gray-400">
               Your AI transaction coordinator. Click the orb to hear her introduce herself.
@@ -65,7 +65,7 @@ export default function VoiceDemo() {
           {/* Side-by-side: photo left, orb right */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-12">
 
-            {/* Remi headshot — left */}
+            {/* Reme headshot — left */}
             <div
               className="relative rounded-2xl overflow-hidden shrink-0"
               style={{
@@ -77,7 +77,7 @@ export default function VoiceDemo() {
             >
               <Image
                 src="/remi/remi-final.png"
-                alt="Remi — Done Deal AI Transaction Coordinator"
+                alt="Reme — Done Deal AI Transaction Coordinator"
                 fill
                 className="object-cover object-top"
                 priority
@@ -144,7 +144,7 @@ export default function VoiceDemo() {
                   }}
                   whileHover={{ scale: 1.06 }}
                   whileTap={{ scale: 0.94 }}
-                  aria-label={isSpeaking ? 'Stop Remi' : 'Hear Remi'}
+                  aria-label={isSpeaking ? 'Stop Reme' : 'Hear Reme'}
                 >
                   {isSpeaking ? (
                     <div className="flex items-center gap-1">
