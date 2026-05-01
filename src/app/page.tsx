@@ -5,6 +5,7 @@ import Testimonials from '@/components/sections/Testimonials';
 import Partners from '@/components/sections/Partners';
 import Problem from '@/components/sections/Problem';
 import Benefits from '@/components/sections/Benefits';
+import TCNotepad from '@/components/sections/TCNotepad';
 import HowItWorks from '@/components/sections/HowItWorks';
 import Stats from '@/components/sections/Stats';
 import ROICalculator from '@/components/sections/ROICalculator';
@@ -14,6 +15,7 @@ import FeatureCards from '@/components/sections/FeatureCards';
 import VoiceDemo from '@/components/sections/VoiceDemo';
 import FAQ from '@/components/sections/FAQ';
 import FinalCTA from '@/components/sections/FinalCTA';
+import CompetitionCallout from '@/components/sections/CompetitionCallout';
 
 export default function Home() {
   return (
@@ -24,7 +26,9 @@ export default function Home() {
         <Testimonials />
         <Partners />
         <Problem />
+        <CompetitionCallout />
         <Benefits />
+        <TCNotepad />
         <HowItWorks />
         <Stats />
         <ROICalculator />
