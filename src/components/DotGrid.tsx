@@ -7,6 +7,7 @@ interface DotGridProps {
   dotSize?: number;
   spacing?: number;
   glowRadius?: number;
+  glowIntensity?: number;
   topOffset?: number;
 }
 
@@ -15,6 +16,7 @@ export default function DotGrid({
   dotSize = 1.5,
   spacing = 24,
   glowRadius = 150,
+  glowIntensity = 0.8,
   topOffset = 80,
 }: DotGridProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -47,9 +49,9 @@ export default function DotGrid({
         const edgeFactor = Math.min(distFromCenter / (maxDist * 0.5), 1);
         const baseAlpha = 0.05 + edgeFactor * 0.25;
 
-        const glowAlpha = proximity * 0.8;
+        const glowAlpha = proximity * glowIntensity;
         const alpha = baseAlpha + glowAlpha;
-        const size = dotSize + proximity * 2;
+        const size = dotSize + proximity * (glowIntensity * 2.5);
 
         ctx.beginPath();
         ctx.arc(x, y, size, 0, Math.PI * 2);
@@ -60,7 +62,7 @@ export default function DotGrid({
     }
     ctx.globalAlpha = 1;
     rafRef.current = requestAnimationFrame(draw);
-  }, [color, dotSize, spacing, glowRadius]);
+  }, [color, dotSize, spacing, glowRadius, glowIntensity]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
