@@ -162,7 +162,7 @@ export default function YourCastleSignup() {
                   Your first transaction is on us. You have <span className="text-[#00BEFF] font-semibold">60 days</span> to use it.
                 </p>
                 <p className="text-gray-400">
-                  We&apos;ll reach out to you directly to get your first deal set up.
+                  Next: click below to create your Done Deal account. You&apos;ll be asked to connect your Microsoft account — this lets Done Deal read your contracts and send transaction emails on your behalf. It&apos;s safe to approve.
                 </p>
               </>
             ) : (
