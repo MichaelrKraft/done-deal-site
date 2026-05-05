@@ -162,7 +162,7 @@ export default function YourCastleSignup() {
                   Your first transaction is on us. You have <span className="text-[#00BEFF] font-semibold">60 days</span> to use it.
                 </p>
                 <p className="text-gray-400">
-                  Check your email for next steps — we&apos;ll reach out to get your first deal set up.
+                  We&apos;ll reach out to you directly to get your first deal set up.
                 </p>
               </>
             ) : (
