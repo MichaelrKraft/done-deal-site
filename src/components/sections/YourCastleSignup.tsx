@@ -175,7 +175,7 @@ export default function YourCastleSignup() {
             )}
 
             <a
-              href="https://app.done-deal.info/signup"
+              href="https://app.done-deal.info/signup?fresh=1"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-[#00BEFF] text-black font-semibold text-lg hover:bg-[#00a8d9] transition-colors"
             >
               Set Up My Account Now →
