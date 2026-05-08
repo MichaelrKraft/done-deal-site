@@ -46,7 +46,7 @@ export default function VoiceDemo() {
   const isSpeaking = state === 'speaking';
 
   return (
-    <section className="parallax-bg py-12 bg-gradient-to-br from-[#00BEFF]/10 via-black to-[#8b5cf6]/10">
+    <section className="parallax-bg py-6 bg-gradient-to-br from-[#00BEFF]/10 via-black to-[#8b5cf6]/10">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimatedSection>
           {/* Section header */}

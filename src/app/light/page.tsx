@@ -13,7 +13,7 @@ import FeatureCards from '@/components/sections/FeatureCards';
 import VoiceDemo from '@/components/sections/VoiceDemo';
 import FinalCTA from '@/components/sections/FinalCTA';
 
-export default function Home() {
+export default function LightPage() {
   return (
     <div className="theme-light min-h-screen">
       <Navbar />
