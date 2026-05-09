@@ -31,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${lato.variable} antialiased bg-black text-white`}>
+      <body className={`${inter.variable} ${lato.variable} antialiased bg-[#faf8f5] text-[#2c2420]`}>
         {children}
       </body>
     </html>

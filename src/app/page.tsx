@@ -1,6 +1,7 @@
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Hero from '@/components/sections/Hero';
+import Partners from '@/components/sections/Partners';
 import Problem from '@/components/sections/Problem';
 import Benefits from '@/components/sections/Benefits';
 import TCNotepad from '@/components/sections/TCNotepad';
@@ -20,6 +21,7 @@ export default function Home() {
       <main>
         <Hero />
         <VoiceDemo />
+        <Partners />
         <Problem />
         <Benefits />
         <TCNotepad />

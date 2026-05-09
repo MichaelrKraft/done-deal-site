@@ -13,11 +13,6 @@ const partners = [
   },
 ];
 
-const featuredTestimonial = {
-  quote: "We've been using Done-Deal for over a year and I'm still impressed that AI does a better job than a live TC.",
-  name: 'Danny Temus',
-};
-
 export default function Partners() {
   return (
     <section className="py-20 bg-black">
@@ -45,16 +40,6 @@ export default function Partners() {
             </AnimatedSection>
           ))}
         </div>
-
-        {/* Featured Testimonial */}
-        <AnimatedSection delay={0.4} className="max-w-4xl mx-auto text-center">
-          <div className="bg-white/5 rounded-2xl p-8 border border-white/10">
-            <p className="text-2xl md:text-3xl text-white font-light italic mb-6">
-              &quot;{featuredTestimonial.quote}&quot;
-            </p>
-            <p className="text-[#00BEFF] font-semibold">{featuredTestimonial.name}</p>
-          </div>
-        </AnimatedSection>
       </div>
     </section>
   );

@@ -122,6 +122,63 @@ html {
   animation-play-state: paused;
 }
 
+/* ── Light theme ── */
+.theme-light {
+  --background: #faf8f5;
+  --foreground: #2c2420;
+  background-color: #faf8f5;
+  color: #2c2420;
+}
+
+/* Section backgrounds */
+.theme-light .bg-black { background-color: #faf8f5 !important; }
+.theme-light .bg-black\/50 { background-color: rgba(250, 248, 245, 0.5) !important; }
+.theme-light .bg-black\/70 { background-color: rgba(250, 248, 245, 0.7) !important; }
+.theme-light .bg-black\/90 { background-color: rgba(250, 248, 245, 0.95) !important; }
+
+/* Gradient stops */
+.theme-light .from-black { --tw-gradient-from: #faf8f5 !important; }
+.theme-light .via-black { --tw-gradient-via: #faf8f5 !important; }
+.theme-light .to-black { --tw-gradient-to: #faf8f5 !important; }
+
+/* Text */
+.theme-light .text-white { color: #2c2420 !important; }
+.theme-light .text-gray-300 { color: #5a4e44 !important; }
+.theme-light .text-gray-400 { color: #7a6e63 !important; }
+.theme-light .text-gray-500 { color: #7a6e63 !important; }
+
+
+/* Card / surface backgrounds */
+.theme-light .bg-white\/5 { background-color: rgba(44, 36, 32, 0.04) !important; }
+.theme-light .bg-white\/10 { background-color: rgba(44, 36, 32, 0.07) !important; }
+.theme-light .hover\:bg-white\/10:hover { background-color: rgba(44, 36, 32, 0.07) !important; }
+
+/* Borders */
+.theme-light .border-white\/10 { border-color: #e8e2d9 !important; }
+.theme-light .border-white\/20 { border-color: #d4ccc3 !important; }
+.theme-light .border-t { border-color: #e8e2d9 !important; }
+
+/* Navbar scrolled state */
+.theme-light .shadow-black\/20 { box-shadow: 0 4px 16px rgba(44, 36, 32, 0.08) !important; }
+
+/* TCNotepad spiral holes */
+.theme-light .border-\[\#333\] { border-color: #c8bfb0 !important; }
+
+/* Keep cyan accent colors true blue (not green) */
+.theme-light .text-\[\#00BEFF\] { color: #00BEFF !important; }
+.theme-light .bg-\[\#00BEFF\] { background-color: #00BEFF !important; }
+.theme-light .hover\:bg-\[\#00a8d9\]:hover { background-color: #00a8d9 !important; }
+.theme-light .border-\[\#00BEFF\] { border-color: #00BEFF !important; }
+
+/* Reduce Hero min-height so MeetRemy sits closer */
+.theme-light .min-h-screen { min-height: auto !important; }
+
+/* Glow overrides */
+.theme-light .glow-border {
+  border-color: #84c9d1 !important;
+  box-shadow: 0 0 20px rgba(132, 201, 209, 0.4) !important;
+}
+
 /* Shimmer icon effect — 7s cycle, diagonal sweep */
 @keyframes shimmer-sweep {
   0% { left: -50%; }
