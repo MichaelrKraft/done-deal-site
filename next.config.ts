@@ -10,6 +10,20 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "randomuser.me" },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/yourcastle',
+        destination: '/beta/yourcastle',
+        permanent: true,
+      },
+      {
+        source: '/exprealty',
+        destination: '/beta/exprealty',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
