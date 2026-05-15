@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM_EMAIL = process.env.FROM_EMAIL ?? 'Reme at Done Deal <reme@mail.leadspot.ai>';
 
 async function sendWelcomeEmail(firstName: string, email: string, brokerageName: string, gotFreeDeal: boolean) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://done-deal.co';
   const html = `
 <!DOCTYPE html>
