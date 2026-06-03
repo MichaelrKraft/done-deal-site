@@ -1,7 +1,6 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import AnimatedSection from '@/components/AnimatedSection';
 import { IconBarChart, IconTrendingUp, IconCalendar, IconBell, IconLayout, IconCheckCircle } from '@/components/ShimmerIcon';
 import { ReactNode } from 'react';
 
@@ -59,7 +58,13 @@ export default function FeatureCards() {
         {/* Feature Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => (
-            <AnimatedSection key={index} delay={index * 0.1}>
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, x: index % 2 === 0 ? -40 : 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: '-80px' }}
+              transition={{ delay: index * 0.1, duration: 0.6, ease: 'easeOut' }}
+            >
               <motion.div
                 whileHover={{ scale: 1.05, rotateY: 3 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
@@ -70,7 +75,7 @@ export default function FeatureCards() {
                 <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
                 <p className="text-gray-400">{feature.description}</p>
               </motion.div>
-            </AnimatedSection>
+            </motion.div>
           ))}
         </div>
       </div>

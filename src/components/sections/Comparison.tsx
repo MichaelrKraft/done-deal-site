@@ -47,13 +47,13 @@ export default function Comparison() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.05, duration: 0.4, ease: 'easeOut' }}
-              className="grid grid-cols-3 border-t border-white/5 hover:bg-white/5 transition-colors"
+              className="group grid grid-cols-3 border-t border-white/5"
             >
-              <div className="p-4 text-gray-300">{row.feature}</div>
-              <div className="p-4 text-[#00BEFF] text-center flex items-center justify-center gap-2">
+              <div className="p-4 text-gray-300 group-hover:bg-white/5 transition-colors duration-300">{row.feature}</div>
+              <div className="p-4 text-[#00BEFF] text-center flex items-center justify-center gap-2 group-hover:bg-green-500/5 transition-colors duration-300">
                 <span className="text-green-500">✓</span> {row.ai}
               </div>
-              <div className="p-4 text-gray-500 text-center flex items-center justify-center gap-2">
+              <div className="p-4 text-gray-500 text-center flex items-center justify-center gap-2 group-hover:bg-red-500/5 transition-colors duration-300">
                 <span className="text-red-500">✗</span> {row.human}
               </div>
             </motion.div>
