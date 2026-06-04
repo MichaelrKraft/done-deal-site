@@ -241,3 +241,295 @@ Run `src/app/contact/contact_submissions_migration.sql` once in the Supabase SQL
 - `src/components/layout/Footer.tsx` lines 44-52 still link to `https://www.app.appointwise.io/` ("Login"). Same brand-cleanup thread that Navbar already handled.
 - `src/components/DotGrid.tsx:64` lint error (`draw` accessed before declared) — pre-existing.
 - `src/app/contact/page.tsx:47` unused `err` warning — pre-existing.
+
+---
+
+## Next Sprint: Fix Remy chat 502 (Gemini model deprecation)
+
+### Root cause (verified against Google API)
+
+`src/app/api/remy-chat/route.ts:22` calls `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`.
+
+Google has **retired this model**. Direct probe with the production `GOOGLE_AI_API_KEY` returns:
+
+```
+HTTP 404
+"This model models/gemini-2.0-flash is no longer available.
+ Please update your code to use a newer model for the latest features and improvements."
+```
+
+`gemini-2.0-flash-001` (the pinned version) is also retired and returns the same 404.
+
+**The API key is healthy** — listModels returned 200 with 54 accessible models. The TTS endpoint (`gemini-2.5-flash-preview-tts:generateContent` at `src/app/api/remy-chat/route.ts:24`) **still works**, so it doesn't need to change.
+
+### Models that DO work today (verified by direct probe with prod key)
+
+| Model | Status | Notes |
+|---|---|---|
+| `gemini-2.5-flash` | 200 OK | **Recommended.** Current stable Flash. Matches the quality bar for a landing-page chatbot. |
+| `gemini-flash-latest` | 200 OK | Floating tag — auto-updates as Google releases new flash models. Risky for prod (model behavior may shift without code change). |
+| `gemini-2.5-flash-lite` | 200 OK | Cheaper. Probably fine for a 1-2 sentence landing-page bot. Lower quality on nuance. |
+| `gemini-3-flash-preview`, `gemini-3.5-flash` | accessible | Preview / newer. Skip for now — we want stable. |
+
+### Decision: change one line
+
+**File:** `src/app/api/remy-chat/route.ts`
+**Line:** 22
+**Change:**
+
+```diff
+- 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
++ 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+```
+
+That's the entire fix. No other file touches needed. Per `~/.claude/rules/development-workflow.md` rule 6 and 9 ("simplest possible change").
+
+### Why NOT to add an env-var-based model selector
+
+Tempting to make this `process.env.GEMINI_CHAT_MODEL ?? 'gemini-2.5-flash'` for future flexibility. **Skip.** Premature abstraction. When Google retires `gemini-2.5-flash` (likely 12+ months out), one more one-line PR. The selector adds: an env var to manage on every environment, a fallback to test, and a code review on the env handling — for zero current benefit.
+
+### Acceptance criteria
+
+1. `src/app/api/remy-chat/route.ts:22` references `gemini-2.5-flash` (not `gemini-2.0-flash`)
+2. `npx tsc --noEmit && npm run lint && npm run build` all pass
+3. Local smoke test: `./scripts/smoke-test.sh http://localhost:3000` — Remy happy path returns **200 + WAV audio bytes** (not SKIP/502)
+4. Atomic commit with conventional message: `fix(remy-chat): update Gemini chat model to 2.5-flash (2.0-flash retired)`
+5. Push to master → Render auto-deploys → wait for `status=live`
+6. Production smoke test: `./scripts/smoke-test.sh https://done-deal-site.onrender.com` — same Remy happy path returns **200**
+7. Manual: open https://done-deal-site.onrender.com, click the chat orb, ask "What does Done Deal do?" — Reme replies with audible voice
+
+### Verification commands (paste-able)
+
+```bash
+cd /Users/michaelkraft/done-deal-site
+
+# 1. Make the change
+# (Edit src/app/api/remy-chat/route.ts line 22 — replace gemini-2.0-flash with gemini-2.5-flash)
+
+# 2. Gate the change
+npx tsc --noEmit && npm run lint && npm run build
+
+# 3. Local verify (dev server must be running on 3000)
+npm run dev &
+sleep 6
+./scripts/smoke-test.sh http://localhost:3000
+# expect: 11 pass / 0 fail / 0 skip — happy path should NO LONGER be SKIP
+
+# 4. Commit + push
+git add src/app/api/remy-chat/route.ts
+git commit -m "fix(remy-chat): update Gemini chat model to 2.5-flash (2.0-flash retired)"
+git push origin master
+
+# 5. Wait for Render deploy (auto-triggered) and re-smoke
+sleep 90
+./scripts/smoke-test.sh https://done-deal-site.onrender.com
+```
+
+### Risk + rollback
+
+- **Risk:** low. One-line config change. Same API shape; only the model name differs. Quality of replies likely similar or slightly better (newer model).
+- **Cost:** unchanged or slightly different per-token pricing. For landing-page traffic (10/hour cap per IP, 1000/day global ceiling already in place from Task 2), monthly cost is negligible regardless.
+- **Rollback:** if 2.5-flash misbehaves, `git revert <sha> && git push` reverts and Render redeploys. The previous (broken) state is no worse than what's live now (already 502'ing).
+- **Hidden gotcha to watch for:** Gemini 2.5 may have slightly different default safety filter behavior. If Reme starts refusing to answer benign landing-page questions, the system prompt may need a one-line tweak to relax the persona. Test with a few sample questions during step 7.
+
+### Future enhancements (not in this sprint)
+
+- **Better:** Have Reme answer from the actual FAQ content via a small RAG layer instead of pure model knowledge. Reduces hallucinations about pricing/features.
+- **Cost optimization:** Drop to `gemini-2.5-flash-lite` once Reme's responses are observed in the wild. Only worthwhile if monthly cost exceeds the 5-min effort to change.
+- **Observability:** Log every Reme reply to a new `remy_chat_logs` Supabase table (no PII — just userText hash + replyText + model + latency_ms). Lets you see what visitors actually ask before scaling marketing spend.
+
+### Effort estimate
+
+15 minutes wall-clock including deploy wait. ~30 seconds of actual code change.
+
+### Suitable for overnight queue?
+
+**Yes.** Scoped to 1 file / 1 line / 1 atomic commit. Gates are clear (smoke test happy-path PASS). Auto-revertable. Good first-of-the-night warm-up task.
+
+---
+
+## Next Sprint: Reme knowledge layer (RAG over FAQ + extensible knowledge base)
+
+### Problem this solves
+
+Reme's current system prompt is a ~150-word navigation script. She has no real product knowledge — when a visitor asks "Tell me about CTM integration" or "How do you handle dual-agency commission splits?" she invents an answer or punts. Stuffing every fact into the system prompt scales badly (quality degrades past ~2000 words, every update is a code change).
+
+Better shape: store Reme's facts in a `remy_knowledge` Supabase table. On each chat request, retrieve the top 3-5 most relevant rows and inject them into the system prompt as authoritative context. Updates are now SQL inserts (no code change, no deploy).
+
+This sprint:
+1. Creates the table + migration
+2. Seeds it with the 10 existing FAQ entries
+3. Adds keyword-based retrieval to `/api/remy-chat`
+4. Lets Mike (or anyone) add CTM-integration facts (and anything else) as plain SQL inserts whenever the actual product capabilities are documented
+
+### Files to create/modify
+
+| File | Action |
+|---|---|
+| `src/app/api/remy-chat/remy_knowledge_migration.sql` | NEW — table + seed inserts |
+| `src/lib/remy-knowledge.ts` | NEW — retrieval helper (Postgres FTS or trigram match) |
+| `src/app/api/remy-chat/route.ts` | MODIFY — query knowledge, build augmented prompt |
+| `tasks/todo.md` | append Review subsection |
+
+### Schema
+
+```sql
+create table if not exists remy_knowledge (
+  id uuid primary key default gen_random_uuid(),
+  topic text not null,           -- e.g. "Pricing", "CTM Integration", "Deadlines"
+  question text not null,        -- canonical phrasing of the question this row answers
+  answer text not null,          -- 1-3 sentence response in Reme's voice
+  keywords text[] default '{}',  -- optional manual hints for retrieval ranking
+  active boolean default true,
+  priority integer default 0,    -- higher = preferred when multiple rows tie
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- Full-text search index over question + answer + keywords
+create index if not exists remy_knowledge_fts_idx on remy_knowledge
+  using gin(to_tsvector('english',
+    coalesce(topic,'') || ' ' || coalesce(question,'') || ' ' || coalesce(answer,'') || ' ' || array_to_string(coalesce(keywords,'{}'), ' ')
+  ));
+
+alter table remy_knowledge disable row level security;
+
+-- Seed with current FAQ entries (10 rows, all transaction-coordination-focused).
+-- Source: src/components/sections/FAQ.tsx:7-48 as of commit 63b16bf.
+insert into remy_knowledge (topic, question, answer) values
+  ('Product Overview', 'What is Done Deal?', 'Done Deal is an AI-powered transaction coordination platform for real estate professionals. It automates task tracking, deadline management, document collection, and vendor communication so agents can close more deals with less stress.'),
+  ('AI Capabilities', 'How does the AI transaction coordinator work?', 'Our AI TC monitors your active transactions 24/7, automatically tracks deadlines, sends follow-up emails, schedules appointments, and flags compliance issues — all while keeping you in control with an approval-based workflow.'),
+  ('Transaction Support', 'What types of transactions does Done Deal support?', 'Done Deal supports buyer-side, seller-side, and dual-agency transactions across residential, purchase, and commercial deals.'),
+  ('Onboarding', 'How long does it take to set up?', 'Most agents are up and running within 24 hours. We provide a live onboarding session to configure your transaction templates, vendor contacts, and notification preferences.'),
+  ('Scale', 'Can I manage multiple transactions at once?', 'Yes — Done Deal is built for scale. Manage dozens of concurrent transactions from a single dashboard with real-time status updates and priority-based task sorting.'),
+  ('Security', 'Is my data secure?', 'Yes. We use bank-level encryption, secure cloud infrastructure, and strict access controls. Your client data and transaction documents are never shared or used for training.'),
+  ('Integrations', 'What integrations are available?', 'Done Deal integrates with DocuSign, Google Calendar, and major email providers. We''re continuously adding new integrations based on user feedback.'),
+  ('Trial', 'Is there a free trial?', 'Yes — 14-day free trial with full access to all features. No credit card required to get started.'),
+  ('vs Human TC', 'How is Done Deal different from hiring a human transaction coordinator?', 'A human TC costs $300–$500 per transaction, works business hours, and can juggle a limited number of files. Done Deal''s AI works 24/7, never misses a deadline, scales to any volume, and costs a fraction of the price — while keeping you in control of every email that goes out.'),
+  ('Deadline Safety', 'What happens if something goes wrong or a deadline is missed?', 'Done Deal sends escalating alerts before any deadline becomes critical — you''ll know days in advance, not hours. Breached deadlines are flagged as high-risk and surfaced at the top of your dashboard.');
+
+-- Placeholder rows for topics that come up frequently but currently have no real facts.
+-- IMPORTANT: agent executing this sprint must NOT invent answers. Insert these as
+-- inactive rows so Reme says "I don't have info on that yet" rather than hallucinating.
+insert into remy_knowledge (topic, question, answer, active) values
+  ('CTM Integration', 'How does Done Deal work with CTM?', 'PLACEHOLDER — needs Mike to fill in real capabilities before activating.', false),
+  ('CTM Integration', 'Can Done Deal import my CTM transactions?', 'PLACEHOLDER — needs Mike to fill in real capabilities before activating.', false);
+```
+
+### Retrieval logic (in `src/lib/remy-knowledge.ts`)
+
+```ts
+import { supabaseAdmin } from '@/lib/supabase';
+
+export type KnowledgeRow = { topic: string; question: string; answer: string };
+
+const CACHE_MS = 60_000;
+let cache: { at: number; rows: KnowledgeRow[] } | null = null;
+
+async function getAllActive(): Promise<KnowledgeRow[]> {
+  if (cache && Date.now() - cache.at < CACHE_MS) return cache.rows;
+  const { data, error } = await supabaseAdmin
+    .from('remy_knowledge')
+    .select('topic, question, answer')
+    .eq('active', true);
+  if (error || !data) return cache?.rows ?? [];
+  cache = { at: Date.now(), rows: data as KnowledgeRow[] };
+  return data as KnowledgeRow[];
+}
+
+// Postgres FTS-backed search for top-N matches. Falls back to client-side
+// keyword overlap if Supabase is unavailable, using the in-memory cache.
+export async function searchKnowledge(query: string, limit = 4): Promise<KnowledgeRow[]> {
+  try {
+    const { data } = await supabaseAdmin.rpc('search_remy_knowledge', { q: query, n: limit });
+    if (data && data.length > 0) return data as KnowledgeRow[];
+  } catch { /* fall through */ }
+  // Fallback: simple substring score on cached rows
+  const rows = await getAllActive();
+  const tokens = query.toLowerCase().split(/\W+/).filter(t => t.length > 2);
+  return rows
+    .map(r => {
+      const hay = (r.topic + ' ' + r.question + ' ' + r.answer).toLowerCase();
+      const hits = tokens.filter(t => hay.includes(t)).length;
+      return { row: r, hits };
+    })
+    .filter(x => x.hits > 0)
+    .sort((a, b) => b.hits - a.hits)
+    .slice(0, limit)
+    .map(x => x.row);
+}
+```
+
+Add a Postgres RPC for FTS (in the same migration):
+
+```sql
+create or replace function search_remy_knowledge(q text, n int default 4)
+returns table (topic text, question text, answer text)
+language sql stable as $$
+  select topic, question, answer
+  from remy_knowledge
+  where active = true
+    and to_tsvector('english',
+      coalesce(topic,'') || ' ' || coalesce(question,'') || ' ' || coalesce(answer,'') || ' ' || array_to_string(coalesce(keywords,'{}'), ' ')
+    ) @@ plainto_tsquery('english', q)
+  order by priority desc
+  limit n;
+$$;
+```
+
+### System prompt augmentation in `route.ts`
+
+After validation, before the Gemini fetch:
+
+```ts
+const knowledge = await searchKnowledge(userText, 4);
+const knowledgeBlock = knowledge.length
+  ? `\n\nReference facts (use these when relevant; if the question is not covered, say you'll connect them with the team):\n${knowledge.map(k => `- ${k.question} → ${k.answer}`).join('\n')}`
+  : '\n\nIf the question is outside the page sections above, say "I don't have details on that — let me connect you with the team" and direct them to the Contact section.';
+
+// Then use SYSTEM_PROMPT + knowledgeBlock as the system_instruction
+```
+
+### Acceptance criteria
+
+1. New migration file at `src/app/api/remy-chat/remy_knowledge_migration.sql` — table + FTS index + RPC + seed inserts
+2. `src/lib/remy-knowledge.ts` exports `searchKnowledge(query, limit)` with 60s in-memory cache + graceful Supabase-down fallback
+3. `src/app/api/remy-chat/route.ts` calls `searchKnowledge(userText, 4)` after validation, injects results into `system_instruction`
+4. **No invented facts.** Placeholder rows for CTM integration are inserted as `active = false` so Reme falls back to "I don't have info on that yet" until Mike fills in real answers.
+5. Existing security gates unchanged — rate limit, origin check, length caps, TTS cache, daily ceiling all still pass smoke test
+6. `npx tsc --noEmit && npm run lint && npm run build` all green
+7. Local smoke test passes (the Reme happy-path query "What does Done Deal do?" should now produce an answer that incorporates one of the seeded FAQ rows — verify by looking at the reply text in the `X-Remy-Text` header)
+8. Atomic commit: `feat(remy-chat): add Supabase-backed knowledge layer with FTS retrieval`
+9. Push → Render auto-deploys → smoke test prod passes
+10. **Manual sanity:** Mike asks Reme "How long does setup take?" — answer should mention "24 hours" (from seeded FAQ row). Asks "Tell me about CTM integration" — answer should say she doesn't have details yet (because placeholder rows are inactive).
+11. Append Review subsection to `tasks/todo.md`
+
+### Required Supabase action before this is live in prod
+
+Run `src/app/api/remy-chat/remy_knowledge_migration.sql` in the Supabase SQL editor for project `zjuoxaqdqqdtihmekrcz`. Idempotent (all `if not exists` clauses) — safe to re-run.
+
+### Risk + rollback
+
+- **Risk: medium-low.** Adds one Supabase query per Reme chat call. Cached for 60s so the actual round-trip happens at most once per minute under typical landing-page load. Gemini call is the slow path; this adds ~50ms.
+- **Failure mode: Supabase down.** Retrieval falls back to the in-memory cache; if the cache is also empty (fresh cold start), Reme falls back to the base system prompt and answers from general knowledge. No 5xx response from Reme on knowledge failure.
+- **Failure mode: knowledge contradicts model.** If a seeded row says one thing and the model wants to say another, the system prompt's injected facts take precedence in practice (verified against Gemini 2.5-flash's known instruction-following behavior). If we observe contradictions, add a hard "use these exact facts verbatim when relevant" line to the prompt.
+- **Rollback:** `git revert <sha> && git push`. The new table can stay (no harm). If Mike wants to fully delete: `drop table remy_knowledge; drop function search_remy_knowledge;`.
+
+### Follow-on work Mike can do without redeploying (the whole point)
+
+After the table exists, adding new knowledge is a one-liner in the Supabase SQL editor:
+
+```sql
+insert into remy_knowledge (topic, question, answer) values
+  ('Pricing - AI TC Add-on', 'How much does the AI TC add-on cost?', 'The AI TC add-on is $59/month on top of the base Forms & Contracts plan.');
+```
+
+CTM integration content gets added the same way once the real capabilities are documented. No code change, no deploy, no agent run.
+
+### Effort estimate
+
+3-4 hours of agent time including: migration + helper module + route changes + tsc/lint/build + atomic commit + push + Render wait + prod smoke test + a few manual Reme questions to verify quality.
+
+### Suitable for overnight queue?
+
+**Yes.** Touches 3 files (1 new SQL, 1 new TS module, 1 modified route). Acceptance criteria are clear and gateable. Includes graceful fallback at every failure point. Mike's morning verification is asking Reme 2-3 questions in the browser — under 60 seconds.
