@@ -4,7 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit';
 
 const FROM_EMAIL = process.env.FROM_EMAIL ?? 'Reme at Done Deal <reme@mail.leadspot.ai>';
-const CONTACT_TO_EMAIL = process.env.CONTACT_TO_EMAIL ?? 'support@callspot.ai';
+const CONTACT_TO_EMAIL = process.env.CONTACT_TO_EMAIL ?? 'support@leadspot.ai';
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
