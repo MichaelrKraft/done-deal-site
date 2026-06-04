@@ -533,3 +533,148 @@ CTM integration content gets added the same way once the real capabilities are d
 ### Suitable for overnight queue?
 
 **Yes.** Touches 3 files (1 new SQL, 1 new TS module, 1 modified route). Acceptance criteria are clear and gateable. Includes graceful fallback at every failure point. Mike's morning verification is asking Reme 2-3 questions in the browser — under 60 seconds.
+
+---
+
+## Next Sprint: Professional /docs page
+
+### Goal
+
+Create a single comprehensive documentation page at `/docs` on done-deal-site that covers every part of the Done Deal product. Style-matched to the rest of the marketing site (light theme, cyan accents, Framer Motion entrance animations). Source content from the existing FAQ/Pricing/Comparison/HowItWorks/Benefits sections where authoritative copy already exists; mark anything else as a clearly-labeled placeholder for Mike to fill in (no invented product facts).
+
+### Why one long page vs. multi-page docs site
+
+- **SEO:** dense topical content on one URL ranks better than thin pages.
+- **Scannable:** sticky sidebar TOC + anchor links give the multi-page navigation feel without the redirect tax.
+- **Maintenance:** one route, no nested routing to manage.
+- **Customer pattern:** prospects skim docs to evaluate. They want to ctrl-F, not click through.
+
+If volume grows past ~10,000 words, future sprint can split into `/docs/<topic>` routes.
+
+### Files to create
+
+| Path | Purpose |
+|---|---|
+| `src/app/docs/page.tsx` | Page route with `metadata` (title, description, OG) + assembles the section components |
+| `src/app/docs/layout.tsx` | Two-column layout: sticky sidebar TOC (desktop) / collapsible top nav (mobile) + main content |
+| `src/components/docs/Toc.tsx` | TOC with scroll-spy active state, smooth scroll on click |
+| `src/components/docs/Section.tsx` | Wrapper: gives every section an `id`, anchor link icon on hover, scroll-margin offset, Framer Motion entrance |
+| `src/components/docs/Callout.tsx` | Info / Note / Warning / Placeholder variants. Placeholder variant renders a yellow-tinted box with "This section is in progress — content coming soon" |
+| `src/components/docs/sections/Overview.tsx` | What Done Deal is, who it's for. Pull from `Hero.tsx` headline copy + `Benefits.tsx` value props |
+| `src/components/docs/sections/GettingStarted.tsx` | Signup → onboarding session → first transaction in 24 hours. Pull from FAQ row "How long does it take to set up?" |
+| `src/components/docs/sections/DailyWorkflow.tsx` | What the AI does each day, approval-based workflow. Pull from `HowItWorks.tsx` step copy |
+| `src/components/docs/sections/Transactions.tsx` | Buyer-side / seller-side / dual-agency support. Pull from FAQ row "What types of transactions does Done Deal support?" |
+| `src/components/docs/sections/Deadlines.tsx` | Colorado MEC, escalating alerts, breach handling. Pull from FAQ "What happens if something goes wrong or a deadline is missed?" |
+| `src/components/docs/sections/Documents.tsx` | DocuSign integration, CREC forms. **PLACEHOLDER** for form library specifics — Mike's input needed for the full list |
+| `src/components/docs/sections/Vendors.tsx` | **PLACEHOLDER** — references Vendor system from done-deal-app but no public copy exists yet |
+| `src/components/docs/sections/Parties.tsx` | **PLACEHOLDER** — buyer agent, seller agent, lender, title workflows. Needs Mike's authoritative copy |
+| `src/components/docs/sections/Compliance.tsx` | **PLACEHOLDER** — HOA, solar, pre-1978, contract accuracy. Needs Mike's copy |
+| `src/components/docs/sections/Integrations.tsx` | DocuSign, Google Calendar, email. **PLACEHOLDER for CTM section** — the same one Reme will reference once Mike fills in real capabilities |
+| `src/components/docs/sections/Security.tsx` | Encryption, data handling, no training on customer data. Pull from FAQ "Is my data secure?" |
+| `src/components/docs/sections/Pricing.tsx` | F&C base + AI TC add-on ($59/mo). Reuse from `Pricing.tsx` section component or extract shared data |
+| `src/components/docs/sections/Support.tsx` | How to reach the team, link to `/contact`, link to FAQ |
+
+### Files to modify
+
+| File | Change |
+|---|---|
+| `src/components/layout/Navbar.tsx` | Add "Docs" link between "Pricing" and "Contact" |
+| `tasks/todo.md` | Append Review subsection summarizing what shipped + what's still placeholder |
+
+### Sections + IA (table-of-contents order)
+
+1. **Overview** — What Done Deal is, who it's for, the one-sentence pitch
+2. **Getting Started** — Signup, onboarding, first 24 hours
+3. **Your Daily Workflow** — What the agent does each day with Reme + Done Deal
+4. **Transactions** — Buyer / seller / dual-agency
+5. **Deadlines & Calendar** — MEC, escalating alerts, breach handling
+6. **Documents & Forms** — DocuSign, CREC forms, templates *(placeholder for form library detail)*
+7. **Vendors** *(placeholder)*
+8. **Parties & Communication** *(placeholder)*
+9. **Compliance** *(placeholder)*
+10. **Integrations** — DocuSign, Google Calendar, email, CTM *(placeholder for CTM specifics)*
+11. **Security & Privacy** — Encryption, data handling
+12. **Pricing** — F&C base + AI TC add-on
+13. **Support & FAQ** — Links + escalation paths
+
+### Style guide for the executing agent
+
+- **Theme:** light (matches site default since commit `e02b897`). Background `#faf8f5` or similar warm white; primary text dark; brand cyan `#00BEFF` for links and active TOC item.
+- **Typography:** match the existing site's font stack. Heading hierarchy: H1 page title, H2 section, H3 sub-topic. No bold-as-headings hacks.
+- **Width:** prose column max-width ~720px for readability; sidebar ~240px; everything wrapped in container that maxes at ~1100px.
+- **Scroll margin:** every section heading needs `scroll-margin-top` ~80px so the sticky navbar doesn't cover it when anchor-linked.
+- **Animation:** each section uses the existing `AnimatedSection` wrapper for a subtle fade-in. Don't over-animate — docs are for reading.
+- **Mobile:** sidebar collapses into a `<details>` element at the top of the page that shows the TOC when expanded. Body content remains full-width on mobile.
+- **Placeholder callouts:** use the `Placeholder` Callout variant — yellow-tinted, with a "✏️ Coming soon" tag and the text "This section is being expanded. Reach out to [support@leadspot.ai](mailto:support@leadspot.ai) for current details on [topic]."
+
+### Content sourcing (no invention rule)
+
+For each non-placeholder section, the agent must:
+1. Cite the source: a comment at the top of the section component listing which `src/components/sections/*.tsx` file the copy was pulled from
+2. Verbatim-paste the existing copy where applicable, lightly expanded for docs format
+3. NOT invent new feature claims, pricing details, integration capabilities, or testimonials
+4. If unsure whether something is true, render it as a placeholder section
+
+### SEO essentials
+
+`src/app/docs/page.tsx` metadata:
+```ts
+export const metadata = {
+  title: 'How Done Deal Works | Documentation',
+  description: 'Complete guide to Done Deal — the AI transaction coordination platform for Colorado real estate. Setup, workflows, deadlines, documents, integrations, pricing, and security.',
+  openGraph: {
+    title: 'Done Deal Documentation',
+    description: 'Everything you need to know about using Done Deal as your AI transaction coordinator.',
+    type: 'article',
+  },
+};
+```
+
+Bonus (low effort): JSON-LD structured data for the FAQ section using `schema.org/FAQPage` so Google can render rich snippets in search results.
+
+### Acceptance criteria
+
+1. New route at `https://done-deal-site.onrender.com/docs` returns 200 with full content
+2. Sticky sidebar TOC on desktop, collapsible on mobile (viewport < 768px)
+3. Scroll-spy: active section in TOC highlights as user scrolls
+4. Smooth scroll on TOC link click
+5. Every anchor link in the URL works (e.g., `/docs#deadlines`)
+6. Placeholder sections clearly visible as such (yellow callout, not normal prose)
+7. No invented product claims — comment headers cite source for non-placeholder sections
+8. "Docs" link appears in Navbar
+9. `npx tsc --noEmit && npm run lint && npm run build` all green
+10. `./scripts/smoke-test.sh https://done-deal-site.onrender.com` still 11/11 pass (no regressions in existing API routes)
+11. Atomic commit: `feat(docs): add comprehensive /docs page with sticky TOC and section components`
+12. Push → Render auto-deploys → manual visual check at the URL
+13. Append Review subsection to `tasks/todo.md` listing every section that shipped real content vs. placeholder
+
+### Risk + rollback
+
+- **Risk: low.** Pure-additive change. New route, no modifications to existing API routes or live functionality. Worst case is a layout bug, not a service outage.
+- **Rollback:** `git revert <sha> && git push`. Render redeploys the previous commit. The `/docs` route disappears; everything else is untouched.
+
+### Future enhancements (not in this sprint)
+
+- **Auto-sync with Reme knowledge:** if both the docs page and the `remy_knowledge` table grow, build a script that ensures content stays in sync. For now they're independent.
+- **Search bar:** client-side fuzzy search across all docs sections. Adds Fuse.js (~6kb gzipped). Skip until docs > 5000 words.
+- **Version history / changelog section:** when Done Deal ships new features, add a "What's new" section at the top.
+- **Multi-page split:** if docs grow past ~10,000 words, split into `/docs/<topic>` routes with shared sidebar.
+- **In-page video walkthroughs:** embed a short Loom for each major workflow section. Out of scope for v1 — adds production work for Mike.
+
+### Effort estimate
+
+6-8 hours of agent time including: 13 section components + layout + TOC + scroll-spy + smoke test + Render deploy + visual verification. If this feels too large for one overnight run, split into:
+- **Sprint A (4-5 hrs):** infrastructure (route, layout, TOC, Callout, Section, Navbar) + first 6 sections with real content (Overview, Getting Started, Daily Workflow, Transactions, Deadlines, Pricing, Security, Support)
+- **Sprint B (3-4 hrs):** remaining sections + content fill-ins (Documents, Vendors, Parties, Compliance, Integrations)
+
+### Suitable for overnight queue?
+
+**Yes, with the split if you want safer atomic deploys.** Recommend Sprint A first — it's the higher-leverage half (visible to prospects immediately) and Sprint B can wait until you have authoritative copy for the placeholder sections.
+
+### Followups for Mike (the only blockers to filling placeholders)
+
+1. **CTM integration:** what does the live integration do today? Same question as the Reme RAG sprint — once answered, both this docs page AND Reme update at once.
+2. **Form library:** which CREC forms are supported? Provide list or screenshot of the form picker UI.
+3. **Vendor system:** public-facing copy describing what the vendor lookup does.
+4. **Compliance specifics:** the actual checks Done Deal runs (HOA addendum, lead paint, solar disclosure, etc.) — sourced from the contract-accuracy checker code in done-deal-app `lib/contract-accuracy-checker.ts` if it's public.
+5. **Pricing exactness:** confirm $99/deal vs. $197/deal vs. $59/month TC add-on vs. $797/yr vs. $2500/yr — recent commits show pricing changed multiple times; lock the docs to the current truth.
