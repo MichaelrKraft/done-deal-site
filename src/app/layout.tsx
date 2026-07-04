@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Lato } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const inter = Inter({
@@ -33,6 +34,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} ${lato.variable} antialiased bg-black text-white`}>
         {children}
+        <Analytics />
       </body>
     </html>
   );
