@@ -18,6 +18,10 @@ export default function VoiceDemo() {
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const [liveQuestion, setLiveQuestion] = useState('');
+  const [liveLoading, setLiveLoading] = useState(false);
+  const [liveError, setLiveError] = useState<string | null>(null);
+
   const play = (src: string, questionIdx: number | null = null) => {
     if (audioRef.current) {
       audioRef.current.pause();
@@ -30,6 +34,33 @@ export default function VoiceDemo() {
     audio.play();
     audio.onended = () => setState('done');
     audio.onerror = () => setState('done');
+  };
+
+  const askLive = async () => {
+    const question = liveQuestion.trim();
+    if (!question || liveLoading) return;
+
+    setLiveError(null);
+    setLiveLoading(true);
+    try {
+      const res = await fetch('/api/voice-demo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: question }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Reme could not answer that just now.');
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      play(url, null);
+    } catch {
+      setLiveError('Reme could not answer that just now. Try again in a moment.');
+    } finally {
+      setLiveLoading(false);
+    }
   };
 
   const handleOrbClick = () => {
@@ -199,6 +230,48 @@ export default function VoiceDemo() {
                     {item.q}
                   </button>
                 ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Ask something live — real Gemini TTS call, not pre-recorded */}
+          <AnimatePresence>
+            {state === 'done' && (
+              <motion.div
+                className="mt-4 max-w-xl mx-auto"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4, delay: 0.2 }}
+              >
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    value={liveQuestion}
+                    onChange={(e) => setLiveQuestion(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') askLive();
+                    }}
+                    placeholder="Ask Reme something else, live…"
+                    disabled={liveLoading}
+                    className="flex-1 rounded-xl px-4 py-3 text-sm bg-white/5 border border-white/10 text-white placeholder:text-gray-500 focus:outline-none focus:border-[#00BEFF]/50 disabled:opacity-50"
+                  />
+                  <button
+                    onClick={askLive}
+                    disabled={liveLoading || !liveQuestion.trim()}
+                    className="rounded-xl px-5 py-3 text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    style={{
+                      background: 'rgba(0,190,255,0.15)',
+                      border: '1px solid rgba(0,190,255,0.5)',
+                      color: '#00BEFF',
+                    }}
+                  >
+                    {liveLoading ? 'Thinking…' : 'Ask live'}
+                  </button>
+                </div>
+                {liveError && (
+                  <p className="mt-2 text-xs text-red-400 text-center sm:text-left">{liveError}</p>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
