@@ -1,5 +1,6 @@
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import Hero from '@/components/sections/Hero';
 import Testimonials from '@/components/sections/Testimonials';
 import Partners from '@/components/sections/Partners';
@@ -22,11 +23,15 @@ export default function Home() {
     <>
       <Navbar />
       <main>
-        <Hero />
+        <ErrorBoundary>
+          <Hero />
+        </ErrorBoundary>
         <Testimonials />
         <Partners />
         <Problem />
-        <CompetitionCallout />
+        <ErrorBoundary>
+          <CompetitionCallout />
+        </ErrorBoundary>
         <Benefits />
         <TCNotepad />
         <HowItWorks />
@@ -35,7 +40,9 @@ export default function Home() {
         <Pricing />
         <Comparison />
         <FeatureCards />
-        <VoiceDemo />
+        <ErrorBoundary>
+          <VoiceDemo />
+        </ErrorBoundary>
         <FAQ />
         <FinalCTA />
       </main>
