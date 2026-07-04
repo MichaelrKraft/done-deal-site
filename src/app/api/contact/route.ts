@@ -5,6 +5,16 @@ import { checkRateLimit } from '@/lib/rateLimit';
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
+// Escape user-controlled text before interpolating into a Telegram HTML-mode
+// message, otherwise a submission containing `<`, `>`, or `&` can break the
+// message formatting or inject markup.
+function escapeTelegramHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 async function sendTelegramNotification(text: string) {
   if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return;
   await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
@@ -63,11 +73,11 @@ export async function POST(request: Request) {
 
     await sendTelegramNotification(
       `📩 <b>New Demo Request!</b>\n\n` +
-      `👤 ${name}\n` +
-      `📧 ${email}\n` +
-      `📱 ${phone || 'Not provided'}\n` +
-      `🏢 ${company || 'Not provided'}\n\n` +
-      `💬 ${message}`
+      `👤 ${escapeTelegramHtml(name)}\n` +
+      `📧 ${escapeTelegramHtml(email)}\n` +
+      `📱 ${escapeTelegramHtml(phone || 'Not provided')}\n` +
+      `🏢 ${escapeTelegramHtml(company || 'Not provided')}\n\n` +
+      `💬 ${escapeTelegramHtml(message)}`
     );
 
     return NextResponse.json(
