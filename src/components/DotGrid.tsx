@@ -22,6 +22,7 @@ export default function DotGrid({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mouseRef = useRef({ x: -1000, y: -1000 });
   const rafRef = useRef<number>(0);
+  const drawRef = useRef<() => void>(() => {});
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -61,8 +62,12 @@ export default function DotGrid({
       }
     }
     ctx.globalAlpha = 1;
-    rafRef.current = requestAnimationFrame(draw);
+    rafRef.current = requestAnimationFrame(() => drawRef.current());
   }, [color, dotSize, spacing, glowRadius, glowIntensity]);
+
+  useEffect(() => {
+    drawRef.current = draw;
+  }, [draw]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -90,7 +95,7 @@ export default function DotGrid({
     };
 
     resize();
-    rafRef.current = requestAnimationFrame(draw);
+    rafRef.current = requestAnimationFrame(() => drawRef.current());
 
     window.addEventListener("resize", resize);
     section.addEventListener("mousemove", handleMouseMove);
