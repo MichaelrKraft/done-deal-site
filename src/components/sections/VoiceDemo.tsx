@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import { track } from '@vercel/analytics';
 import AnimatedSection from '@/components/AnimatedSection';
 
 const SAMPLE_QA = [
@@ -56,6 +57,7 @@ export default function VoiceDemo() {
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       play(url, null);
+      track('voice_demo_live_qa_submit');
     } catch {
       setLiveError('Reme could not answer that just now. Try again in a moment.');
     } finally {

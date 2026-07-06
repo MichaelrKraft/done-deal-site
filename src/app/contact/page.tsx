@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { track } from '@vercel/analytics';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 
@@ -44,6 +45,7 @@ export default function ContactPage() {
 
       setIsSubmitted(true);
       reset();
+      track('contact_form_submit');
     } catch (err) {
       setError('Something went wrong. Please try again.');
     } finally {

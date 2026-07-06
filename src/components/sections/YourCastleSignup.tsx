@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
+import { track } from '@vercel/analytics';
 
 type FormData = {
   firstName: string;
@@ -53,6 +54,7 @@ export default function YourCastleSignup() {
     setSpotNumber(result.spotNumber);
     setSubmitted(true);
     setRemaining(result.remaining);
+    track('yourcastle_signup_submit');
   };
 
   return (
