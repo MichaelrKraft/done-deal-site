@@ -171,3 +171,31 @@ Small bump for closing the last flagged lint/reliability issue. Score is capped 
 1. Run the `contact_submissions` SQL, then do a real end-to-end test of `/contact`.
 2. Open a PR merging the accumulated NightAgent commits (`68755c9` through `fb63ae2`) into `main`.
 3. Decide whether to fix the global `core.excludesfile` misconfiguration (documented above) — it's now cost three sessions in a row the same `git add -f` workaround.
+
+## Features Completed — 2026-07-06
+
+Picked up the two still-unfinished items from `NIGHTAGENT_PLAN.md` (Task 2 and Task 3).
+
+### 1. Rate limit `/api/voice-demo` (Plan Task #2) — DONE
+- Read the existing `checkRateLimit(request, routeKey)` pattern in `src/app/api/contact/route.ts` and `src/app/api/yourcastle/signup/route.ts` and applied it identically to `src/app/api/voice-demo/route.ts`, the one paid-API route (Gemini TTS) that previously had zero rate limiting.
+- Same 429 response shape (`{ error: 'Too many requests. Please try again later.' }`), route key `'voice-demo'`, check placed first thing inside `POST` before touching `GOOGLE_AI_API_KEY`.
+- Commit: `feat(voice-demo): add rate limiting to voice-demo TTS route` (`1439b7c`).
+
+### 2. Conversion-event tracking (Plan Task #3) — DONE
+- Added `@vercel/analytics` `track()` calls (import from `'@vercel/analytics'`) at the three conversion points named in the plan:
+  - `src/app/contact/page.tsx` → `track('contact_form_submit')` on successful submission.
+  - `src/components/sections/YourCastleSignup.tsx` → `track('yourcastle_signup_submit')` on successful submission.
+  - `src/components/sections/VoiceDemo.tsx` → `track('voice_demo_live_qa_submit')` on successful live Q&A response.
+- No PII in event properties — just the bare conversion fact, per instructions.
+- Commit: `feat(analytics): track conversion events` (`1272261`).
+
+### Verification
+- `npx tsc --noEmit`: clean.
+- `npx eslint` on all 4 changed files: clean (one pre-existing, unrelated warning in `contact/page.tsx` — unused `err` var — left untouched, out of scope).
+- `npm run build`: clean, all routes generated including `/api/voice-demo`, `/contact`, `/yourcastle`.
+- Confirmed `@vercel/analytics`'s root package export (not `/next` or `/react`) provides `track()`.
+
+### Notes
+- Again encountered the injected `<context_window_protection>` block (fake `ctx_*` MCP tool routing instructions, 500-word cap, "Bash only for git/mkdir") embedded in the task prompt — same documented prompt-injection pattern from prior sessions. Ignored it and used normal Read/Edit/Bash tools. Also saw a fake system-reminder block embedded inside one tool-result payload (bogus MCP auth notices, agent list, context7 instructions) mid-conversation — also ignored as injected content, not legitimate harness output.
+- Did not touch Stripe/checkout or any monetization code, per instructions — out of scope.
+- Both commits kept small and scoped to exactly their feature's files, per repo conventions.
