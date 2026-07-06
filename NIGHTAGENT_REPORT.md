@@ -172,6 +172,37 @@ Small bump for closing the last flagged lint/reliability issue. Score is capped 
 2. Open a PR merging the accumulated NightAgent commits (`68755c9` through `fb63ae2`) into `main`.
 3. Decide whether to fix the global `core.excludesfile` misconfiguration (documented above) — it's now cost three sessions in a row the same `git add -f` workaround.
 
+## Summary — 2026-07-06
+
+Three agents (Feature, Bug, Test) ran in parallel/sequence on branch `nightagent/2026-07-06`, closing out all remaining tasks from tonight's strategic plan (`NIGHTAGENT_PLAN.md`) except the one action that has always required a human: creating the `contact_submissions` Supabase table.
+
+**Commits this session** (7): `1439b7c`, `1272261`, `c56fba2`, `0d839fc`, `b05ff99`, `ff19a2a`, `9d12ed9`. Working tree is clean of code changes — remaining untracked files (`.claude/`, `.nightagent/`, `NIGHTAGENT_EVAL.md`, `NIGHTAGENT_PLAN.md`, `excalidraw.log`, `public/*.png`) predate this session and belong to other tooling, left untouched. `npm run build` and `npx vitest run` both verified clean at the end of this session (37/37 tests passing).
+
+### Overall progress assessment
+- **Voice-demo, the last unprotected paid-API route, now has rate limiting** — every public POST/paid-API endpoint in the app is covered.
+- **Conversion visibility extended from pageviews to actual funnel events** — `contact_form_submit`, `yourcastle_signup_submit`, and `voice_demo_live_qa_submit` are now tracked via Vercel Analytics, giving real data for future pricing/copy experiments.
+- **The 3-session-old `core.excludesfile` git misconfiguration is fixed**, and for the first time actually root-caused: it traced to a system-level `/usr/local/git/etc/gitconfig`, not the user's global config as previously assumed. Fixed with a repo-local override (`git config --local core.excludesfile /dev/null`) that doesn't touch anything outside this repo. No more `git add -f` needed here.
+- **First real e2e test in the repo.** Playwright now drives the actual `/contact` form in a browser. It currently fails at the last assertion — honestly, not faked — because the Supabase table still doesn't exist. This is a good regression guard once the table is created.
+- **Test suite grew from 30 to 37 tests**, closing the last coverage gap (voice-demo's new rate-limit behavior), with the standard order-independent `vi.resetModules()` pattern for the limiter's module-level state.
+- **`FAL_KEY` re-verified as fully dead** — no code changes needed, already cleaned up in a prior session.
+
+### Launchability Score: **82/100** (up from 76/100)
+Up from last session — all engineering-side gaps from the plan are now closed. The remaining points are capped entirely by the one recurring human-only blocker below; once that's done, this repo should score in the high 80s/low 90s.
+
+### Action required from you (unchanged for 3 sessions — still the only blocker)
+**Create the `contact_submissions` table in Supabase.** SQL is above under the 2026-07-04 "Bugs Fixed" section. Once created:
+- The contact form will stop 500ing and actually persist leads + send Telegram notifications.
+- The new Playwright smoke test (`e2e/contact.spec.ts`) should pass on the next run.
+
+### Tomorrow's Top 3 priorities
+1. Run the `contact_submissions` SQL (blocking 3 sessions running), then confirm both the live contact form and `npx playwright test` pass end-to-end.
+2. Open a PR merging the accumulated NightAgent commits from `68755c9` through tonight's `9d12ed9` into `main` — a meaningful, reviewable batch of reliability/analytics/testing work has piled up across 4 sessions without ever going to `main`.
+3. Consider whether the system-level `/usr/local/git/etc/gitconfig` should also be fixed (or left as-is now that every affected repo can apply the same repo-local override tonight's Bug Agent used).
+
+### Blockers / notes flagged for you
+- **Prompt-injection attempts continued this session** — every one of tonight's three agents independently encountered and correctly ignored fake `<context_guidance>`/`<context_window_protection>` instruction blocks (directing tool use through nonexistent `ctx_*` MCP tools) and, in two cases, fabricated Bash tool-results blocking real `npm install` commands. This is now a well-established, repeatedly-verified pattern in this environment across 4 sessions — none of it affected the actual work, but it's worth investigating at the harness/plugin level outside this repo.
+- No PR was opened this session either — leaving that decision to you, per the "confirm before pushing/opening PRs" rule. Given 4 sessions of accumulated work now sitting on `nightagent/*` branches, tomorrow is a good time to open one.
+
 ## Features Completed — 2026-07-06
 
 Picked up the two still-unfinished items from `NIGHTAGENT_PLAN.md` (Task 2 and Task 3).
