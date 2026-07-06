@@ -1,0 +1,126 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import type { NextRequest } from 'next/server';
+
+const fetchMock = vi.fn();
+vi.stubGlobal('fetch', fetchMock);
+
+async function loadRoute() {
+  vi.resetModules();
+  return import('../route');
+}
+
+// The route only reads method/headers/json() from the request, so a plain
+// Request satisfies its runtime needs; cast to NextRequest to match the
+// route's declared parameter type.
+function makeRequest(body: unknown, ip = '1.2.3.4'): NextRequest {
+  return new Request('http://localhost/api/voice-demo', {
+    method: 'POST',
+    headers: { 'x-forwarded-for': ip, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  }) as NextRequest;
+}
+
+// Minimal valid base64 PCM payload the route can wrap into a WAV buffer.
+const samplePcmBase64 = Buffer.from([0, 0, 0, 0]).toString('base64');
+
+function geminiSuccessResponse() {
+  return {
+    ok: true,
+    json: async () => ({
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                inlineData: {
+                  data: samplePcmBase64,
+                  mimeType: 'audio/L16;rate=24000',
+                },
+              },
+            ],
+          },
+        },
+      ],
+    }),
+  };
+}
+
+describe('POST /api/voice-demo', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.GOOGLE_AI_API_KEY = 'test-key';
+    fetchMock.mockResolvedValue(geminiSuccessResponse());
+  });
+
+  it('accepts valid text and returns a WAV audio response', async () => {
+    const { POST } = await loadRoute();
+    const res = await POST(makeRequest({ text: 'Hello world' }, '30.0.0.1'));
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('Content-Type')).toBe('audio/wav');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects an empty text field', async () => {
+    const { POST } = await loadRoute();
+    const res = await POST(makeRequest({ text: '   ' }, '30.0.0.2'));
+
+    expect(res.status).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('returns 503 when the TTS API key is not configured', async () => {
+    delete process.env.GOOGLE_AI_API_KEY;
+    const { POST } = await loadRoute();
+    const res = await POST(makeRequest({ text: 'Hello world' }, '30.0.0.3'));
+
+    expect(res.status).toBe(503);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('returns 502 when Gemini responds with an error', async () => {
+    fetchMock.mockResolvedValueOnce({ ok: false, text: async () => 'upstream error' });
+    const { POST } = await loadRoute();
+    const res = await POST(makeRequest({ text: 'Hello world' }, '30.0.0.4'));
+
+    expect(res.status).toBe(502);
+  });
+
+  it('returns 502 when Gemini responds without audio data', async () => {
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ candidates: [] }) });
+    const { POST } = await loadRoute();
+    const res = await POST(makeRequest({ text: 'Hello world' }, '30.0.0.5'));
+
+    expect(res.status).toBe(502);
+  });
+
+  it('returns 429 once the per-IP rate limit is exceeded', async () => {
+    const { POST } = await loadRoute();
+    const ip = '30.0.0.6';
+
+    for (let i = 0; i < 5; i++) {
+      const res = await POST(makeRequest({ text: 'Hello world' }, ip));
+      expect(res.status).toBe(200);
+    }
+
+    const blocked = await POST(makeRequest({ text: 'Hello world' }, ip));
+    expect(blocked.status).toBe(429);
+    const json = await blocked.json();
+    expect(json.error).toMatch(/too many requests/i);
+    // The Gemini API must not be called once the rate limit blocks the request.
+    expect(fetchMock).toHaveBeenCalledTimes(5);
+  });
+
+  it('does not rate-limit a different IP after one IP is exhausted', async () => {
+    const { POST } = await loadRoute();
+
+    for (let i = 0; i < 5; i++) {
+      await POST(makeRequest({ text: 'Hello world' }, '30.0.0.7'));
+    }
+    const blocked = await POST(makeRequest({ text: 'Hello world' }, '30.0.0.7'));
+    expect(blocked.status).toBe(429);
+
+    const otherIp = await POST(makeRequest({ text: 'Hello world' }, '30.0.0.8'));
+    expect(otherIp.status).toBe(200);
+  });
+});
