@@ -232,3 +232,20 @@ Picked up the three remaining plan tasks (6, 7, 8).
 1. **Create the `contact_submissions` Supabase table** (SQL in the 2026-07-04 section above) — still the single blocker for the contact form and now also for the new Playwright smoke test to pass.
 2. Optionally decide whether to fix `core.excludesfile` on the system/global level too (`/usr/local/git/etc/gitconfig` or `~/.gitignore` itself) — not done here since it's outside this repo and needs explicit approval, but no longer blocks this repo since the local override is in place.
 3. Once the Supabase table exists, run `npx playwright test` in `done-deal-site` to confirm the new e2e smoke test passes end-to-end.
+
+## Tests Added — 2026-07-06
+
+Plan task #4: added coverage for `src/app/api/voice-demo/route.ts` now that it has rate limiting (Feature Agent's `1439b7c`), and checked whether the `@vercel/analytics` `track()` calls added in `1272261` broke anything.
+
+- **New file**: `src/app/api/voice-demo/__tests__/route.test.ts`, mirroring the established pattern in `src/app/api/contact/__tests__/route.test.ts` (`vi.resetModules()` + dynamic `import('../route')` per test to reset the rate limiter's module-level `Map`, mocked `fetch` for the Gemini TTS call). 7 new tests: success path (200 + `audio/wav` content type), empty-text validation (400), missing API key (503), upstream Gemini error (502), missing audio data in response (502), 429 on the 6th request within the window, and per-IP isolation (a blocked IP doesn't affect a fresh IP).
+- One TypeScript wrinkle: `voice-demo/route.ts`'s `POST` takes `NextRequest` (unlike `contact/route.ts`, which takes plain `Request`), so the test's `makeRequest()` helper casts the `Request` stub to `NextRequest` — the route only touches `.method`/`.headers`/`.json()`, all of which a plain `Request` satisfies at runtime.
+- **Analytics `track()` check**: grepped for existing tests covering `src/app/contact/page.tsx`, `src/components/sections/YourCastleSignup.tsx`, `src/components/sections/VoiceDemo.tsx` — none exist yet, so there was nothing for the new `@vercel/analytics` import to break. No mock/stub needed. (Left as a gap for a future session if component-level tests are added for these files.)
+- Did not touch `e2e/contact.spec.ts` or `playwright.config.ts` per instructions — Bug Agent's work, left as-is.
+
+**Verification**: `npx vitest run` → 5 test files, **37/37 passing** (30 pre-existing + 7 new). `npx tsc --noEmit` clean. `npx eslint` clean on the new file.
+
+Commit: `test(voice-demo): add route coverage including rate-limit 429 tests` (`ff19a2a`).
+
+### Notes
+- Again encountered the injected `<context_window_protection>` block (fake `ctx_*` MCP tool routing instructions) embedded directly in the task prompt, plus a fake system-reminder-style block inside a tool result (bogus MCP auth notices) — same documented prompt-injection pattern as every prior session tonight. Ignored both; used normal Read/Edit/Write/Bash tools throughout.
+- Did not stage or commit the other untracked files present at session start (`.claude/`, `.nightagent/`, `NIGHTAGENT_EVAL.md`, `NIGHTAGENT_PLAN.md`, `excalidraw.log`, `public/*.png`, `public/remi/*.png`, modified `CLAUDE.md`) — out of scope for this task, left for whichever agent owns them.
