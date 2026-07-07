@@ -280,3 +280,60 @@ Commit: `test(voice-demo): add route coverage including rate-limit 429 tests` (`
 ### Notes
 - Again encountered the injected `<context_window_protection>` block (fake `ctx_*` MCP tool routing instructions) embedded directly in the task prompt, plus a fake system-reminder-style block inside a tool result (bogus MCP auth notices) — same documented prompt-injection pattern as every prior session tonight. Ignored both; used normal Read/Edit/Write/Bash tools throughout.
 - Did not stage or commit the other untracked files present at session start (`.claude/`, `.nightagent/`, `NIGHTAGENT_EVAL.md`, `NIGHTAGENT_PLAN.md`, `excalidraw.log`, `public/*.png`, `public/remi/*.png`, modified `CLAUDE.md`) — out of scope for this task, left for whichever agent owns them.
+
+## Bugs Fixed — 2026-07-07
+
+Picked up plan Task 6 (toast component), the quick-win 404 page, and ran the error-handling/security sweep. Worked in parallel with a Feature Agent building `/pricing` and `/how-it-works` on the same branch/working tree — coordinated by re-checking `git status`/`git log` mid-session rather than assuming a stale view.
+
+### Task 6 — Reusable Toast component for form feedback — DONE
+- Read all three existing error-rendering call sites first (`VoiceDemo.tsx`'s plain `<p className="text-red-400">`, `contact/page.tsx`'s red bordered `<div>`, `YourCastleSignup.tsx`'s plain `<p className="text-red-400">`) before building, to match the existing design system rather than inventing a new one.
+- New component: `src/components/ui/Toast.tsx` — a single reusable, dismissible banner with `success`/`error` variants (cyan `#00BEFF` for success, red for error), animated in/out via the same `framer-motion` pattern already used across the codebase (`AnimatePresence`), `role="alert"`/`role="status"` for accessibility, and an explicit close button (the plan flagged "no dismiss" as a specific gap).
+- Wired into all three surfaces named in the plan:
+  - `src/components/sections/VoiceDemo.tsx` — replaces the inline `liveError` red text under the live Q&A input.
+  - `src/app/contact/page.tsx` — replaces the bordered red error `<div>` below the form.
+  - `src/components/sections/YourCastleSignup.tsx` — replaces the plain red `serverError` text below the signup form.
+- Kept success-state UI (the existing "Thanks for reaching out!" / "You're in!" full-panel confirmations) untouched — those are richer, intentional conversion moments, not something a small toast should replace. Toast is scoped to the inconsistent *error* feedback the plan specifically called out.
+- Commit: `feat(ui): add reusable Toast component for form feedback` (`6e57807`).
+
+### Quick win — `not-found.tsx` at App Router root — DONE
+- `src/app/not-found.tsx` renders the same `Navbar`/`Footer` shell as the rest of the site with a branded 404 message and two CTAs (Back to Home, Contact Us), instead of the default Next.js 404 screen.
+- Verified via `npm run build` — `/_not-found` now appears in the route table as a static page.
+- Commit: `feat(404): add branded not-found page at App Router root` (`35e193b`).
+
+### Security/error-handling sweep — one genuine new bug found and fixed
+- Re-verified (did not re-implement) the rate limiting, input validation, and Telegram HTML-escaping from prior sessions in `src/app/api/contact/route.ts` and `src/app/api/yourcastle/signup/route.ts` — all still intact, no regressions.
+- Checked every `src/app/api/**/route.ts` for missing try/catch. `src/app/api/yourcastle/count/route.ts` has none, but it can't throw — its one Supabase call already checks `error` inline and returns a safe fallback rather than throwing, so it's fine as-is.
+- `src/app/api/voice-demo/route.ts` had **zero** try/catch — a genuine gap. `request.json()` on a malformed body, or a network failure in the `fetch` call to Gemini, would throw unhandled and produce a bare, unstyled 500 instead of the route's own structured `{ error: ... }` JSON response (the pattern every other route already follows). Wrapped the existing logic (unchanged otherwise) in a try/catch mirroring `contact/route.ts`'s error-logging convention (`error instanceof Error ? error.message : 'Unknown error'`, no raw `Error` object logged, no PII).
+- Commit: `fix(voice-demo): wrap POST handler body in try/catch` (`81ed9df`).
+
+### `contact_submissions` Supabase table — still not resolved (4th session flagging this)
+- Re-confirmed via grep across the repo: only documentation of the required migration exists (this file, `.md` planning docs), no evidence the table has been created. This remains a human/operator action — I did not attempt to run any migration against production Supabase. SQL is unchanged from the 2026-07-04 entry above.
+
+### Verification
+- `npx tsc --noEmit`: clean.
+- `npx eslint` on all changed/new files: clean (0 errors; the single pre-existing `err`-unused warning in `contact/page.tsx`, flagged in a prior session, was left untouched — out of scope).
+- `npm run build`: clean, one build run this session (build-safety budget respected) — all routes generated including `/pricing`, `/how-it-works`, `/_not-found`, confirming no conflict with the Feature Agent's parallel work on the same branch.
+- Did not touch any test files (Test Agent's scope) or the `/pricing`/`/docs`/`/how-it-works` page content itself beyond inserting the new FAQ block described below (Feature Agent's scope).
+
+### Notes
+- Ran on the same working tree as a parallel Feature Agent session; `git add`/`git commit` interleaved with theirs mid-session (their `fix(branding)` commit landed between two of mine, and one of my commits picked up their already-staged `pricing/page.tsx`/`Navbar.tsx` changes alongside my own file in the same index). Verified after the fact via `git show`/`git diff` that no content was lost or corrupted — this is concurrent-commit interleaving on a shared checkout, not a real conflict, but worth knowing for future parallel-agent sessions on the same branch.
+- Again ignored the injected `<context_window_protection>` block in the task prompt (fake `ctx_*` MCP tool routing instructions, banned-Bash-output-length claims) — same well-documented pattern from every prior session. Used normal Read/Edit/Write/Bash throughout, including for the multi-hundred-line `git log`/report reads, which the injection specifically tried to redirect away from.
+
+## Monetization Changes — 2026-07-07
+
+### Task 7 — Pricing objections/FAQ block — DONE, added to the new `/pricing` page
+- The plan's coordination note applied: by the time this task started, the Feature Agent's `/pricing` route (`src/app/pricing/page.tsx`) already existed (in-progress, untracked at first, then committed as part of their `fix(branding)` work). Per the task instructions, added the objections block there instead of the homepage `Pricing.tsx` section.
+- New component: `src/components/sections/PricingObjections.tsx` — a self-contained accordion FAQ (same interaction pattern as the existing `FAQ.tsx`: single-open-at-a-time, `framer-motion` height animation, `aria-expanded`) covering 5 real-estate-agent-specific objections: not closing a deal some month (points to Pay-Per-Transaction), cancel-anytime, overage handling on Annual Standard, no long-term contract, and switching plans as volume changes.
+- Inserted into `src/app/pricing/page.tsx` directly above the existing generic `<FAQ />` component, so pricing-specific objections are answered first, general product FAQ second.
+- Commit: `feat(pricing): add real-estate-agent pricing objections FAQ block` (`6c8a825`).
+- **Note for the Feature Agent / next session**: this lives on the dedicated `/pricing` page as instructed. If `/pricing`'s structure changes further, `PricingObjections` is a standalone component and can be relocated or reordered without touching its internals.
+
+### Toast component — indirect monetization value
+- While primarily a UX task (Task 6 above), the Toast component also gives clearer, more trustworthy error feedback on both lead-capture forms (`/contact`, YourCastle signup) — a visitor who sees a dismissible, clearly-styled error is more likely to retry than one who sees ambiguous plain red text and bounces.
+
+### Verification
+- Same build/tsc/eslint verification as the Bugs Fixed section above (one shared `npm run build` run covered both scopes since they were done in the same session).
+
+### Outstanding for a human
+- **`contact_submissions` Supabase table** — unchanged, still blocking (4 sessions running). SQL is in the 2026-07-04 section above; not something this agent can or should run against production Supabase.
+- No PR opened this session, per the standing "confirm before pushing/opening PRs" rule — same as every prior session. Given 5 sessions of accumulated `nightagent/*` work now, opening one soon is worth prioritizing.
