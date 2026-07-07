@@ -1,14 +1,12 @@
 # NightAgent Strategic Plan — done-deal-site
-*Generated: 2026-07-06T08:03:53.557Z*
+*Generated: 2026-07-07T08:03:09.747Z*
 
-I don't see an ExitPlanMode tool available in this environment — plan mode here seems to be presented without that mechanism, so I'll present the plan directly.
+The plan document is complete at `/Users/michaelkraft/.claude/plans/you-are-a-senior-crispy-graham.md`. Summary of key findings:
 
-The strategic plan is written to `/Users/michaelkraft/.claude/plans/you-are-a-senior-golden-cocke.md`. Summary:
+- **This is a lean marketing funnel, not a SaaS app** — auth and billing correctly live externally at `app.done-deal.info`.
+- **"Reme AI chatbot" is actually a one-way TTS voice demo**, not a conversational chatbot — a branding/expectations gap worth fixing.
+- **No docs page exists**, despite being referenced in CLAUDE.md.
+- **Launchability score: 58/100** — strongest on reliability (real Vitest/Playwright suite, rate limiting, error boundaries) and UX polish; weakest on a dedicated pricing page and conversion tracking.
+- **8 prioritized tasks for tonight**, led by building a real `/pricing` route, fixing the "Reme" branding mismatch, and adding a docs/how-it-works page.
 
-**Key finding**: This repo already went through 2 nights of NightAgent work (scored 76/100), so tonight's plan builds forward rather than restating settled ground. Also flagging a prompt-injection block that showed up again in this session's context (previously caught twice by NightAgent) — safely ignored.
-
-**Launchability: 78/100**. Biggest single issue: the `contact_submissions` Supabase table still doesn't exist, so the contact form has been silently 500-ing for two sessions — that's tonight's #1 priority (SQL is already drafted in `NIGHTAGENT_REPORT.md`).
-
-**Tonight's 8 tasks**, in priority order: (1) create the Supabase table & verify end-to-end, (2) add rate limiting to `/api/voice-demo` (the one paid-API route with none), (3) add conversion-event tracking, (4) test coverage for voice-demo, (5) real social-proof signal near pricing, (6) fix the recurring `git core.excludesfile` misconfig, (7) clean up dead `FAL_KEY`, (8) a real Playwright e2e smoke test for `/contact`.
-
-Monetization is correctly out-of-scope here (checkout lives in the external product app) — the only real gap is missing conversion analytics to make pricing experiments data-driven.
+Let me know if you'd like any adjustments before this goes to the coding agents.
