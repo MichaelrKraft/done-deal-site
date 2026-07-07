@@ -4,7 +4,7 @@
 > Keep it accurate. The better this file is, the better the agents perform.
 
 ## What This App Does
-Marketing/landing site for Done Deal. Includes Reme AI chatbot (Gemini) and the public docs page.
+Marketing/landing site for Done Deal. Includes the Reme voice/TTS demo (Gemini-generated audio, not a conversational chatbot) and the public how-it-works/docs page.
 
 ## Target Customer
 Real estate agents evaluating the Done Deal product
@@ -46,6 +46,9 @@ freemium
 *(NightAgent will populate this. You can also add key files manually.)*
 
 ## Recent Progress
+- 7/6/2026: *(Lead agent appends here after all teammates finish)*
+
+All three teammates completed their assigned scope on branch `nightagent/2026-07-04`, 6 commits total (`68755c9`, `6c4614f`, `710a418`, `c2cba9f`, `70428cc`, `b1dc283`). Working tree is clean; nothing left uncommitted.
 - 7/5/2026: *(Lead agent appends here after all teammates finish)*
 
 All three teammates completed their assigned scope on branch `nightagent/2026-07-04`, 6 commits total (`68755c9`, `6c4614f`, `710a418`, `c2cba9f`, `70428cc`, `b1dc283`). Working tree is clean; nothing left uncommitted.
@@ -61,7 +64,11 @@ All three teammates completed their assigned scope on branch `nightagent/2026-07
 *(NightAgent will document blockers here)*
 
 ---
-*Last updated by NightAgent: 2026-07-05T08:08:53.630Z*
+*Last updated by NightAgent: 2026-07-06T08:17:54.966Z*
+
+
+
+
 
 
 
@@ -71,10 +78,10 @@ All three teammates completed their assigned scope on branch `nightagent/2026-07
 
 
 <!-- coder1-mem:start -->
-<!-- Auto-updated by coder1-mem on 2026-07-06 — do not edit this block manually -->
+<!-- Auto-updated by coder1-mem on 2026-07-07 — do not edit this block manually -->
 ## Recent Session Context
 
-**Project:** done-deal-site | **Sessions:** 36 | **Last active:** just now
+**Project:** done-deal-site | **Sessions:** 42 | **Last active:** just now
 
 Session topic: ...
 
