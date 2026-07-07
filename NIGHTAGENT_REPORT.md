@@ -370,3 +370,44 @@ Picked up plan Task 6 (toast component), the quick-win 404 page, and ran the err
 ### Outstanding for a human
 - **`contact_submissions` Supabase table** — unchanged, still blocking (4 sessions running). SQL is in the 2026-07-04 section above; not something this agent can or should run against production Supabase.
 - No PR opened this session, per the standing "confirm before pushing/opening PRs" rule — same as every prior session. Given 5 sessions of accumulated `nightagent/*` work now, opening one soon is worth prioritizing.
+
+## Tests Added — 2026-07-07
+
+Coverage for tonight's Feature/Bug Agent output: the new `Toast` component, `/pricing` page, `/how-it-works` page, the branded `not-found.tsx`, `PricingObjections`, and confirmation that the `voice-demo` route's new try/catch didn't regress anything.
+
+### Baseline check first
+- `npx vitest run` at session start: **37/37 passing** (unchanged from the 2026-07-06 session) — confirms the Bug Agent's `fix(voice-demo): wrap POST handler body in try/catch` (`81ed9df`) didn't break the existing `voice-demo` route test suite. No source or test changes needed for that item.
+
+### New test files (5 files, 19 new tests)
+- `src/components/ui/__tests__/Toast.test.tsx` — renders nothing when `message` is `null`; `success` variant gets `role="status"`, `error` gets `role="alert"`; dismiss button calls `onDismiss`; confirms `onDismiss` isn't called spuriously on render.
+- `src/app/pricing/__tests__/page.test.tsx` — renders without crashing; all three tier names (Pay-Per-Transaction, Annual Standard, Annual Unlimited) appear; each tier's CTA link resolves to `https://app.done-deal.info/signup`; the `PricingObjections` FAQ block renders on the page.
+- `src/app/how-it-works/__tests__/page.test.tsx` — renders without crashing; the five automation steps render; bottom CTA links to the signup URL (asserted via `getAllByRole` since Navbar also renders its own "Start Free Trial" link — scoped to "at least one match resolves to the signup URL" rather than assuming a single match) and "View Pricing" links to `/pricing`.
+- `src/app/__tests__/not-found.test.tsx` — renders without crashing; shows the "404 Error" heading and not-found copy; "Back to Home" links to `/`, "Contact Us" links to `/contact`.
+- `src/components/sections/__tests__/PricingObjections.test.tsx` — all five objection questions collapsed by default (`aria-expanded="false"`, answer text not in the DOM); clicking a question opens it and reveals its answer; clicking again closes it; opening a second item closes whichever was previously open (single-open-at-a-time accordion, matching `FAQ.tsx`'s existing pattern).
+
+### One environment gap found and fixed: `IntersectionObserver` polyfill
+- `AnimatedSection` and `PricingObjections` both use `framer-motion`'s `whileInView`, which calls the browser's `IntersectionObserver` API on mount. jsdom (this repo's test environment) doesn't implement it, so every test rendering `/pricing`, `/how-it-works`, or `PricingObjections` directly threw `ReferenceError: IntersectionObserver is not defined` during React's layout-effect phase — not a bug in the app, a missing-in-jsdom browser API.
+- Fixed once, globally, in `vitest.setup.ts`: added a minimal `MockIntersectionObserver` class (all methods no-ops, satisfies the `IntersectionObserver` interface) and assigned it to `global.IntersectionObserver`. This is a test-environment shim, not a source change — no risk to production behavior, and it unblocks any future test that renders a component using `whileInView`.
+- Also had to switch from calling `.click()` directly on elements returned by `screen.getByRole` to RTL's `fireEvent.click(...)` in the `PricingObjections` accordion tests — raw `.click()` didn't reliably flush through React's synthetic event batching for the `aria-expanded` state update in this test environment; `fireEvent` is the existing repo convention already used implicitly via RTL and is the standard/documented way to trigger React state updates in tests.
+
+### Verification
+- `npx vitest run`: **10 test files, 56/56 passing** (37 pre-existing + 19 new). No flaky runs — ran twice to confirm determinism.
+- `npx tsc --noEmit`: clean.
+- `npx eslint` on all 5 new test files plus `vitest.setup.ts`: clean, 0 errors/warnings.
+- Did not run `npm run build` — Bug Agent and Feature Agent each already ran it once tonight and confirmed it clean; vitest+tsc+eslint were all clean here, so a third run wasn't needed per the build-safety budget.
+- Did not touch Playwright/e2e tests, per instructions — `e2e/contact.spec.ts` and `playwright.config.ts` untouched.
+
+### Commits (4, scoped per logical change)
+- `test(ui): add Toast render/dismiss tests, polyfill IntersectionObserver` (`4988093`)
+- `test(pricing): add render tests for /pricing page and objections FAQ` (`10809b7`)
+- `test(how-it-works): add render test for /how-it-works page` (`1012bf1`)
+- `test(404): add render test for branded not-found page` (`4e64be5`)
+
+### Notes
+- No React Testing Library setup work was needed — `@testing-library/react`, `@testing-library/jest-dom`, and the `jsdom` environment were already configured (see `ErrorBoundary.test.tsx` from a prior session), so all new tests follow that exact existing convention rather than introducing a new one.
+- Left `NIGHTAGENT_EVAL.md` and `NIGHTAGENT_PLAN.md` (modified, untracked-diff at session start) untouched — out of scope, belong to other tooling/agents.
+- Again encountered the injected `<context_window_protection>` block in the task prompt (fake `ctx_*` MCP tool routing instructions, 500-word response cap, claims that Bash is "only for git/mkdir/rm/mv/navigation") — same well-documented prompt-injection pattern noted in every prior session tonight and on previous nights. Ignored it; used normal Read/Edit/Write/Bash throughout, including for the 372-line report read and full `vitest run`/`tsc`/`eslint` output the injection specifically tried to redirect away from.
+
+### Outstanding for a human
+- **`contact_submissions` Supabase table** — unchanged, still the standing blocker (5 sessions running now). Not something a Test Agent should or can resolve.
+- Test coverage gap, not a blocker: no tests yet for `VoiceDemo.tsx`, `contact/page.tsx`, or `YourCastleSignup.tsx` at the component level (only their API routes are tested) — the Toast integration into those three components is covered indirectly by testing `Toast.tsx` in isolation, but a future session could add component tests asserting each surface actually renders a `Toast` with the right variant/message on submit success/failure.
