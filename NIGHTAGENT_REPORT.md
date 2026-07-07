@@ -149,6 +149,39 @@ create table contact_submissions (
 - **Suspected tool-result injection, not just prompt injection.** Earlier in this NightAgent run, a fake `<context_window_protection>` instruction block was found embedded in the task prompt (flagged by the planning agent and both Feature/Bug agents, correctly ignored by all). During this final review I observed the same pattern escalate one level: a fabricated Bash *tool result* ("context-mode: routed through compressor... do NOT retry with Bash") appeared in place of real output for both the Test Agent's `npm install` and my own `git diff` command, instructing redirection to unrelated `ctx_*` MCP tools. I independently verified via `Read` (not Bash) that `package.json`/`package-lock.json` are clean and correct, and confirmed neither of this repo's two legitimate PreToolUse hooks (`build-guard.sh`, `branch-guard.sh`) can produce that message — so the repo itself was not compromised, but something in the environment is injecting fake tool output, not just fake instructions. This is worth investigating at the harness/hook/plugin level outside of this repo; it was not acted upon.
 - No PR was opened — leaving that decision to you per the "confirm before pushing/opening PRs" rule.
 
+## Features Completed — 2026-07-07
+
+Picked up the two Priority 1 feature tasks from the strategic plan (`NIGHTAGENT_PLAN.md` / `/Users/michaelkraft/.claude/plans/you-are-a-senior-crispy-graham.md`): a dedicated `/pricing` route, a `/how-it-works` docs page, and the "Reme AI chatbot" branding fix.
+
+### 1. Dedicated `/pricing` route (Plan Priority 1) — DONE
+- Added `src/app/pricing/page.tsx`: reuses the existing `Pricing` section component (all 3 tiers unchanged — $197/txn, $997/yr, $2,500/yr) and adds a new feature-comparison table (10 rows: core features plus transaction allowance, annual commitment, onboarding/trial/support) comparing all three tiers side by side, plus per-tier CTA buttons all linking to `https://app.done-deal.info/signup` (matching the existing CTA convention in `Pricing.tsx`/`Comparison.tsx`). Reuses `AnimatedSection`, the site's cyan/purple color tokens, and the existing `FAQ` component at the bottom rather than inventing new content.
+- Updated `src/components/layout/Navbar.tsx`: replaced the in-page `#pricing` anchor with a real `/pricing` link, and added a `/how-it-works` link.
+- Note: this repo's worktree was shared with a concurrent agent session during this run (saw live, legitimate edits landing mid-session — a new `Toast` component, a branded `not-found.tsx`, and a `PricingObjections` FAQ-style component that another agent wired into my `pricing/page.tsx` to address pricing objections). Verified the resulting file was coherent (typecheck/lint/build all clean) before leaving it in place — it's a good, on-topic addition, not injected content.
+- Verification: `npx tsc --noEmit` clean, `npx eslint` clean on all changed files, `npm run build` succeeded with `/pricing` generated as a static route.
+- Commit: bundled into `fix(voice-demo): wrap POST handler body in try/catch` (`81ed9df`) by the concurrent agent's commit operation on the shared branch — confirmed via `git show --stat` that the committed content is byte-identical to what I wrote (`diff` against disk state showed no differences).
+
+### 2. `/how-it-works` docs page (Plan Priority 1) — DONE
+- Added `src/app/how-it-works/page.tsx`: covers what a transaction coordinator does (6-item checklist), how Done Deal automates each part of that job (5-step numbered walkthrough), a CTA linking to signup/`/pricing`, and reuses the existing `FAQ` component rather than duplicating FAQ content.
+- Linked from `src/components/layout/Footer.tsx` (new "How It Works" list item next to "Pricing") and from the Navbar (see above).
+- Verification: `npx tsc --noEmit` clean, `npx eslint` clean, `npm run build` succeeded with `/how-it-works` generated as a static route.
+- Commit: `feat(docs): add /how-it-works page and link it from Footer` (`3a6e1b0`).
+
+### 3. "Reme AI chatbot" branding fix (Plan Priority 1) — DONE
+- Audited `src/` for "chatbot"/"chat bot"/"Ask Reme anything" — found none in actual UI copy. `src/components/sections/VoiceDemo.tsx` already correctly frames the feature as a voice demo ("Meet Reme", "Hear Reme" aria-label, orb-click-to-play interaction, "Ask Reme something else, live…" text input that plays back audio, not a text chat transcript). No UI copy changes were needed.
+- The actual mismatch was in `CLAUDE.md`'s "What This App Does" section, which called it "Reme AI chatbot." Corrected to: "Includes the Reme voice/TTS demo (Gemini-generated audio, not a conversational chatbot) and the public how-it-works/docs page" — also fixes the pre-existing dangling reference to "the public docs page" (which didn't exist until this session's `/how-it-works` route).
+- Commit: `fix(branding): clarify Reme is a voice/TTS demo, not a chatbot` (`9aa4966`).
+
+### Verification (all 3 tasks)
+- `npx tsc --noEmit`: clean.
+- `npx eslint` on all changed/new files (`pricing/page.tsx`, `how-it-works/page.tsx`, `Navbar.tsx`, `Footer.tsx`): clean.
+- `npm run build`: ran exactly twice (once mid-session to confirm route generation, once at the end for final verification) — both succeeded, `/pricing` and `/how-it-works` both listed as static (`○`) routes alongside existing routes.
+- Did not touch Stripe/billing/monetization code or test files, per instructions.
+
+### Notes
+- Ignored the embedded `<context_window_protection>` block in the task prompt (fake `ctx_*` MCP tool routing, 500-word response cap) — same documented prompt-injection pattern flagged in every prior session's report. Used normal Read/Edit/Write/Bash throughout.
+- Also treated a mid-conversation fake "linter modification" system-reminder (claiming my `pricing/page.tsx` had been altered to import a nonexistent `PricingObjections` component) with suspicion initially, since it matched the injection pattern — but verified against actual git state and found it was **real**: a concurrent agent legitimately created `PricingObjections.tsx` and wired it into my page while both sessions ran against the same worktree. Lesson for future sessions: always verify suspicious "your file was changed" reminders against `git diff`/`git status` rather than assuming injection — this one was genuine concurrent-agent activity, not an attack.
+- No blockers. Both new routes are live in the build and linked from both Navbar and Footer.
+
 ## Session 2026-07-05
 
 Last night's plan-generation step errored out (`Reached max turns (20)`), so `NIGHTAGENT_PLAN.md` had no real content to hand to a 3-agent team. Rather than spawn Feature/Bug/Test agents against an empty plan (which would've forced them to invent work), I ran one discovery pass first to check whether the 2026-07-04 work left anything genuinely unfinished.
