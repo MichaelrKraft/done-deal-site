@@ -49,51 +49,56 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'TTS not configured' }, { status: 503 });
   }
 
-  const { text } = await request.json() as { text: string };
-  if (!text?.trim()) {
-    return NextResponse.json({ error: 'text is required' }, { status: 400 });
-  }
+  try {
+    const { text } = await request.json() as { text: string };
+    if (!text?.trim()) {
+      return NextResponse.json({ error: 'text is required' }, { status: 400 });
+    }
 
-  const res = await fetch(`${GEMINI_TTS_URL}?key=${apiKey}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text }] }],
-      generationConfig: {
-        responseModalities: ['AUDIO'],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: 'Aoede' },
+    const res = await fetch(`${GEMINI_TTS_URL}?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text }] }],
+        generationConfig: {
+          responseModalities: ['AUDIO'],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: { voiceName: 'Aoede' },
+            },
           },
         },
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      console.error('[voice-demo] Gemini TTS error:', err);
+      return NextResponse.json({ error: 'TTS generation failed' }, { status: 502 });
+    }
+
+    const json = await res.json() as {
+      candidates?: Array<{
+        content?: { parts?: Array<{ inlineData?: { data: string; mimeType: string } }> };
+      }>;
+    };
+
+    const inlineData = json.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+    if (!inlineData?.data) {
+      return NextResponse.json({ error: 'No audio in response' }, { status: 502 });
+    }
+
+    const pcm = Buffer.from(inlineData.data, 'base64');
+    const wav = pcmToWav(pcm);
+
+    return new NextResponse(wav.buffer as ArrayBuffer, {
+      headers: {
+        'Content-Type': 'audio/wav',
+        'Cache-Control': 'public, max-age=86400',
       },
-    }),
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    console.error('[voice-demo] Gemini TTS error:', err);
-    return NextResponse.json({ error: 'TTS generation failed' }, { status: 502 });
+    });
+  } catch (error) {
+    console.error('[voice-demo] Unexpected error:', error instanceof Error ? error.message : 'Unknown error');
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-
-  const json = await res.json() as {
-    candidates?: Array<{
-      content?: { parts?: Array<{ inlineData?: { data: string; mimeType: string } }> };
-    }>;
-  };
-
-  const inlineData = json.candidates?.[0]?.content?.parts?.[0]?.inlineData;
-  if (!inlineData?.data) {
-    return NextResponse.json({ error: 'No audio in response' }, { status: 502 });
-  }
-
-  const pcm = Buffer.from(inlineData.data, 'base64');
-  const wav = pcmToWav(pcm);
-
-  return new NextResponse(wav.buffer as ArrayBuffer, {
-    headers: {
-      'Content-Type': 'audio/wav',
-      'Cache-Control': 'public, max-age=86400',
-    },
-  });
 }
