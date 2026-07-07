@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import { track } from '@vercel/analytics';
+import Toast from '@/components/ui/Toast';
 
 type FormData = {
   firstName: string;
@@ -130,9 +131,7 @@ export default function YourCastleSignup() {
                 Brokerage: <span className="text-white font-medium">Your Castle Real Estate</span>
               </div>
 
-              {serverError && (
-                <p className="text-red-400 text-sm text-center">{serverError}</p>
-              )}
+              <Toast message={serverError || null} variant="error" onDismiss={() => setServerError('')} />
 
               <motion.button
                 type="submit"

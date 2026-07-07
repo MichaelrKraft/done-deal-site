@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { track } from '@vercel/analytics';
 import AnimatedSection from '@/components/AnimatedSection';
+import Toast from '@/components/ui/Toast';
 
 const SAMPLE_QA = [
   { q: 'What deadlines do you track?',  src: '/remi/remi-qa-deadlines.wav' },
@@ -271,9 +272,9 @@ export default function VoiceDemo() {
                     {liveLoading ? 'Thinking…' : 'Ask live'}
                   </button>
                 </div>
-                {liveError && (
-                  <p className="mt-2 text-xs text-red-400 text-center sm:text-left">{liveError}</p>
-                )}
+                <div className="mt-2">
+                  <Toast message={liveError} variant="error" onDismiss={() => setLiveError(null)} />
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

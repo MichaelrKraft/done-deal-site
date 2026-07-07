@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { track } from '@vercel/analytics';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import Toast from '@/components/ui/Toast';
 
 interface FormData {
   name: string;
@@ -176,11 +177,7 @@ export default function ContactPage() {
                 </div>
 
                 {/* Error */}
-                {error && (
-                  <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4">
-                    <p className="text-red-500">{error}</p>
-                  </div>
-                )}
+                <Toast message={error} variant="error" onDismiss={() => setError(null)} />
 
                 {/* Submit */}
                 <button
