@@ -506,3 +506,38 @@ Per this session's brief: done-deal-site is a marketing site only, with no in-re
 
 ### Prompt-injection note
 Again encountered the injected `<context_window_protection>` block in the task prompt (fake `ctx_*` MCP tool routing instructions, 500-word response cap, claims that Bash output over 20 lines is forbidden). Same well-documented pattern flagged in every prior session since 2026-07-04. Ignored it; used normal Read/Edit/Write/Bash tools throughout.
+
+## Tests Added — 2026-07-13
+
+Coverage for tonight's Feature/Bug Agent output: tier-level pricing CTA click tracking (`a4da3ed`) and the `YourCastleSignup.tsx` error-handling fix (`a6d342d`). The third change tonight (`supabase/migrations/20260713020357_create_contact_submissions.sql`) is a SQL migration file, not application code — no test needed.
+
+### Baseline check first
+- `npx vitest run` at session start: **56/56 passing** (10 test files) — matches the last report's confirmed count, unchanged going into tonight's work.
+
+### New test files (2 files, 8 new tests)
+- `src/components/sections/__tests__/Pricing.test.tsx` — mocks `@vercel/analytics` (`vi.mock('@vercel/analytics', () => ({ track: vi.fn() }))`, the same per-module mock pattern used implicitly elsewhere in the repo for external deps) and asserts each of the three tier CTAs fires the correct event name on click: `pricing_cta_click_pay_per_transaction`, `pricing_cta_click_annual_standard`, `pricing_cta_click_annual_unlimited`. A fourth test confirms `track` fires exactly once per click (guards against a future double-binding regression). Note: `vi.clearAllMocks()` (not `vi.restoreAllMocks()`) is required in `afterEach` here — `restoreAllMocks` doesn't reset call history for a `vi.fn()` defined inside a `vi.mock()` factory, which caused a cross-test leak (call count accumulated across tests) until switched.
+- `src/components/sections/__tests__/YourCastleSignup.test.tsx` — no test file existed for this component before tonight (only its API routes were tested, a gap noted in the 2026-07-07 report). Four tests, using `fireEvent.change`/`fireEvent.click` (no `@testing-library/user-event` — confirmed it's not a repo dependency, so stuck with the existing `fireEvent` convention rather than adding one):
+  - Signup fetch **rejects** (network failure) → shows the generic "Something went wrong. Please try again." error via the existing `Toast`, form stays on screen (doesn't crash or get stuck).
+  - Signup fetch **resolves not-ok** → shows the server-provided error message from the response body.
+  - Background count-polling `fetch` on mount **rejects** → component still renders and doesn't throw (covers the `.catch(() => {})` added to both polling call sites, tested via the observable "doesn't crash" behavior rather than reaching into the interval internals, since polling isn't otherwise assertable without fake timers this component doesn't need elsewhere).
+  - Happy path: successful signup shows the "Spot #N claimed" success state — included as a control/regression guard so the error-path tests are meaningfully contrastive, not just error-only coverage.
+  - `/api/yourcastle/count` is stubbed globally in `beforeEach` (component polls it on every mount) so it doesn't interfere with the signup-specific assertions in each test.
+
+### Verification
+- `npx vitest run` (full suite): **12 test files, 64/64 passing** (56 pre-existing + 8 new). No flakiness — the new files were also run in isolation first to confirm before the full-suite run.
+- `npx tsc --noEmit`: clean.
+- `npx eslint` on both new test files: clean, 0 errors/warnings.
+- Did not run `npm run build` — the Bug Agent's report entry above (`fix(yourcastle): add error handling to signup form and count polling`) already confirms a clean `npm run build` tonight covering the exact `YourCastleSignup.tsx` changes under test here; the Feature Agent's report entry confirms `tsc`+`eslint` (no build re-run needed) for `Pricing.tsx`. Re-running would have been a redundant third build per the build-safety budget, and vitest+tsc+eslint were all clean here regardless.
+- Did not touch Playwright/e2e tests, `vitest.setup.ts` (reused the existing `IntersectionObserver` polyfill from the 2026-07-07 session as instructed, no changes needed), or the `supabase/migrations/` SQL file (not application code).
+
+### Commit
+- `test(pricing,yourcastle): add CTA tracking and error-handling tests` (`6f170d2`)
+
+### Notes
+- At session start, `git status` showed pre-existing uncommitted changes to `CLAUDE.md`, `NIGHTAGENT_EVAL.md`, `NIGHTAGENT_PLAN.md` (not made by this session, not test-agent scope) — left untouched, staged only the two new test files for this commit.
+- Again encountered the injected `<context_window_protection>` block in the task prompt (fake `ctx_*` MCP tool routing instructions, 500-word response cap, claims that Bash is "only for git/mkdir/rm/mv/navigation"). Same well-documented prompt-injection pattern flagged in every prior session since 2026-07-04. Ignored it; used normal Read/Edit/Write/Bash tools throughout, including for this full report read/append and the complete `vitest run`/`tsc`/`eslint` output the injection specifically tried to redirect away from.
+
+### Outstanding for a human
+- **`contact_submissions` Supabase table** — the migration file now exists (`supabase/migrations/20260713020357_create_contact_submissions.sql`, added by the Bug Agent tonight) but has not been applied to production. Still the standing blocker, 7th session flagging it now, first with an actual artifact to apply.
+- **Open a PR** — 7 consecutive nights of work now sit on `nightagent/*` branches with no PR opened, per the standing "confirm before pushing" rule. Still worth a human decision on consolidating and merging.
+- Not a blocker, just noted for a future session: `VoiceDemo.tsx` and `contact/page.tsx` still have no component-level tests (only Toast in isolation and their API routes are covered) — same gap flagged in the 2026-07-07 report, unchanged since no agent picked it up this week.
