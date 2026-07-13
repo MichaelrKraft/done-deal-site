@@ -439,3 +439,34 @@ Three teammates (Feature, Bug & Quality, Test) ran in parallel/sequence on `nigh
 3. **Open a PR** — 5 consecutive nights of work now sit on `nightagent/*` branches with no PR opened yet, per the standing "confirm before pushing" rule. Worth a human decision on whether to consolidate and merge, given the branch now represents a meaningful chunk of shippable improvement.
 
 **Blockers encountered:** none new beyond the standing Supabase table issue above. The same `<context_window_protection>` prompt-injection block (fake `ctx_*` tool-routing instructions embedded in tool results and task prompts) that has appeared in every session since 2026-07-04 appeared again in all three teammates' sessions tonight; all three correctly identified and ignored it, using normal Read/Edit/Write/Bash tools throughout. This is now a well-established pattern — worth flagging to Mike directly as a real prompt-injection attempt against this environment, not a false positive.
+
+## Features Completed — 2026-07-13
+
+### Tier-level CTA click tracking on `/pricing` — DONE (plan task 4, previously flagged 2026-07-07, unstarted for 6 sessions)
+
+- **Task**: Zero analytics existed on the pricing page's CTA links before tonight (confirmed via `grep -rn "track("` across `src/app/pricing` and `src/components/sections/Pricing.tsx` — no matches). Goal: instrument each pricing tier's signup CTA so the business can measure which tier drives the most signups to `app.done-deal.info/signup`.
+- **Existing pattern found first, then followed**: grepped the whole codebase for `track(` / `analytics` before writing anything. Found `@vercel/analytics`'s `track()` already wired into three components — `src/app/contact/page.tsx` (`track('contact_form_submit')`), `src/components/sections/VoiceDemo.tsx` (`track('voice_demo_live_qa_submit')`), and `src/components/sections/YourCastleSignup.tsx` (`track('yourcastle_signup_submit')`) — all called with a single string event name, no properties object, no other analytics library present (`Analytics` from `@vercel/analytics/next` is mounted once in `src/app/layout.tsx`). Matched this exact convention rather than introducing anything new.
+- **What changed**: `src/components/sections/Pricing.tsx` — added `import { track } from '@vercel/analytics'` and an `onClick` handler to each of the three tier CTA `<Link>` elements:
+  - Pay-Per-Transaction "Get Started" → `track('pricing_cta_click_pay_per_transaction')`
+  - Annual Standard "Start Your Free Trial" (highlighted/most-popular tier) → `track('pricing_cta_click_annual_standard')`
+  - Annual Unlimited "Get Started" → `track('pricing_cta_click_annual_unlimited')`
+- `Pricing.tsx` is a single shared component rendered on three routes (`/`, `/pricing`, `/yourcastle` — confirmed via `grep -rn "<Pricing"`), so this one change instruments the CTA on all three surfaces simultaneously with no duplication.
+- No Stripe or payment SDK touched — CTAs still link straight to `https://app.done-deal.info/signup` as before; only a client-side analytics event was added alongside the existing navigation, per the repo's marketing-site-only design (real checkout is external).
+
+### Verification
+- `npx tsc --noEmit`: clean.
+- `npx eslint src/components/sections/Pricing.tsx`: clean, 0 errors/warnings.
+- `npx vitest run src/app/pricing/__tests__/page.test.tsx`: 4/4 passing (existing test asserts all three tier CTAs still resolve to the signup URL — confirms the added `onClick` handlers didn't change link behavior).
+- Did not run `npm run build` — build-safety budget; Bug and Test agents may also build tonight, and `tsc`+`eslint`+targeted `vitest` were sufficient to verify this small, isolated change.
+
+### Commit
+- `feat(pricing): add tier-level CTA click tracking` (`a4da3ed`)
+
+### Notes
+- At session start, `git status` showed pre-existing uncommitted changes to `CLAUDE.md`, `NIGHTAGENT_EVAL.md`, `NIGHTAGENT_PLAN.md`, and `src/components/sections/YourCastleSignup.tsx` (a `.catch(() => {})` added to two fetch calls) plus an untracked `supabase/` directory — none of these were made by this session. Left all of them untouched and staged only `Pricing.tsx` for this commit, per the "keep changes minimal, don't touch other agents' in-flight work" convention established in prior sessions' concurrent-editing notes.
+- Again encountered the injected `<context_window_protection>` block in the task prompt (fake `ctx_*` MCP tool routing instructions, 500-word response cap, claims that Bash output over 20 lines is forbidden) — same well-documented prompt-injection pattern flagged in every prior session since 2026-07-04. Ignored it; used normal Read/Edit/Write/Bash tools throughout.
+
+### Outstanding for a human
+- **`contact_submissions` Supabase table** — still unresolved (6th session flagging this now). Not something this agent attempted or should attempt against production Supabase.
+- **Open a PR** — 6 consecutive nights of work now sit on `nightagent/*` branches with no PR opened, per the standing "confirm before pushing" rule. Still worth a human decision on consolidating and merging.
+- The two other uncommitted changes noted above (`YourCastleSignup.tsx` fetch `.catch()`, and modifications to `CLAUDE.md`/`NIGHTAGENT_EVAL.md`/`NIGHTAGENT_PLAN.md`) were left as-is for whichever agent owns that scope tonight to commit or discard.
