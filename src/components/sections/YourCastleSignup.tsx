@@ -25,12 +25,14 @@ export default function YourCastleSignup() {
   useEffect(() => {
     fetch('/api/yourcastle/count')
       .then((r) => r.json())
-      .then((d) => setRemaining(d.remaining));
+      .then((d) => setRemaining(d.remaining))
+      .catch(() => {});
 
     const interval = setInterval(() => {
       fetch('/api/yourcastle/count')
         .then((r) => r.json())
-        .then((d) => setRemaining(d.remaining));
+        .then((d) => setRemaining(d.remaining))
+        .catch(() => {});
     }, 15000);
 
     return () => clearInterval(interval);
@@ -38,24 +40,28 @@ export default function YourCastleSignup() {
 
   const onSubmit = async (data: FormData) => {
     setServerError('');
-    const res = await fetch('/api/yourcastle/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
+    try {
+      const res = await fetch('/api/yourcastle/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
 
-    const result = await res.json();
+      const result = await res.json();
 
-    if (!res.ok) {
-      setServerError(result.error || 'Something went wrong. Please try again.');
-      return;
+      if (!res.ok) {
+        setServerError(result.error || 'Something went wrong. Please try again.');
+        return;
+      }
+
+      setGotFreeDeal(result.gotFreeDeal);
+      setSpotNumber(result.spotNumber);
+      setSubmitted(true);
+      setRemaining(result.remaining);
+      track('yourcastle_signup_submit');
+    } catch {
+      setServerError('Something went wrong. Please try again.');
     }
-
-    setGotFreeDeal(result.gotFreeDeal);
-    setSpotNumber(result.spotNumber);
-    setSubmitted(true);
-    setRemaining(result.remaining);
-    track('yourcastle_signup_submit');
   };
 
   return (
