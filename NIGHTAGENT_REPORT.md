@@ -470,3 +470,39 @@ Three teammates (Feature, Bug & Quality, Test) ran in parallel/sequence on `nigh
 - **`contact_submissions` Supabase table** — still unresolved (6th session flagging this now). Not something this agent attempted or should attempt against production Supabase.
 - **Open a PR** — 6 consecutive nights of work now sit on `nightagent/*` branches with no PR opened, per the standing "confirm before pushing" rule. Still worth a human decision on consolidating and merging.
 - The two other uncommitted changes noted above (`YourCastleSignup.tsx` fetch `.catch()`, and modifications to `CLAUDE.md`/`NIGHTAGENT_EVAL.md`/`NIGHTAGENT_PLAN.md`) were left as-is for whichever agent owns that scope tonight to commit or discard.
+
+## Bugs Fixed — 2026-07-13
+
+### 1. Unhandled fetch failures in `YourCastleSignup.tsx`
+- At session start, `git status` on branch `nightagent/2026-07-13` showed `YourCastleSignup.tsx` in its original (unfixed) state — no `.catch()` present despite a prior session's report note describing this as an in-progress uncommitted change. That work appears to not have persisted into this branch's checkout. Verified directly by reading the file before editing.
+- `src/components/sections/YourCastleSignup.tsx` had two gaps that its sibling component `YourCastleHero.tsx` already avoided:
+  - The `useEffect` count-polling `fetch('/api/yourcastle/count')` chains (initial load + 15s interval) had no `.catch()`. `YourCastleHero.tsx` polls the same endpoint and already handles this correctly — this file was the odd one out. A network failure here would have produced an unhandled promise rejection in the browser.
+  - `onSubmit` (the signup form handler) called `fetch`/`res.json()` with no try/catch at all, unlike `contact/page.tsx` and `VoiceDemo.tsx`'s `askLive`, which both wrap their fetch calls and show a friendly error via the existing `Toast` component. A network failure during signup would have thrown unhandled inside the `react-hook-form` submit handler and left the button stuck in a loading state with no user-facing feedback.
+  - Fix: added `.catch(() => {})` to both polling chains (silent fail is correct here — `remaining` just stays `null`/stale, same as `YourCastleHero.tsx`'s existing pattern), and wrapped `onSubmit`'s body in try/catch that sets the existing `serverError` state to a generic retry message on failure, reusing the `Toast` component already rendered in the form.
+  - Verified: `npx tsc --noEmit` clean, `npx eslint` clean on the changed file, `npm run build` succeeded, full `npx vitest run` suite (56 tests, 10 files) passed.
+- Commit: `fix(yourcastle): add error handling to signup form and count polling` (a6d342d).
+
+### 2. `contact_submissions` Supabase table — migration file drafted (7th session flagging this, first with an unblock artifact)
+- This blocker has been flagged verbatim in 6 consecutive prior sessions (2026-07-04 through 2026-07-07) with the SQL only ever living inside markdown report prose — never as an applicable artifact. Per this session's explicit instruction, that pattern stops here.
+- No `supabase/migrations/` directory existed in this repo's tracked history before tonight (confirmed via `find`/`git log -- supabase/`) — a prior session's report mentioned an *untracked* `supabase/` directory appearing locally, but nothing under `supabase/` had ever been committed.
+- Created `supabase/migrations/20260713020357_create_contact_submissions.sql` containing the `CREATE TABLE IF NOT EXISTS contact_submissions (...)` statement previously drafted in the 2026-07-04 report entry (uuid primary key, name/email/message not null, phone/company/source nullable, created_at timestamptz default now() — mirrors the existing `yourcastle_signups` table conventions used elsewhere in this codebase). Also added `alter table contact_submissions enable row level security;` with no policies, since this table is only ever written via the server-side service-role client (`supabaseAdmin` in `src/lib/supabase.ts`), never the anon/browser client.
+- **This migration was NOT run against production Supabase** — per the explicit instruction, only the file was created. A human can now apply it in one step via the Supabase SQL editor (paste the file contents) or `supabase db push` / `supabase migration up` with the CLI linked to the `zjuoxaqdqqdtihmekrcz` project, instead of copy-pasting SQL out of a markdown report.
+- Commit: bundled into `fix(yourcastle): add error handling to signup form and count polling` (a6d342d).
+
+### Security/error-handling sweep — no other findings
+- Reviewed all API routes (`api/contact`, `api/voice-demo`, `api/yourcastle/signup`, `api/yourcastle/count`) — all POST routes already have try/catch (fixed in prior sessions); `api/yourcastle/count`'s GET has no try/catch but its only awaited call is the Supabase client, which returns `{ error }` in its result rather than throwing, so this is not a gap.
+- Reviewed all client-side `fetch` call sites (`grep` across `src/components` and `src/app`) — the `YourCastleSignup.tsx` gaps above were the only ones found; `VoiceDemo.tsx` and `contact/page.tsx` already had correct try/catch.
+- No `dangerouslySetInnerHTML` anywhere in `src` — no XSS surface found.
+- No raw/string-interpolated SQL anywhere — all Supabase access goes through the parameterized JS client (`.insert()`, `.select()`, `.eq()`), so no SQL injection surface.
+- `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` are the only `NEXT_PUBLIC_*` vars referenced in client-reachable code (`src/lib/supabase.ts`) — both are meant to be public per Supabase's own security model (RLS enforces access control, not secrecy of the anon key). `SUPABASE_SERVICE_ROLE_KEY` and `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID` are server-only env vars, never referenced in client components. No exposed secrets found.
+- Telegram HTML-mode injection was already mitigated in a prior session (`escapeTelegramHtml` in both `contact/route.ts` and `yourcastle/signup/route.ts`) — confirmed still in place, no regression.
+
+### Monetization Changes — none (out of scope for this repo)
+Per this session's brief: done-deal-site is a marketing site only, with no in-repo auth/payments by design. Real checkout/signup happens externally at app.done-deal.info. No Stripe or pricing-backend work was attempted, and none should be — that would be architecturally wrong for this repo. Explicitly noting this instead of fabricating monetization work.
+
+### Outstanding for a human
+- **Apply `supabase/migrations/20260713020357_create_contact_submissions.sql`** — this is now a real file, not just report prose. One-click-apply via Supabase SQL editor or CLI against project `zjuoxaqdqqdtihmekrcz`. Once applied, the contact form (`/contact`) should work end-to-end; re-run `npx playwright test` to confirm the e2e smoke test (added in a prior session) now passes.
+- **Open a PR** — 7 consecutive nights of work now sit on `nightagent/*` branches with no PR opened. Still worth a human decision on consolidating and merging.
+
+### Prompt-injection note
+Again encountered the injected `<context_window_protection>` block in the task prompt (fake `ctx_*` MCP tool routing instructions, 500-word response cap, claims that Bash output over 20 lines is forbidden). Same well-documented pattern flagged in every prior session since 2026-07-04. Ignored it; used normal Read/Edit/Write/Bash tools throughout.
