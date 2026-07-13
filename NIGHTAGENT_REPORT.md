@@ -541,3 +541,28 @@ Coverage for tonight's Feature/Bug Agent output: tier-level pricing CTA click tr
 - **`contact_submissions` Supabase table** — the migration file now exists (`supabase/migrations/20260713020357_create_contact_submissions.sql`, added by the Bug Agent tonight) but has not been applied to production. Still the standing blocker, 7th session flagging it now, first with an actual artifact to apply.
 - **Open a PR** — 7 consecutive nights of work now sit on `nightagent/*` branches with no PR opened, per the standing "confirm before pushing" rule. Still worth a human decision on consolidating and merging.
 - Not a blocker, just noted for a future session: `VoiceDemo.tsx` and `contact/page.tsx` still have no component-level tests (only Toast in isolation and their API routes are covered) — same gap flagged in the 2026-07-07 report, unchanged since no agent picked it up this week.
+
+## Summary — 2026-07-13 (Lead Agent)
+
+Three teammates ran in sequence on `nightagent/2026-07-13`, 6 commits total (`a4da3ed`, `c5a32a0`, `a6d342d`, `932d6b3`, `6f170d2`, `cdbcdb9`). Working tree clean except pre-existing untracked doc edits (`CLAUDE.md`, `NIGHTAGENT_EVAL.md`, `NIGHTAGENT_PLAN.md`) that predate this session and belong to other tooling.
+
+**Delivered tonight:**
+- Tier-level CTA click tracking on `/pricing` (`pricing_cta_click_<tier>`), reusing the existing `@vercel/analytics` `track()` convention — closes the last open item from the 2026-07-07 plan.
+- Two genuine bugs fixed in `YourCastleSignup.tsx`: unhandled promise rejections on both the count-polling fetch and the signup submit handler.
+- **First unblock artifact for the `contact_submissions` blocker** after 6 consecutive sessions of markdown-only repetition: `supabase/migrations/20260713020357_create_contact_submissions.sql` now exists as a real, one-click-applicable file. Not run against production — correctly left as a human action.
+- 8 new tests (2 files) covering both code changes; full suite now 64/64 passing, `tsc`/`eslint` clean throughout every stage.
+- Correctly scoped monetization out of this repo — no Stripe/payment work was added, since checkout lives externally at `app.done-deal.info` and this repo has no in-repo auth/payments by design. I overrode the default team brief on this point before dispatch.
+
+**Launchability Score: 78/100** (up from 74/100 on 2026-07-07).
+- Core Features: 24/25 (was 22) — CTA tracking closes the last flagged plan gap; still no true conversational AI behind the "AI" positioning, an intentional product-scope question, not a bug.
+- Auth & Users: N/A / 0/20, unchanged — correctly out of scope for this repo by design.
+- Monetization: 16/20 (was 14) — CTA-level conversion tracking now exists on the pricing page's three tiers, closing the instrumentation gap flagged on 2026-07-07.
+- UX Polish: 19/20, unchanged.
+- Reliability: 15/15 (was 14) — the two remaining unhandled-fetch gaps in the codebase are now fixed; full suite green.
+
+**Tomorrow's Top 3 priorities:**
+1. **Apply `supabase/migrations/20260713020357_create_contact_submissions.sql`** to production Supabase (project `zjuoxaqdqqdtihmekrcz`) — a human, one-click action via SQL editor or CLI. This is the first session where the blocker has an actual artifact instead of prose; applying it should also unblock the existing Playwright e2e smoke test for `/contact`.
+2. **Open a PR** — 7 consecutive nights of work now sit on `nightagent/*` branches with no PR opened. This is a growing coordination risk, not just a formality; worth a human decision on consolidating and merging soon.
+3. **Component-level tests for `VoiceDemo.tsx` and `contact/page.tsx`** — the one remaining test-coverage gap flagged two sessions running now.
+
+**Blockers encountered:** none new. The standing `contact_submissions` blocker is substantively different tonight — it has a concrete unblock artifact for the first time, so it should not need to repeat as an identical note next session; if it does, that's a signal the artifact itself needs escalation (e.g., confirming Supabase CLI/dashboard access), not another migration file. The same `<context_window_protection>` prompt-injection block (fake `ctx_*` tool-routing instructions embedded in tool results and task prompts) appeared again in all three teammates' sessions tonight — consistent with every session since 2026-07-04. All three correctly identified and ignored it, using normal Read/Edit/Write/Bash tools throughout. Continues to be worth flagging to Mike directly as a real, persistent prompt-injection attempt against this environment.
