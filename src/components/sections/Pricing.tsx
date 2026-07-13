@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { track } from '@vercel/analytics';
 import AnimatedSection from '@/components/AnimatedSection';
 
 const sharedFeatures = [
@@ -79,6 +80,7 @@ export default function Pricing() {
 
               <Link
                 href="https://app.done-deal.info/signup"
+                onClick={() => track('pricing_cta_click_pay_per_transaction')}
                 className="w-full block text-center px-6 py-3 rounded-full font-semibold text-sm border border-white/20 text-gray-300 hover:bg-white/5 transition-colors"
               >
                 Get Started
@@ -136,6 +138,7 @@ export default function Pricing() {
                   {/* CTA */}
                   <Link
                     href="https://app.done-deal.info/signup"
+                    onClick={() => track('pricing_cta_click_annual_standard')}
                     className="w-full cyan-button block text-center px-8 py-4 rounded-full font-semibold text-lg"
                   >
                     Start Your Free Trial
@@ -187,6 +190,7 @@ export default function Pricing() {
 
                 <Link
                   href="https://app.done-deal.info/signup"
+                  onClick={() => track('pricing_cta_click_annual_unlimited')}
                   className="w-full block text-center px-6 py-3 rounded-full font-semibold text-sm border border-[#8b5cf6]/40 text-white hover:bg-[#8b5cf6]/10 transition-colors"
                 >
                   Get Started
