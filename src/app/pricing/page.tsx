@@ -12,6 +12,74 @@ export const metadata: Metadata = {
     'Compare Done Deal pricing plans: pay-per-transaction, Annual Standard, and Annual Unlimited. Half the cost of a human TC, with all of the results.',
 };
 
+/**
+ * FAQPage JSON-LD sourced from the pricing-specific objections copy rendered by
+ * PricingObjections (src/components/sections/PricingObjections.tsx) plus the
+ * shared FAQ component also rendered on this page. Keep in sync if that copy changes.
+ */
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: "What if I don't close a deal this month?",
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "That's exactly why the Pay-Per-Transaction plan exists — you only pay $197 when you actually close a deal, with zero monthly commitment. If your volume picks up, switching to an annual plan later takes one conversation, no penalty for switching mid-year.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Can I cancel anytime?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes. Every plan — including both annual tiers — can be cancelled at any time with no cancellation fee. You keep access through the end of your current billing period.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What happens if I go over my included transactions on Annual Standard?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "Annual Standard includes up to 10 transactions per year. If you close more, additional transactions are billed at the Pay-Per-Transaction rate ($197 each) — or you can upgrade to Annual Unlimited at any time and we'll prorate the difference.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is there a contract or long-term commitment?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'No multi-year contracts. Annual plans are billed yearly but cancel anytime; Pay-Per-Transaction has no commitment at all. You choose the plan that matches how many deals you actually close.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Can I switch plans later if my deal volume changes?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "Absolutely — agents change plans as their pipeline changes all the time. Reach out through your dashboard or to support and we'll move you to the plan that fits, with prorated billing for annual tiers.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is there a free trial?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes! We offer a 14-day free trial with full access to all features. No credit card required to get started.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How is Done Deal different from hiring a human transaction coordinator?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "A human TC costs $300–$500 per transaction, works business hours only, and can only juggle so many files at once. Done Deal's AI works 24/7, never misses a deadline, scales to any volume, and costs a fraction of the price — while still putting you in control of every email and decision that goes out.",
+      },
+    },
+  ],
+};
+
 /** Feature comparison rows shown in the plan comparison table on the dedicated pricing page. */
 const comparisonRows: Array<{
   feature: string;
@@ -104,6 +172,10 @@ function ComparisonCell({ value }: { value: boolean | string }): React.JSX.Eleme
 export default function PricingPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <Navbar />
       <main className="min-h-screen pt-20 bg-black">
         {/* Reuse the existing Pricing section (tiers, CTAs, plan-includes) */}

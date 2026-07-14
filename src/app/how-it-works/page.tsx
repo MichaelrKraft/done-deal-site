@@ -11,6 +11,98 @@ export const metadata: Metadata = {
     'What a transaction coordinator does, how Done Deal automates the job with AI, and answers to common questions about getting started.',
 };
 
+/**
+ * FAQPage JSON-LD sourced from the same question/answer copy rendered by the
+ * shared FAQ component on this page (src/components/sections/FAQ.tsx).
+ * Keep this list in sync if that copy changes.
+ */
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'What is Done Deal?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Done Deal is an AI-powered transaction coordination platform for real estate professionals. It automates task tracking, deadline management, document collection, and vendor communication so you can close more deals with less stress.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How does the AI transaction coordinator work?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Our AI TC monitors your active transactions 24/7, automatically tracks deadlines, sends follow-up emails, schedules appointments, and flags compliance issues — all while keeping you in control with an approval-based workflow.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What types of transactions does Done Deal support?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "Done Deal supports buyer-side, seller-side, and dual-agency transactions. Whether it's a residential listing, a purchase, or a commercial deal, our system adapts to your workflow.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How long does it take to set up?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Most agents are up and running within 24 hours. We provide a live onboarding session where we configure your transaction templates, vendor contacts, and notification preferences.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Can I manage multiple transactions at once?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Absolutely. Done Deal is built for scale — manage dozens of concurrent transactions from a single dashboard with real-time status updates and priority-based task sorting.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is my data secure?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes. We use bank-level encryption, secure cloud infrastructure, and strict access controls. Your client data and transaction documents are never shared or used for training.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What integrations are available?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "Done Deal integrates with popular real estate tools including DocuSign, Google Calendar, and email providers. We're continuously adding new integrations based on user feedback.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is there a free trial?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes! We offer a 14-day free trial with full access to all features. No credit card required to get started.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How is Done Deal different from hiring a human transaction coordinator?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "A human TC costs $300–$500 per transaction, works business hours only, and can only juggle so many files at once. Done Deal's AI works 24/7, never misses a deadline, scales to any volume, and costs a fraction of the price — while still putting you in control of every email and decision that goes out.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What happens if something goes wrong or a deadline is missed?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "Done Deal sends escalating alerts before any deadline becomes critical — you'll know days in advance, not hours. If a deadline is breached, the system flags it as high-risk and surfaces it at the top of your dashboard immediately. You're never left in the dark.",
+      },
+    },
+  ],
+};
+
 /** Core responsibilities a human transaction coordinator (TC) typically owns on a deal. */
 const tcResponsibilities: string[] = [
   'Tracking every contract deadline and contingency date',
@@ -53,6 +145,10 @@ const automationSteps: Array<{ title: string; description: string }> = [
 export default function HowItWorksPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <Navbar />
       <main className="min-h-screen pt-20 bg-black">
         {/* Header */}
