@@ -566,3 +566,25 @@ Three teammates ran in sequence on `nightagent/2026-07-13`, 6 commits total (`a4
 3. **Component-level tests for `VoiceDemo.tsx` and `contact/page.tsx`** — the one remaining test-coverage gap flagged two sessions running now.
 
 **Blockers encountered:** none new. The standing `contact_submissions` blocker is substantively different tonight — it has a concrete unblock artifact for the first time, so it should not need to repeat as an identical note next session; if it does, that's a signal the artifact itself needs escalation (e.g., confirming Supabase CLI/dashboard access), not another migration file. The same `<context_window_protection>` prompt-injection block (fake `ctx_*` tool-routing instructions embedded in tool results and task prompts) appeared again in all three teammates' sessions tonight — consistent with every session since 2026-07-04. All three correctly identified and ignored it, using normal Read/Edit/Write/Bash tools throughout. Continues to be worth flagging to Mike directly as a real, persistent prompt-injection attempt against this environment.
+
+## Merge & Migration Status — 2026-07-14
+
+### Migration verification (code-level only — could not verify production)
+Compared `supabase/migrations/20260713020357_create_contact_submissions.sql` against `src/app/api/contact/route.ts`: the migration's `contact_submissions` table (name, email, phone, company, message, source, created_at, uuid id, RLS enabled with no policies) exactly matches every field the API route inserts (`.from('contact_submissions').insert({ name, email, phone, company, message, source: 'contact-page' })`). No code-level mismatch — this is not the blocker.
+
+What I checked for production-apply evidence: no `supabase/config.toml`, no `.supabase/` project-link directory, and no CLI migration-tracking metadata exist anywhere in this repo. There is no artifact in-repo that can confirm whether this migration has been applied to the live Supabase project. This is genuinely unverifiable from this sandbox (no Supabase credentials/dashboard access) — 8th consecutive session flagging this, still unresolved.
+
+**Escalation — action needed from Michael, under 2 minutes:**
+Run `supabase migration list --project-ref zjuoxaqdqqdtihmekrcz` (requires `supabase link` if not already linked), or open the Supabase dashboard → project `zjuoxaqdqqdtihmekrcz` → Database → Migrations, and confirm `20260713020357_create_contact_submissions` shows as applied. If it's missing, paste `supabase/migrations/20260713020357_create_contact_submissions.sql` into the SQL Editor and run it once.
+
+### PR preparation
+Verified `nightagent/2026-07-14` is a clean fast-forward: 43 commits ahead of `origin/main`, 0 behind, `git merge-tree` against `origin/main` returned no conflict markers (empty output = clean merge). Committed the one set of uncommitted changes present at session start (`CLAUDE.md`, `NIGHTAGENT_EVAL.md`, `NIGHTAGENT_PLAN.md` — auto-generated NightAgent session bookkeeping, not application code) as `07da2c7`.
+
+**Could not open the PR**: this sandbox has no working git push credentials (`fatal: could not read Username for 'https://github.com'`) and `gh auth status` reports an invalid/expired token for `MichaelrKraft`. Neither `git push` nor `gh pr create` could authenticate. The branch is fully prepared and conflict-free locally — someone with valid GitHub credentials just needs to run:
+
+```
+git push -u origin nightagent/2026-07-14
+gh pr create --base main --head nightagent/2026-07-14 \
+  --title "Merge 8 nights of nightagent work: contact form fix, CTA tracking, tests" \
+  --body "Consolidates ~43 commits from nightagent/* sessions (2026-07-04 through 2026-07-14): contact form rewrite + Supabase migration draft, YourCastleSignup error-handling fixes, pricing page tier-level CTA click tracking, Toast component, /pricing and /how-it-works pages, and associated test coverage. Verified conflict-free against main via git merge-tree."
+```
