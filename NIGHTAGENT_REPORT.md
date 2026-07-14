@@ -588,3 +588,19 @@ gh pr create --base main --head nightagent/2026-07-14 \
   --title "Merge 8 nights of nightagent work: contact form fix, CTA tracking, tests" \
   --body "Consolidates ~43 commits from nightagent/* sessions (2026-07-04 through 2026-07-14): contact form rewrite + Supabase migration draft, YourCastleSignup error-handling fixes, pricing page tier-level CTA click tracking, Toast component, /pricing and /how-it-works pages, and associated test coverage. Verified conflict-free against main via git merge-tree."
 ```
+
+## Features Completed — 2026-07-14
+
+### SEO infrastructure, structured data, and outbound CTA tracking — DONE
+- Confirmed production domain is `https://done-deal.co` by fetching the live site and reading its `og:url` tag (no domain was hardcoded anywhere in-repo) before hardcoding it into new files.
+- **`src/app/sitemap.ts`** (new): App Router sitemap route handler covering all 5 public routes (`/`, `/pricing`, `/how-it-works`, `/contact`, `/yourcastle`) with priority/changefreq. Verified `/sitemap.xml` resolves correctly via `next start`.
+- **`src/app/robots.ts`** (new): App Router robots route handler, allows all crawlers on `/`, disallows `/api/`, points to the sitemap. Verified `/robots.txt` resolves correctly.
+- **JSON-LD structured data**:
+  - `src/app/page.tsx`: added Organization + Service schema for the homepage.
+  - `src/app/pricing/page.tsx`: added FAQPage schema sourced directly from the existing `PricingObjections` + `FAQ` component copy already rendered on that page (no invented content).
+  - `src/app/how-it-works/page.tsx`: added FAQPage schema sourced directly from the existing shared `FAQ` component copy rendered on that page.
+  - Verified all JSON-LD blocks parse as valid JSON by fetching the built pages and running `JSON.parse` on each `<script type="application/ld+json">` block.
+- **Outbound CTA tracking**: extended the `@vercel/analytics` `track()` pattern already used in `Pricing.tsx` (`pricing_cta_click_*`) to every previously-untracked "Sign up"/"Get started"/"Login" link exiting to `app.done-deal.info`, across shared components rendered on `/` and `/yourcastle`: `Hero.tsx` (`hero_cta_click_signup`, `hero_cta_click_login`), `YourCastleHero.tsx` (`yourcastle_hero_cta_click_login`), `YourCastleSignup.tsx` (`yourcastle_signup_cta_click_signup`), `Benefits.tsx` (`benefits_cta_click_signup`), `Comparison.tsx` (`comparison_cta_click_start_trial`, `comparison_cta_click_get_started`), `HowItWorks.tsx` (`howitworks_cta_click_signup`), `CompetitionCallout.tsx` (`competition_callout_cta_click_signup`), `FinalCTA.tsx` (`final_cta_click_signup`). Note: `YourCastleHero`'s "Claim My Free Deal" button was intentionally left untouched — it's an anchor-scroll to the on-page form, not an outbound link.
+- Task #4 (homepage metadata audit) reviewed: homepage correctly inherits title/description/OG from the root layout, matching the same pattern pricing/how-it-works use (page-level override only when the copy differs) — no gap found, no change needed.
+- `npm run lint` clean (only pre-existing unrelated warnings). `npm run build` succeeded; confirmed `/sitemap.xml` and `/robots.txt` as static routes in the build output.
+- Commits: `feat(seo): add sitemap.xml and robots.txt route handlers` (ac51b81), `feat(seo): add JSON-LD structured data for homepage, pricing, how-it-works` (18baa72), `feat(analytics): track outbound CTA clicks on homepage and yourcastle` (e60339a).
