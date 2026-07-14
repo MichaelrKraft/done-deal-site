@@ -620,3 +620,18 @@ Closed the test-coverage gaps flagged in the strategic plan (`~/.claude/plans/yo
 **Test run status**: `npm test` — 86/86 passing, run twice back-to-back with identical results (no flakiness). `npx tsc --noEmit` and `npx eslint` clean on all 4 new files.
 
 Commit: `test(voicedemo,contact,homepage,yourcastle): close test-coverage gaps` (c36c282).
+
+## Summary — 2026-07-14
+
+All three teammates completed their assigned scope on branch `nightagent/2026-07-14`, 7 commits total (`07da2c7`, `39b446f`, `ac51b81`, `18baa72`, `e60339a`, `c36c282`, `f0d8f68`). Working tree is clean; nothing left uncommitted. `npm test` passes 86/86, run twice with no flakiness; `npm run build` and `npm run lint` both clean.
+
+**Overall progress assessment:** Tonight broke from the prior 7-night pattern of pure feature/test accumulation with no path to production. The two structural blockers — unverified migration and zero PRs to `main` — were both worked as far as this sandbox allows: the migration is now confirmed code-correct (not a code bug) with an exact 2-minute verification command for Michael, and the branch is proven conflict-free (43 commits ahead, 0 behind `origin/main`) with a ready-to-run `git push` + `gh pr create` command. Neither could be fully closed because this sandbox has no valid GitHub credentials and no Supabase production access — both are environment limits, not agent failures. Net new work: SEO infrastructure (sitemap, robots, JSON-LD) that didn't exist at all before tonight, CTA tracking extended from pricing-only to every outbound signup link sitewide, and test coverage added for the three previously-thinnest routes (VoiceDemo, contact, homepage) plus a new yourcastle e2e spec.
+
+**Launchability Score: 64/100** (+7 from the 57/100 baseline this morning). SEO moved from a genuine 0 to a real, verified sitemap/robots/schema surface. Reliability improved with homepage and contact-form coverage closing the two gaps most likely to hide a regression in the highest-traffic and highest-value routes. The score did not move further because the two highest-leverage items — confirming the migration is live in production, and actually merging 8 nights of work into `main` — remain open. Until a PR merges, none of this work has shipped.
+
+**Tomorrow's Top 3 priorities:**
+1. **Human action required, 2 minutes:** run `supabase migration list --project-ref zjuoxaqdqqdtihmekrcz` or check the dashboard Migrations tab to confirm `contact_submissions` is applied to production. This is now the single item standing between "probably broken" and "confirmed working" for the site's core conversion path.
+2. **Human action required, 2 minutes:** `gh auth login -h github.com`, then `git push -u origin nightagent/2026-07-14` and run the prepared `gh pr create` command in the Merge & Migration Status section above. This closes 8+ nights of unmerged work in one action.
+3. **Agent work:** once merged, add dedicated unit tests for the remaining untested shared components with new tracking calls (`Comparison.tsx`, `CompetitionCallout.tsx`, `Benefits.tsx`, `FinalCTA.tsx`, `HowItWorks.tsx`, `YourCastleHero.tsx`), and run the new `e2e/yourcastle.spec.ts` against staging to confirm the scarcity-counter logic actually holds under a real Supabase connection.
+
+**Blockers encountered:** Sandbox has no valid GitHub push/PR credentials (expired `gh` token) and no Supabase production credentials — both require Michael's one-time action outside this session, detailed above. No blockers were code- or agent-capability-related; all three teammates completed everything within their control.
