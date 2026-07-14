@@ -1,8 +1,9 @@
 # NightAgent Strategic Plan — done-deal-site
-*Generated: 2026-07-13T08:02:05.282Z*
+*Generated: 2026-07-14T08:02:59.227Z*
 
-Plan mode is still active, so I can't write outside the plan file. Once you approve/exit the plan, I can append this to CLAUDE.md — or you can do it manually. The three learnings I'd add:
+The plan is written to `/Users/michaelkraft/.claude/plans/you-are-a-senior-eager-metcalfe.md`.
 
-- This repo has no in-repo auth/payments by design (marketing site only; real checkout is at `app.done-deal.info`) — the "freemium"/"Stripe preferred" header lines describe the external app, not this codebase.
-- The `contact_submissions` Supabase table blocker has repeated verbatim across 5+ sessions with no alternate unblock attempt — should escalate differently if it recurs.
-- 6+ nights of `nightagent/*` branch work were still unmerged to `main` as of this session — don't assume "Recent Progress" notes reflect what's live in production.
+**Bottom line:** Launchability 57/100. The site's own eval history shows the same lead-capture-breaking bug (unverified `contact_submissions` migration) has been re-flagged for 7 straight nights with zero PRs merged to `main`. Tonight's plan leads with fixing that data path and merging the backlog, then cheap SEO wins (sitemap/robots/JSON-LD — currently zero), CTA tracking gaps, and test coverage for the homepage and yourcastle funnel. Auth and Stripe are correctly out of scope — this is a marketing site pointing to a separate product app.
+
+---
+Completed: 2026-07-14 08:47:12 PDT | Duration: ~6 min
