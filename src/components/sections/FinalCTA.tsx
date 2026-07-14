@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { track } from '@vercel/analytics';
 import AnimatedSection from '@/components/AnimatedSection';
 
 export default function FinalCTA() {
@@ -26,6 +27,7 @@ export default function FinalCTA() {
           >
             <Link
               href="https://app.done-deal.info/signup"
+              onClick={() => track('final_cta_click_signup')}
               className="cyan-button inline-block px-12 py-5 rounded-full font-semibold text-xl"
             >
               Start Free Trial

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { track } from '@vercel/analytics';
 import DotGrid from '@/components/DotGrid';
 
 const cyclingWords = ['No Missed Deadlines.', 'No Burnout.', 'No Mistakes.', 'No Excuses.', 'No Sick Days.'];
@@ -88,6 +89,7 @@ export default function Hero() {
             >
               <Link
                 href="https://app.done-deal.info/signup"
+                onClick={() => track('hero_cta_click_signup')}
                 className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-[#00BEFF] text-black font-semibold text-lg hover:bg-[#00a8d9] transition-colors"
               >
                 Start Free Trial
@@ -97,6 +99,7 @@ export default function Hero() {
               </Link>
               <Link
                 href="https://app.done-deal.info/login"
+                onClick={() => track('hero_cta_click_login')}
                 className="text-lg font-medium text-white hover:text-[#00BEFF] transition-colors"
               >
                 Sign In

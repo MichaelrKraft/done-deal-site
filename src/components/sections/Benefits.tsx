@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { track } from '@vercel/analytics';
 import AnimatedSection from '@/components/AnimatedSection';
 
 const benefits = [
@@ -65,6 +66,7 @@ export default function Benefits() {
           <div className="text-center">
             <Link
               href="https://app.done-deal.info/signup"
+              onClick={() => track('benefits_cta_click_signup')}
               className="cyan-button inline-block px-8 py-4 rounded-full font-semibold text-lg"
             >
               Start Free Trial

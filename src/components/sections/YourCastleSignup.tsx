@@ -183,6 +183,7 @@ export default function YourCastleSignup() {
 
             <a
               href="https://app.done-deal.info/signup"
+              onClick={() => track('yourcastle_signup_cta_click_signup')}
               className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-[#00BEFF] text-black font-semibold text-lg hover:bg-[#00a8d9] transition-colors"
             >
               Set Up My Account Now →

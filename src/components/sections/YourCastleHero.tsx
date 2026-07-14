@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { track } from '@vercel/analytics';
 import DotGrid from '@/components/DotGrid';
 
 const fadeUp = (delay: number) => ({
@@ -84,7 +85,11 @@ export default function YourCastleHero() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
               </a>
-              <a href="https://app.done-deal.info/login" className="text-lg font-medium text-white hover:text-[#00BEFF] transition-colors">
+              <a
+                href="https://app.done-deal.info/login"
+                onClick={() => track('yourcastle_hero_cta_click_login')}
+                className="text-lg font-medium text-white hover:text-[#00BEFF] transition-colors"
+              >
                 Already have an account?
               </a>
             </motion.div>

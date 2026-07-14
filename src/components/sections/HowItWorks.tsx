@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { track } from '@vercel/analytics';
 import AnimatedSection from '@/components/AnimatedSection';
 
 const steps = [
@@ -56,6 +57,7 @@ export default function HowItWorks() {
             <AnimatedSection delay={0.8}>
               <Link
                 href="https://app.done-deal.info/signup"
+                onClick={() => track('howitworks_cta_click_signup')}
                 className="cyan-button inline-block px-8 py-4 rounded-full font-semibold"
               >
                 Build my FREE Ai Bot

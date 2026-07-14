@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { track } from '@vercel/analytics';
 import LightRays from '@/components/LightRays/LightRays';
 
 export default function CompetitionCallout() {
@@ -49,6 +50,7 @@ export default function CompetitionCallout() {
             </p>
             <Link
               href="https://app.done-deal.info/signup"
+              onClick={() => track('competition_callout_cta_click_signup')}
               className="mt-10 inline-block px-10 py-4 rounded-full font-semibold text-lg text-black"
               style={{ background: '#00BEFF' }}
             >

@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { track } from '@vercel/analytics';
 import AnimatedSection from '@/components/AnimatedSection';
 
 const comparisonData = [
@@ -66,12 +67,14 @@ export default function Comparison() {
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="https://app.done-deal.info/signup"
+              onClick={() => track('comparison_cta_click_start_trial')}
               className="cyan-button px-8 py-4 rounded-full font-semibold"
             >
               Start 14-day Free Trial →
             </Link>
             <Link
               href="https://app.done-deal.info/signup"
+              onClick={() => track('comparison_cta_click_get_started')}
               className="px-8 py-4 rounded-full font-semibold border border-white/20 hover:border-[#00BEFF] transition-colors"
             >
               Get Started →
