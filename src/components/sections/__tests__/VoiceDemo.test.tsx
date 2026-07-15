@@ -16,7 +16,9 @@ let audioInstances: MockAudio[] = [];
 class MockAudio {
   onended: (() => void) | null = null;
   onerror: (() => void) | null = null;
-  play = vi.fn();
+  // play() must return a promise: VoiceDemo calls `.catch()` on the result
+  // to swallow autoplay-policy/decode rejections.
+  play = vi.fn().mockResolvedValue(undefined);
   pause = vi.fn();
   constructor(public src?: string) {
     audioInstances.push(this);

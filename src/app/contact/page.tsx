@@ -47,7 +47,7 @@ export default function ContactPage() {
       setIsSubmitted(true);
       reset();
       track('contact_form_submit');
-    } catch (err) {
+    } catch {
       setError('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);

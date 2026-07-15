@@ -23,6 +23,7 @@ export default function VoiceDemo() {
   const [liveQuestion, setLiveQuestion] = useState('');
   const [liveLoading, setLiveLoading] = useState(false);
   const [liveError, setLiveError] = useState<string | null>(null);
+  const liveObjectUrlRef = useRef<string | null>(null);
 
   const play = (src: string, questionIdx: number | null = null) => {
     if (audioRef.current) {
@@ -33,7 +34,11 @@ export default function VoiceDemo() {
     audioRef.current = audio;
     setState('speaking');
     setActiveIdx(questionIdx);
-    audio.play();
+    // play() returns a promise that rejects on autoplay-policy blocks or
+    // decode errors — without this catch it surfaces as an unhandled
+    // promise rejection in the console. Some environments' play()
+    // implementations don't return a promise at all, so guard for that too.
+    audio.play()?.catch(() => setState('done'));
     audio.onended = () => setState('done');
     audio.onerror = () => setState('done');
   };
@@ -57,6 +62,12 @@ export default function VoiceDemo() {
 
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
+      // Revoke the previous live-answer blob URL before creating a new one
+      // so repeated "ask live" usage doesn't leak memory for the session.
+      if (liveObjectUrlRef.current) {
+        URL.revokeObjectURL(liveObjectUrlRef.current);
+      }
+      liveObjectUrlRef.current = url;
       play(url, null);
       track('voice_demo_live_qa_submit');
     } catch {
