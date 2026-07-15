@@ -660,3 +660,24 @@ Added `supabase/migrations/20260715000000_add_source_to_contact_submissions.sql`
 ### Verified as actually working (not just trusted from reports)
 - `src/app/api/contact/route.ts`: rate limiting, validation, HTML-escaping for Telegram — all present and correct, matches prior session's description.
 - Supabase connectivity itself: confirmed live reads/writes succeed against `NEXT_PUBLIC_SUPABASE_URL` with the service-role key — the "no Supabase access" limitation cited in prior sessions refers specifically to DDL/migrations, not general API connectivity, which works fine and could be used for read-only verification in future sessions instead of relying on markdown reports alone.
+
+## Bugs Fixed — 2026-07-15
+
+Scope for tonight: bug/error-handling/security review of `src/app/api/voice-demo`, `src/app/api/yourcastle/{count,signup}`, `src/app/contact`, plus `npm run lint` / `npx tsc --noEmit`.
+
+**Findings:** the API routes and contact form were already well-hardened from prior sessions — rate limiting (`checkRateLimit`, 5 req/min per IP per route), server-side type/length/email-pattern validation, and Telegram HTML-escaping were all present and correct in `contact/route.ts`, `yourcastle/signup/route.ts`, and `voice-demo/route.ts`. No XSS, SQL-injection, or missing-rate-limit issues found — Supabase queries use the parameterized client API throughout (no raw SQL string interpolation anywhere in the reviewed routes).
+
+**Real bug found and fixed** — `src/components/sections/VoiceDemo.tsx`:
+1. `audio.play()` returns a promise that rejects on autoplay-policy blocks or decode errors. It was called without `.catch()`, producing an unhandled promise rejection on every orb click in real browsers (not caught by any test because the pre-existing `MockAudio.play` mock returned `undefined`, not a promise, masking the gap). Fixed with `audio.play()?.catch(() => setState('done'))` — optional-chained in case an environment's `play()` doesn't return a promise at all.
+2. The live "ask Reme something" flow calls `URL.createObjectURL(blob)` on every submission but never revoked the previous object URL, leaking one blob URL per live question asked in a session. Fixed by tracking the last URL in a ref and calling `URL.revokeObjectURL()` before creating the next one.
+3. `src/app/contact/page.tsx`: removed an eslint-flagged unused `catch (err)` binding (cosmetic, no behavior change).
+
+**Test fallout discovered while fixing #1:** a previously *uncommitted* change to `VoiceDemo.test.tsx` (from an earlier session tonight) had already updated `MockAudio.play` to return `vi.fn().mockResolvedValue(undefined)` in anticipation of this exact fix, but the component-side `.catch()` had never actually been added — so the test file was sitting uncommitted and unverified. Combining both sides surfaced a real cross-test issue: after the fix, 5 of 10 `VoiceDemo` tests failed with `Cannot read properties of undefined (reading 'catch')`, thrown as an uncaught exception *after* the originating test had already completed — consistent with a stale `Audio` global bleeding into a later test via an async `onended`/click callback. Root-caused to the optional-chaining gap (fix #1's `?.catch()`) rather than a deeper test-isolation bug — with the guard in place all 10 tests pass deterministically (verified twice). Committed the test file's pre-existing mock change alongside the source fix since neither works correctly without the other.
+
+**Verification:** `npx tsc --noEmit` clean. `npm run lint` — 4 pre-existing warnings remain (2 intentional unused-mock-arg warnings in test files, 1 `no-img-element` warning in `Testimonials.tsx`), all pre-existing and out of this session's scope; the 5th warning (`contact/page.tsx` unused `err`) is now fixed. `npm test -- --run` — 115/115 passing (was 110/115 immediately after the source fix, before finishing the test-file reconciliation). `npm run build` succeeds, all 4 API routes still build as dynamic (`ƒ`) routes.
+
+**Not fixed, flagged instead:** potential signup race condition in `yourcastle/signup/route.ts` — the duplicate-email check (`SELECT ... WHERE email = ... LIMIT 1`) and the insert are not wrapped in a transaction or backed by a verified unique constraint, so two concurrent signups with the same email could theoretically both pass the check. No migration file for `yourcastle_signups` exists in this repo to confirm whether a unique constraint already exists at the DB level (the table predates this repo's migration tracking, unlike `contact_submissions`). Left alone rather than guessing at schema or writing a migration against an unverified structure — flagging for a human to confirm via the Supabase dashboard whether `yourcastle_signups.email` already has a unique constraint.
+
+Commit: `fix: handle Audio.play() rejection and blob URL leak in voice demo` (`2e1010c`).
+
+## Monetization Changes — 2026-07-15: none needed, out of scope for this marketing-site project
