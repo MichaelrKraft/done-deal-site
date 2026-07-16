@@ -712,3 +712,24 @@ The structural blocker flagged every night this week remains unresolved and is *
 3. **Agent work, once merged:** confirm at the DB level (Supabase dashboard) whether `yourcastle_signups.email` has a unique constraint — the Bug Agent flagged a theoretical duplicate-signup race condition but couldn't verify schema without a migration file for that table in this repo.
 
 **Blockers encountered:** Same root blocker as the prior 2 nights — no valid `gh` credentials in this sandbox, so nothing can be pushed or merged regardless of code quality. This is an environment/credentials issue, not an agent capability gap; all three teammates completed 100% of what was within their control, and one of them (Feature Agent) used available read-only Supabase access to correct a standing misdiagnosis rather than repeat it a 9th time.
+
+## Features Completed — 2026-07-16
+
+### Production verification: `source` column on `contact_submissions` — CONFIRMED STILL MISSING (migration NOT applied)
+
+Credentials available: `.env.local` has `NEXT_PUBLIC_SUPABASE_URL` (`https://zjuoxaqdqqdtihmekrcz.supabase.co`) and `SUPABASE_SERVICE_ROLE_KEY`. No Supabase CLI installed, no `SUPABASE_ACCESS_TOKEN`, no DB password, and no `exec_sql`-style RPC exposed on the project — confirmed by direct probe (`PGRST202`, function not found). This means DDL (the `ALTER TABLE` in `20260715000000_add_source_to_contact_submissions.sql`) **cannot be executed from this sandbox** with any credential available tonight. This has been true every night; re-stating it here because the migration file's own header comment currently claims the drift was "verified live against production... on 2026-07-15," which is true (the drift was verified), but does **not** mean the fix was applied — and it has not been.
+
+Verification performed via direct PostgREST calls against production (read-only probes, one insert attempt matching the exact route.ts payload):
+- `GET /rest/v1/contact_submissions?select=source` → `400 PGRST204 "column contact_submissions.source does not exist"`. Definitive: the column is still absent in production right now.
+- `POST /rest/v1/contact_submissions` with the identical payload shape `src/app/api/contact/route.ts` sends (including `"source":"contact-page"`) → `400 PGRST204 "Could not find the 'source' column of 'contact_submissions' in the schema cache"`. This is the exact error a real user hits today; the insert did not create a row, so no cleanup was required.
+
+**Verdict: FAIL — production verification step is not closed.** The migration is written, additive, and safe, but nobody has run it yet. This remains a human action, ~1 minute, via the Supabase SQL Editor for project `zjuoxaqdqqdtihmekrcz`: run `supabase/migrations/20260715000000_add_source_to_contact_submissions.sql`. Once applied, re-run the same POST probe (or the Playwright contact e2e spec) to confirm a 200 and a real row with `source = 'contact-page'`.
+
+### `yourcastle_signups.email` UNIQUE constraint — CONFIRMED PRESENT in production
+
+This was flagged in the 2026-07-15 summary as unverified (no migration file existed for this table in the repo, so schema was unknown). Verified live tonight with a real duplicate-insert test: `POST /rest/v1/yourcastle_signups` with `email` already on file (`poolkraftllc@gmail.com`) → `409 code 23505 "duplicate key value violates unique constraint \"yourcastle_signups_email_key\""`. The constraint exists in production under that exact name. No row was created (rejected by the constraint), so no cleanup was needed.
+
+Since this table has no migration file in the repo at all (predates `supabase/migrations/`), added `supabase/migrations/20260716010000_ensure_yourcastle_signups_email_unique.sql` — additive, idempotent (`pg_constraint` catalog check before `ADD CONSTRAINT`, no-op if already present), documents the confirmed production constraint and gives other environments (fresh local/staging DBs) the same guarantee the app code assumes.
+
+### Out of scope, untouched
+No general bug fixing and no Stripe/monetization work performed, per instructions — this repo is the marketing site only; billing lives in the separate `app.done-deal.info` product.
