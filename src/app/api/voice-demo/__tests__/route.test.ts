@@ -157,4 +157,44 @@ describe('POST /api/voice-demo', () => {
     expect(res.status).toBe(429);
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  it('checks the daily cap using the same client IP the per-minute limiter used', async () => {
+    const { POST } = await loadRoute();
+    const ip = '30.0.0.11';
+
+    await POST(makeRequest({ text: 'Hello world' }, ip));
+
+    // Confirms the route wires getClientIp -> checkVoiceDemoDailyCap correctly
+    // rather than passing a stale/different IP (e.g. 'unknown') to the RPC.
+    expect(rpcMock).toHaveBeenCalledWith('increment_voice_demo_usage', {
+      p_ip: ip,
+      p_daily_cap: expect.any(Number),
+    });
+  });
+
+  it('does not call the daily-cap RPC when the per-minute rate limit already blocked the request', async () => {
+    const { POST } = await loadRoute();
+    const ip = '30.0.0.12';
+
+    for (let i = 0; i < 5; i++) {
+      await POST(makeRequest({ text: 'Hello world' }, ip));
+    }
+    rpcMock.mockClear();
+
+    const blocked = await POST(makeRequest({ text: 'Hello world' }, ip));
+
+    expect(blocked.status).toBe(429);
+    // The daily-cap check (and its Supabase write) should be skipped entirely
+    // once the cheaper in-memory limiter has already rejected the request.
+    expect(rpcMock).not.toHaveBeenCalled();
+  });
+
+  it('does not call the daily-cap RPC when the TTS API key is not configured', async () => {
+    delete process.env.GOOGLE_AI_API_KEY;
+    const { POST } = await loadRoute();
+
+    await POST(makeRequest({ text: 'Hello world' }, '30.0.0.13'));
+
+    expect(rpcMock).not.toHaveBeenCalled();
+  });
 });

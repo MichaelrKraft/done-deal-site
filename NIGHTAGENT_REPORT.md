@@ -757,3 +757,22 @@ Reviewed the files touched by the last 20 commits and the contact/voice-demo/you
 ### Stripe / monetization: intentionally skipped
 
 Per tonight's plan and explicit task instructions, this repo is the marketing/landing site only — auth, billing, and Stripe live in the separate `app.done-deal.info` product, not here. No pricing page or payment integration work was performed or considered in scope.
+
+## Tests Added — 2026-07-16
+
+Reviewed the Bug Agent's coverage for the new Supabase-backed voice-demo daily cap (`src/lib/voiceDemoUsage.ts`, `src/app/api/voice-demo/route.ts`). The existing tests already covered the core allowed/blocked/fail-closed-on-RPC-error paths well. IP-extraction edge cases (missing headers, `x-real-ip` fallback, multi-hop `x-forwarded-for`) were already fully covered indirectly via `src/lib/__tests__/rateLimit.test.ts` since `getClientIp` is shared logic — no gap there, nothing duplicated.
+
+Real gaps found and closed:
+
+- **Exact cap value not asserted.** The original test asserted `p_daily_cap: expect.any(Number)`, which would silently pass even if the constant were accidentally changed from 30 to something else. Tightened to assert `p_daily_cap: 30` exactly (`src/lib/__tests__/voiceDemoUsage.test.ts`).
+- **Non-boolean RPC success value not tested.** The code does a strict `data === true` check, but no test exercised `data: undefined` with `error: null` (a malformed/unexpected-but-not-erroring RPC response). Added a case confirming this is treated as blocked, not silently coerced truthy — this is the difference between "fails closed on error" and "actually only allows on an exact `true`."
+- **Route-level IP wiring not verified.** Existing route tests confirmed a 429 when the RPC returns `false`/errors, but never asserted the daily-cap RPC was called with the *same* client IP the per-minute limiter derived. Added a test asserting `rpc` is called with `p_ip` equal to the request's IP, to catch a regression like accidentally passing `'unknown'` or a different value.
+- **Cost-safety ordering not verified.** Nothing confirmed the expensive daily-cap RPC (a Supabase write) is skipped once a cheaper prior check already rejects the request. Added two tests: the RPC is not called when the in-memory rate limit already blocked the request, and not called when the TTS API key isn't configured — both matter because this endpoint gates a paid API and unnecessary Supabase writes on requests that were going to be rejected anyway is itself a minor cost/latency concern worth pinning down.
+
+No bugs found while testing — `checkVoiceDemoDailyCap` and the route wiring behave as documented (fail-closed on error, blocks at cap, checked before the paid Gemini call).
+
+Final counts: `src/lib/__tests__/voiceDemoUsage.test.ts` 3 → 4 tests; `src/app/api/voice-demo/__tests__/route.test.ts` 9 → 12 tests. Full suite: **124 → 129 tests, all passing** (`npm test -- --run`, 22 test files). The previously-noted `page.test.tsx` flakiness under full-suite resource contention did not reproduce this run and remains isolated to that one file — no other file showed order-dependence.
+
+`npx tsc --noEmit`: clean, no errors. `npm run lint`: 0 errors, 4 pre-existing warnings unrelated to this change (unused test vars in contact/yourcastle route tests, one `<img>` LCP warning in `Testimonials.tsx`) — left untouched per scope.
+
+No production code, migration files, or route logic were modified — test files only.

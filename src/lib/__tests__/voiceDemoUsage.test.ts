@@ -25,10 +25,26 @@ describe('checkVoiceDemoDailyCap', () => {
     const result = await checkVoiceDemoDailyCap('1.2.3.4');
 
     expect(result.allowed).toBe(true);
+    // Assert the exact cap value (30), not just "some number" — this is the
+    // documented daily limit and a silent change to it should fail a test.
     expect(rpcMock).toHaveBeenCalledWith('increment_voice_demo_usage', {
       p_ip: '1.2.3.4',
-      p_daily_cap: expect.any(Number),
+      p_daily_cap: 30,
     });
+  });
+
+  it('blocks when the RPC resolves with no error but a non-boolean-true value', async () => {
+    // The function does a strict `data === true` check; anything else
+    // (undefined, null, non-boolean) must be treated as "not allowed" rather
+    // than coerced truthy, since a malformed/unexpected RPC response should
+    // never silently let a paid API call through.
+    rpcMock.mockResolvedValue({ data: undefined, error: null });
+    const { checkVoiceDemoDailyCap } = await loadModule();
+
+    const result = await checkVoiceDemoDailyCap('1.2.3.4');
+
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toMatch(/daily limit/i);
   });
 
   it('blocks the request when the daily cap is reached', async () => {
