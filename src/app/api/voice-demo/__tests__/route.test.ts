@@ -4,6 +4,16 @@ import type { NextRequest } from 'next/server';
 const fetchMock = vi.fn();
 vi.stubGlobal('fetch', fetchMock);
 
+// The route now checks a Supabase-backed daily usage cap in addition to the
+// in-memory per-minute rate limiter. Default to "allowed" so existing tests
+// that don't care about the cap keep working; individual tests override this.
+const rpcMock = vi.fn();
+vi.mock('@/lib/supabase', () => ({
+  supabaseAdmin: {
+    rpc: (...args: unknown[]) => rpcMock(...args),
+  },
+}));
+
 async function loadRoute() {
   vi.resetModules();
   return import('../route');
@@ -50,6 +60,7 @@ describe('POST /api/voice-demo', () => {
     vi.clearAllMocks();
     process.env.GOOGLE_AI_API_KEY = 'test-key';
     fetchMock.mockResolvedValue(geminiSuccessResponse());
+    rpcMock.mockResolvedValue({ data: true, error: null });
   });
 
   it('accepts valid text and returns a WAV audio response', async () => {
@@ -122,5 +133,28 @@ describe('POST /api/voice-demo', () => {
 
     const otherIp = await POST(makeRequest({ text: 'Hello world' }, '30.0.0.8'));
     expect(otherIp.status).toBe(200);
+  });
+
+  it('returns 429 when the persistent daily usage cap is reached', async () => {
+    rpcMock.mockResolvedValue({ data: false, error: null });
+    const { POST } = await loadRoute();
+
+    const res = await POST(makeRequest({ text: 'Hello world' }, '30.0.0.9'));
+
+    expect(res.status).toBe(429);
+    const json = await res.json();
+    expect(json.error).toMatch(/daily usage limit/i);
+    // The daily cap is checked before the paid Gemini call is made.
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('fails closed (429) when the daily cap check errors, protecting against unbounded spend', async () => {
+    rpcMock.mockResolvedValue({ data: null, error: { message: 'connection refused' } });
+    const { POST } = await loadRoute();
+
+    const res = await POST(makeRequest({ text: 'Hello world' }, '30.0.0.10'));
+
+    expect(res.status).toBe(429);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

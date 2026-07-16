@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkRateLimit } from '@/lib/rateLimit';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
+import { checkVoiceDemoDailyCap } from '@/lib/voiceDemoUsage';
 
 const GEMINI_TTS_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent';
@@ -47,6 +48,17 @@ export async function POST(request: NextRequest) {
   const apiKey = process.env.GOOGLE_AI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: 'TTS not configured' }, { status: 503 });
+  }
+
+  // Persistent backstop against the in-memory rate limiter resetting on
+  // redeploy/restart: a Supabase-backed daily cap per IP. This calls the
+  // paid Gemini TTS API below, so it fails closed if usage can't be verified.
+  const usage = await checkVoiceDemoDailyCap(getClientIp(request));
+  if (!usage.allowed) {
+    return NextResponse.json(
+      { error: 'Daily usage limit reached. Please try again tomorrow.' },
+      { status: 429 }
+    );
   }
 
   try {

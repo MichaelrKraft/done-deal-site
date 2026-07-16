@@ -733,3 +733,27 @@ Since this table has no migration file in the repo at all (predates `supabase/mi
 
 ### Out of scope, untouched
 No general bug fixing and no Stripe/monetization work performed, per instructions — this repo is the marketing site only; billing lives in the separate `app.done-deal.info` product.
+
+## Bugs Fixed — 2026-07-16
+
+### Reme voice demo: in-memory rate limiter resets on redeploy, no persistent cost ceiling on the paid Gemini TTS endpoint
+
+Confirmed the risk flagged in tonight's plan: `src/lib/rateLimit.ts` (shared by `/api/contact`, `/api/voice-demo`, `/api/yourcastle/signup`) keeps its counters in a module-scope `Map`, which is empty again after every redeploy/restart. For `/api/voice-demo` specifically this is a real cost exposure — each request calls the paid Gemini TTS API — so a burst right after a deploy could run up API spend before the in-memory counter has rebuilt any state.
+
+Fix: added a persistent, Supabase-backed daily circuit breaker specific to the voice-demo route, layered on top of (not replacing) the existing in-memory per-minute limiter:
+- `src/lib/voiceDemoUsage.ts` — new `checkVoiceDemoDailyCap(ip)` helper. Calls a Postgres RPC (`increment_voice_demo_usage`) that atomically checks-and-increments a per-IP daily counter in one statement, avoiding a race between concurrent requests. **Fails closed**: if the Supabase call errors for any reason (network, misconfig, etc.), the request is blocked rather than silently let through unbounded — the whole point of a cost circuit breaker is that it must not fail open.
+- `supabase/migrations/20260716000000_create_voice_demo_usage.sql` — new `voice_demo_usage` table (`ip`, `usage_date`, `request_count`, RLS enabled, service-role only) plus the `increment_voice_demo_usage` Postgres function. Cap set conservatively at 30 requests/IP/day. Per the established pattern in this repo (see the contact_submissions migration's own header comment), no agent in this sandbox has Supabase DDL access, so this migration is written and ready but requires a human to apply it via the SQL Editor for project `zjuoxaqdqqdtihmekrcz` — flagging this explicitly so it doesn't get lost like the `source` column migration did.
+- `src/app/api/voice-demo/route.ts` — wired the new check in after the existing fast in-memory limiter and the API-key presence check, but before the Gemini call, so the expensive network call never happens once either limit is exceeded.
+- `src/lib/rateLimit.ts` — exported the existing `getClientIp` helper (was already IP-extraction logic identical to what the new module needed) instead of duplicating it.
+
+Chose Supabase over adding a new dependency (e.g. Upstash/Redis) because Supabase is already the project's database (used for `contact_submissions`, `yourcastle_signups`) — reusing it keeps this a minimal, root-cause fix with no new infrastructure, consistent with the "simplest viable mitigation" guidance for a low-traffic marketing site.
+
+Tests: added `src/lib/__tests__/voiceDemoUsage.test.ts` (allowed / blocked / fail-closed-on-error cases) and extended `src/app/api/voice-demo/__tests__/route.test.ts` with two new cases (429 when the daily cap RPC returns `false`; 429 when the RPC errors, confirming fail-closed behavior end-to-end and that the paid Gemini call is never reached in either case). All 21 relevant tests pass; `npx tsc --noEmit`, `npm run lint`, and `npm run build` are all clean.
+
+### Scan for other unhandled async / security issues
+
+Reviewed the files touched by the last 20 commits and the contact/voice-demo/yourcastle-signup API routes specifically (`src/app/api/contact/route.ts`, `src/app/api/voice-demo/route.ts`, `src/app/api/yourcastle/signup/route.ts`). All three already have: try/catch around the full handler body, input type/length validation before any DB or external call, and HTML-escaping (`escapeTelegramHtml`) before interpolating user input into Telegram notification messages. The two known VoiceDemo.tsx issues (unhandled `audio.play()` rejection, blob URL leak) were already fixed in commit `2e1010c` on 2026-07-15 — verified via `git show --stat` and did not re-touch that file. No other unhandled-promise or injection-style issues found; no speculative hardening added.
+
+### Stripe / monetization: intentionally skipped
+
+Per tonight's plan and explicit task instructions, this repo is the marketing/landing site only — auth, billing, and Stripe live in the separate `app.done-deal.info` product, not here. No pricing page or payment integration work was performed or considered in scope.
