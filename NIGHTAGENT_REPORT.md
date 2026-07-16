@@ -776,3 +776,27 @@ Final counts: `src/lib/__tests__/voiceDemoUsage.test.ts` 3 → 4 tests; `src/app
 `npx tsc --noEmit`: clean, no errors. `npm run lint`: 0 errors, 4 pre-existing warnings unrelated to this change (unused test vars in contact/yourcastle route tests, one `<img>` LCP warning in `Testimonials.tsx`) — left untouched per scope.
 
 No production code, migration files, or route logic were modified — test files only.
+
+## Summary — 2026-07-16
+
+Three teammates ran against tonight's strategic plan (verify the contact-form fix live, close the test gap that let it go undetected, address the Reme voice-demo cost-risk) rather than the generic template — the plan explicitly flagged Stripe/monetization as out of scope for this marketing-only repo, and all three agents correctly skipped it.
+
+**Commits this session** (3, on `nightagent/2026-07-16`): `871d7cd`, `709298f`, `06a91f8`. Working tree is clean except the pre-existing doc files (`CLAUDE.md`, `NIGHTAGENT_EVAL.md`, `NIGHTAGENT_PLAN.md`). Re-verified independently after all three finished: `npm test -- --run` → 124/124 passing, 22/22 files.
+
+### Overall progress assessment
+- **The standing "contact form is fixed" claim was wrong, and tonight is the first session to actually prove it.** The Feature Agent live-probed production Supabase and reproduced the exact failure a real user hits today (`PGRST204`, missing `source` column) — the 2026-07-15 migration file exists but was never applied. This corrects what would otherwise have been a false "resolved" status carried forward another night.
+- **`yourcastle_signups.email` uniqueness — confirmed for the first time, not just assumed.** A real duplicate-insert against production returned `409 23505`; a migration documenting this constraint was added since the table previously had none in this repo.
+- **Reme's cost-risk is closed at the code level.** The in-memory, redeploy-resetting rate limiter is now backed by a Supabase-backed daily cap (30/IP/day) that fails closed if Supabase is unreachable, checked before the paid Gemini call — same one-time manual-apply pattern as the contact-form migration.
+- **Test Agent closed real gaps, not busywork**: exact daily-cap boundary, non-boolean RPC response handling, fail-closed-before-paid-call ordering, and IP-wiring consistency between the per-minute and daily-cap checks. No production code was touched during testing.
+- **Structural blocker persists a 4th+ consecutive night**: `gh auth status` shows an invalid token, and plain `git push` also fails (no credentials configured at all — not just the `gh` CLI). This branch is now 63 commits ahead of `origin/main`, none merged. As a fallback (per last night's improvement suggestion to stop just re-flagging this), I generated a verified git bundle: `/tmp/done-deal-bundles/nightagent-2026-07-16-final.bundle` (63 commits, `git bundle verify` passed). A human can apply it without GitHub auth, e.g.: `git fetch /tmp/done-deal-bundles/nightagent-2026-07-16-final.bundle HEAD:nightagent-recovery` from a fresh clone, or copy the bundle to a machine with valid credentials and push from there.
+
+### Launchability Score: **71/100** (holding from tonight's pre-session estimate)
+Engineering quality and reliability posture both improved (real production verification replacing a stale claim, a real cost-risk closed, real test coverage). Score isn't higher because the two Supabase migrations that would actually fix production (`source` column, voice-demo usage table) still require one-time manual DDL application by a human — that gap is now precisely scoped to two `ALTER`/`CREATE` statements, not vague uncertainty. Score is capped below what a 10-night streak of work would suggest by the same unmerged-commits blocker as every prior night.
+
+### Tomorrow's Top 3 priorities
+1. **Human action, ~2 min:** apply both pending migrations via the Supabase SQL Editor for project `zjuoxaqdqqdtihmekrcz` — `supabase/migrations/20260715000000_add_source_to_contact_submissions.sql` and `supabase/migrations/20260716000000_create_voice_demo_usage.sql`. Once applied, re-run the contact e2e spec and confirm a real `source`-populated row lands.
+2. **Human action, ~2 min:** fix `gh` credentials (`gh auth login -h github.com`) or otherwise restore git push access, then apply the fallback bundle at `/tmp/done-deal-bundles/nightagent-2026-07-16-final.bundle` (or push directly) to get 63 commits of verified work onto `main`. This is now the single highest-leverage action blocking every prior night's work from having real-world effect.
+3. Once merged and migrations applied, do one more live pass confirming the voice-demo daily cap actually blocks the 31st request in production (not just in mocked tests).
+
+### Blockers encountered
+Same root blocker as every recent night: no valid git/GitHub credentials in this sandbox, so nothing can be pushed or merged regardless of code quality — confirmed this is not a `gh`-CLI-only issue (plain `git push` also fails with "could not read Username"). This is an environment/credentials issue, not an agent capability gap. All three teammates completed 100% of their assigned scope; the Feature Agent's willingness to re-verify a previously-claimed fix directly against production (rather than trust the standing note) is the most valuable single behavior from tonight's session.
