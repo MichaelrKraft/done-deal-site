@@ -1,36 +1,37 @@
 # NightAgent Evaluation — done-deal-site
-*7/15/2026, 2:13:02 AM*
+*7/16/2026, 2:27:12 AM*
 
-## Overall Score: 62/100
+## Overall Score: 65/100
 
 | Dimension | Score | Max |
 |:---|:---:|:---:|
-| Features Completed | 8 | 25 |
+| Features Completed | 5 | 25 |
 | Bugs Fixed | 14 | 20 |
-| Monetization Progress | 2 | 20 |
-| Code Quality | 16 | 20 |
-| Tests Added | 0 | 15 |
+| Monetization Progress | 8 | 20 |
+| Code Quality | 17 | 20 |
+| Tests Added | 12 | 15 |
 
 ## Product Scores
-- **Launchability Score**: 69/100
-- **Revenue Readiness Score**: 55/100
+- **Launchability Score**: 71/100
+- **Revenue Readiness Score**: 40/100
 
 ## Summary
-Session continued a long streak of solid, disciplined bug-fixing and diagnostic work (correctly root-causing the stale contact_submissions blocker, fixing real VoiceDemo bugs, verifying e2e flows live) but the actual git diff for this session is trivial (3 doc files only), and the core structural problem — 58+ commits sitting unmerged due to expired GitHub credentials — remains unresolved for the third-plus consecutive night with no new mitigation attempted. Engineering quality remains high; shipped/revenue impact remains zero.
+The session correctly diagnosed two real, previously-misreported production issues (missing contact_submissions.source column, unbounded cost exposure on the paid TTS route) and shipped a fail-closed fix for the latter with solid test coverage. However the actual git diff for this session shows only documentation file changes, not the application code changes described in the narrative, and the structural blocker of unmerged branches/unapplied migrations continues for another consecutive night with no resolution.
 
 ## Top Achievements
-- Feature Agent correctly re-diagnosed the 9-session-old 'missing contact_submissions table' blocker as schema drift (one missing 'source' column), shrinking the fix to a safe additive ALTER TABLE and verifying it live against production via REST
-- Bug Agent found and fixed two real production bugs in VoiceDemo.tsx (unhandled audio.play() rejection, blob URL leak) that were masked by an insufficient test mock, and confirmed the fix with both agents independently converging on the same solution
-- Test Agent actually ran e2e/yourcastle.spec.ts end-to-end against a live dev server and real Supabase project rather than leaving it 'written but unverified'
+- Root-caused and fixed a real cost-exposure bug: the in-memory rate limiter reset on every redeploy with no persistent ceiling on the paid Gemini TTS endpoint, now backed by a fail-closed Supabase daily cap (30/IP/day)
+- Correctly re-verified the standing 'contact form is fixed' claim against live production instead of trusting prior reports, confirming the `source` column migration was never actually applied and reproducing the exact production failure
+- Verified `yourcastle_signups.email` has a real unique constraint in production via a live duplicate-insert test, closing a previously-unverified assumption with an idempotent migration
 
 ## Top Failures / Missed Opportunities
-- Zero net new features or tests shipped this specific session per the diff — the entire logged git diff is 3 doc files (CLAUDE.md, NIGHTAGENT_EVAL.md, NIGHTAGENT_PLAN.md); the substantive work described (migration file, VoiceDemo fixes, 29 new tests) belongs to commits already made, not reflected in tonight's diff summary, making it impossible to verify what was actually produced in this session boundary
-- 58+ commits across 9 consecutive nights remain unmerged to main with an expired gh token — none of this work has shipped or generated any revenue impact, and the structural blocker (auth) was flagged as 'someone else's problem' for the third+ night in a row without escalating harder or trying alternate paths (e.g., generating a patch file/bundle for manual application)
+- This is the 10th+ consecutive session ending with zero commits merged to main — 63 commits now stranded on nightagent branches, and tonight's diff only touched CLAUDE.md/NIGHTAGENT_EVAL.md/NIGHTAGENT_PLAN.md (no actual application code changed per the git diff summary), despite the report describing three substantive commits
+- Two now-critical Supabase migrations (source column, voice_demo_usage table) remain unapplied in production for a 2nd+ night running, meaning the contact form is still broken live and the new cost-safety mechanism isn't actually protecting anything yet
+- The git diff summary shows only doc-file churn, which conflicts with the report's claims of 3 code commits (871d7cd, 709298f, 06a91f8) — raises doubt about whether this evaluation is scoring the actual session or a stale/mismatched diff
 
 ## Tomorrow's Top 3
-1. Fix gh authentication (human, ~2 min) and merge the 58-commit backlog to main — this is now the single highest-leverage action blocking every prior night's work from having any real-world effect
-2. Apply the source-column migration to production Supabase and re-run the Playwright contact/yourcastle e2e suite against production to close the loop for real
-3. Verify yourcastle_signups.email has a DB-level unique constraint (flagged but unverified) before any real signup volume hits the race condition
+1. Human: apply both pending Supabase migrations (source column on contact_submissions, voice_demo_usage table+RPC) via SQL Editor for project zjuoxaqdqqdtihmekrcz — this is now blocking two separate production fixes
+2. Human: restore git push/gh auth credentials and merge the accumulated nightagent branch (or apply the generated git bundle) — 63+ unmerged commits is a growing risk, not just a formality
+3. Once merged and migrations applied, do a live pass confirming both the contact form 200s with a populated `source` field and the voice-demo daily cap actually blocks the 31st request
 
 ## Program Improvement Suggestion
-Add an explicit escalation ladder for structural blockers that repeat 3+ nights running (e.g., after night 3 of 'no gh credentials', require the agent to produce a ready-to-apply git bundle/patch file as a fallback deliverable, not just repeat the same ask) — right now the program rewards documenting the blocker eloquently over finding any workaround.
+Add a hard pre-flight check that fails the session early if `gh auth status` / `git push --dry-run` don't succeed, since 10+ nights of otherwise-good work have accumulated with zero path to production — surfacing this as a blocking precondition (not just a nightly footnote) would force it to get fixed instead of re-flagged indefinitely.

@@ -1,11 +1,6 @@
 # NightAgent Strategic Plan — done-deal-site
-*Generated: 2026-07-16T08:13:00.249Z*
+*Generated: 2026-07-17T08:03:33.070Z*
 
-The strategic assessment is written to the plan file. Key findings:
+It looks like ExitPlanMode isn't available as a separate tool call in this environment — plan mode here is likely exited by the harness once I present the finished plan. The plan is complete and written to `/Users/michaelkraft/.claude/plans/you-are-a-senior-quiet-abelson.md`.
 
-- **This is a marketing site only** — the real product (auth, billing) lives at `app.done-deal.info`, a separate app not in this repo. Scoring it as a standalone SaaS would be misleading.
-- **Launchability: 71/100** — strong UX/test coverage, but reliability is dragged down by a real incident: the contact form's Supabase table had schema drift/was missing in production for multiple nightly sessions, meaning real leads may have silently failed, while the test suite stayed green the whole time.
-- **Top priority tonight**: verify the recent contact-form fix actually works in production (not just that a migration file exists), then close the test-gap that let it go undetected, then address the Reme voice demo's cost-risk (in-memory rate limiter resets on redeploy).
-- No Stripe/paywall gaps to flag as bugs — that's correctly out of scope for this repo.
-
-Since plan mode is active, I have not made any changes. Let me know if you'd like adjustments before I exit plan mode for approval.
+**Summary**: This repo is a marketing-only shell (auth/billing live externally at app.done-deal.info), so the real story isn't feature gaps — it's that **shipping is broken**: git push/gh auth failures have stranded 63+ commits across 10+ nights, and two Supabase migrations (contact form `source` column, voice-demo daily cost cap) are unconfirmed in production, meaning leads may be silently dropping and the TTS cost-safety cap may be a no-op right now. Tonight's plan leads with fixing the pipeline and verifying/applying those migrations before any new feature work, plus adding a post-deploy smoke test so this class of silent breakage can't recur.
