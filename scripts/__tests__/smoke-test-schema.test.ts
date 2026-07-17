@@ -11,7 +11,7 @@ function createFakeClient({
   rpcErrors = {},
 }: {
   tableErrors?: Record<string, { message: string } | undefined>;
-  rpcErrors?: Record<string, { message: string } | undefined>;
+  rpcErrors?: Record<string, { message: string; code?: string } | undefined>;
 }) {
   return {
     from: vi.fn((table: string) => ({
@@ -62,10 +62,13 @@ describe('runSchemaSmokeTest', () => {
     expect(failure?.error).toMatch(/does not exist/i);
   });
 
-  it('flags a missing increment_voice_demo_usage RPC', async () => {
+  it('flags a missing increment_voice_demo_usage RPC (PGRST202: function not found)', async () => {
     const client = createFakeClient({
       rpcErrors: {
-        increment_voice_demo_usage: { message: 'function increment_voice_demo_usage does not exist' },
+        increment_voice_demo_usage: {
+          message: 'Could not find the function public.increment_voice_demo_usage',
+          code: 'PGRST202',
+        },
       },
     });
 
@@ -73,7 +76,23 @@ describe('runSchemaSmokeTest', () => {
     const failure = results.find((r) => r.name.includes('RPC'));
 
     expect(failure?.ok).toBe(false);
-    expect(failure?.error).toMatch(/does not exist/i);
+    expect(failure?.error).toMatch(/could not find/i);
+  });
+
+  it('treats an argument-mismatch error as the RPC existing (not a failure)', async () => {
+    const client = createFakeClient({
+      rpcErrors: {
+        increment_voice_demo_usage: {
+          message: 'function increment_voice_demo_usage(p_nonexistent_arg => boolean) does not exist',
+          code: '42883',
+        },
+      },
+    });
+
+    const results = await runSchemaSmokeTest(client);
+    const rpcCheck = results.find((r) => r.name.includes('RPC'));
+
+    expect(rpcCheck?.ok).toBe(true);
   });
 
   it('reports multiple simultaneous failures independently', async () => {
@@ -83,7 +102,7 @@ describe('runSchemaSmokeTest', () => {
         voice_demo_usage: { message: 'no such table' },
       },
       rpcErrors: {
-        increment_voice_demo_usage: { message: 'no such function' },
+        increment_voice_demo_usage: { message: 'not found', code: 'PGRST202' },
       },
     });
 

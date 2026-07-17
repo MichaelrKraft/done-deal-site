@@ -17,7 +17,9 @@
 //   NEXT_PUBLIC_SUPABASE_URL
 //   SUPABASE_SERVICE_ROLE_KEY
 //
-// All checks are read-only. Nothing is inserted, updated, or deleted.
+// All checks are read-only / non-mutating. Nothing real is inserted,
+// updated, or deleted (the RPC check probes function existence via an
+// intentionally-invalid call, never a real invocation).
 
 import { createClient } from '@supabase/supabase-js';
 
@@ -57,28 +59,31 @@ async function checkVoiceDemoUsageTable(client) {
 }
 
 /**
- * Checks that the `increment_voice_demo_usage` RPC is callable. This RPC
- * increments a real counter (see migration 20260716000000_...), so to keep
- * this check read-only we call it with a reserved sentinel IP and a cap of
- * 0, which is guaranteed to return `false` without ever letting a real
- * request through. It does write a tiny sentinel row, which is the
- * unavoidable cost of testing a callable RPC — but the row is inert
- * (never read by the app, since the app only ever queries real client IPs)
- * and self-cleans via the same TTL policy as any other single-IP row.
+ * Checks that the `increment_voice_demo_usage` RPC exists, without calling
+ * it (the RPC always writes — it's an atomic upsert-and-check with no
+ * read-only mode — so calling it would mutate production data on every
+ * smoke test run). Instead this queries Postgres's function catalog via
+ * PostgREST's `rpc` introspection: calling with a deliberately wrong
+ * argument shape (`p_nonexistent_arg`) fails fast with PGRST202 (function
+ * not found in schema cache) if the RPC doesn't exist, vs. a Postgres-level
+ * "no function matches" style error if it does exist but the signature
+ * doesn't match what we passed — both distinguishable from a real call.
  *
  * @param {import('@supabase/supabase-js').SupabaseClient} client
  * @returns {Promise<{ name: string, ok: boolean, error?: string }>}
  */
 async function checkIncrementVoiceDemoUsageRpc(client) {
-  const name = 'increment_voice_demo_usage RPC is callable';
-  const SENTINEL_IP = '0.0.0.0';
+  const name = 'increment_voice_demo_usage RPC exists';
 
   const { error } = await client.rpc('increment_voice_demo_usage', {
-    p_ip: SENTINEL_IP,
-    p_daily_cap: 0,
+    p_nonexistent_arg: true,
   });
 
-  if (error) {
+  // PGRST202 = PostgREST couldn't find any function by this name at all.
+  // Any other error (e.g. a Postgres "function ... does not exist" for this
+  // specific argument signature) means the function name IS registered,
+  // just not with these bogus args — which is what we're checking for.
+  if (error?.code === 'PGRST202') {
     return { name, ok: false, error: error.message };
   }
   return { name, ok: true };
