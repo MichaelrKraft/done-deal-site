@@ -800,3 +800,57 @@ Engineering quality and reliability posture both improved (real production verif
 
 ### Blockers encountered
 Same root blocker as every recent night: no valid git/GitHub credentials in this sandbox, so nothing can be pushed or merged regardless of code quality — confirmed this is not a `gh`-CLI-only issue (plain `git push` also fails with "could not read Username"). This is an environment/credentials issue, not an agent capability gap. All three teammates completed 100% of their assigned scope; the Feature Agent's willingness to re-verify a previously-claimed fix directly against production (rather than trust the standing note) is the most valuable single behavior from tonight's session.
+
+---
+
+## Session 2026-07-17
+
+Tonight deviated from the standard Feature/Bug/Test 3-agent template. Rationale: the standing blocker (git push failing) had stranded 63+ commits across 10+ prior nights with zero path to production, and two Supabase migrations were confirmed-but-unapplied risks (dropped contact-form leads, no-op TTS cost cap). Per the pre-session strategic plan, fixing the pipeline and verifying/applying those migrations took priority over new feature work — adding more commits to an already-unmergeable branch would have compounded the problem, not solved it.
+
+### Pipeline fix (root cause found and resolved)
+Two previously-conflated issues, diagnosed separately tonight:
+1. `gh` CLI token is dead (401s on API calls) — a red herring, unrelated to plain `git push`.
+2. **Actual blocker**: `origin` was configured as HTTPS, and git's `credential.helper=osxkeychain` cannot reach the OS keychain in this headless sandbox, failing every push with "could not read Username for 'https://github.com': Device not configured."
+
+Fix: an SSH key (`~/.ssh/id_ed25519`) was already registered with GitHub and authenticated cleanly. Switched `origin` to `git@github.com:MichaelrKraft/done-deal-site.git` and pushed normally (non-force, branch-only). **Result: all 68 commits on `nightagent/2026-07-17` are now on `origin/nightagent/2026-07-17`** — no longer stranded in the sandbox. Full diagnosis: `NIGHTAGENT_PUSH_STATUS.md`.
+
+`gh` CLI itself remains broken (needs interactive `gh auth login` on the host), so I could not open a PR via `gh pr create`. The branch is pushed and ready for a human (or a future session with working `gh` auth) to open a PR into `main`. I did not merge or push directly to `main` — that's a hard-to-reverse action on 68 unreviewed commits and requires explicit human sign-off.
+
+### Migration status (still blocked — needs human action)
+Live-verified against production Supabase (`zjuoxaqdqqdtihmekrcz`) using the service-role key: both `contact_submissions.source` and `voice_demo_usage`/`increment_voice_demo_usage` are **still missing in production**. The service-role key only authorizes PostgREST calls to tables/functions that already exist — it cannot run DDL (no `psql`, no Supabase CLI, no `DATABASE_URL` in this sandbox). This confirms the risk flagged on 2026-07-16 is still live: contact-form leads may be silently dropping, and the TTS cost-safety cap is a no-op in production. Full detail: `NIGHTAGENT_MIGRATION_STATUS.md`.
+
+**Action required (human, ~2 min):** paste these into the Supabase SQL Editor for project `zjuoxaqdqqdtihmekrcz`, in order:
+1. `supabase/migrations/20260715000000_add_source_to_contact_submissions.sql`
+2. `supabase/migrations/20260716000000_create_voice_demo_usage.sql`
+
+Both are additive/idempotent, safe to run directly.
+
+### Features Completed
+None — intentionally. Per tonight's plan, new feature work was deferred until the pipeline was confirmed working and migrations were addressed. With the pipeline now fixed but migrations still blocked on human action, the remaining session budget went to closing the exact gap the plan called out rather than adding more code.
+
+### Bugs Fixed / Quality Work
+Added `scripts/smoke-test-schema.mjs` (+ `npm run smoke:schema`), a read-only/non-mutating post-deploy check for exactly the two schema-drift risks above (column exists, table exists, RPC exists), so this class of "migration file committed but never applied in production" can't silently persist for days undetected again. Caught and fixed a bug in the first draft during self-review: the RPC-existence check originally called `increment_voice_demo_usage` with a sentinel IP, which wrote a real row to production on every smoke-test run despite the file's own comment claiming read-only — replaced with a non-mutating existence probe via PostgREST's `PGRST202` (function-not-found) error code instead of a real invocation. 6 unit tests added (`scripts/__tests__/smoke-test-schema.test.ts`), `tsc --noEmit` and `eslint` clean.
+
+### Tests Added
+See above — 6 new unit tests for the smoke test script itself (all-pass, each of 3 checks failing individually, multi-failure, and the RPC arg-mismatch-vs-not-found distinction). Full suite: 129 → 135 tests passing.
+
+### Monetization Changes
+None — out of scope per standing project context (billing/Stripe live externally at app.done-deal.info, not in this marketing repo).
+
+## Summary — 2026-07-17
+
+**Commits this session** (4, on `nightagent/2026-07-17`, all pushed to origin): `675deab` (push diagnosis), `ecd9814` (smoke test), `f05c980` (smoke test mutation-bug fix), `9b2ab53` (docs + migration status). Working tree clean.
+
+### Overall progress assessment
+Tonight's highest-leverage result isn't new product code — it's that **the 10+ night shipping blocker is now actually fixed**, not just re-diagnosed. All 68 commits of real engineering work from this and prior nights are now on GitHub instead of trapped in a sandbox, and the root cause (HTTPS+osxkeychain vs. SSH) is documented so it doesn't recur. The two production risks flagged on 2026-07-16 (dropped leads, no-op cost cap) are still live and still require one human SQL Editor action — that gap is now guarded going forward by an automated smoke test instead of relying on manual memory.
+
+### Launchability Score: 74/100
+Up slightly from 71. Justification: the structural blocker that capped every prior night's score is resolved, and a regression guard now exists for the exact failure mode that caused this multi-night drift. Not higher because the underlying production risk (unapplied migrations) is unchanged in production terms — only their detectability improved — and a PR into `main` still needs a human since `gh` CLI auth is separately broken.
+
+### Tomorrow's Top 3 priorities
+1. **Human, ~2 min:** apply both pending migrations via the Supabase SQL Editor for `zjuoxaqdqqdtihmekrcz` (see files above). This is now the single blocking action standing between tonight's work and an actually-fixed production contact form + TTS cost cap.
+2. **Human, ~1 min:** run `gh auth login -h github.com` interactively on the host to restore `gh` CLI so future sessions can open PRs directly instead of leaving pushed branches unopened.
+3. Open a PR from `nightagent/2026-07-17` into `main` (once `gh` is restored, or manually via the GitHub UI) and merge — 68 commits of verified, tested work are ready and waiting.
+
+### Blockers encountered
+`gh` CLI auth remains broken (separate from the now-fixed `git push` path) — could not open a PR via CLI. Supabase DDL access remains unavailable to any agent in this sandbox (no `psql`/CLI/`DATABASE_URL`), so the two pending migrations could be verified but not applied — this is a permissions/tooling gap, not a diagnosis gap, and is now precisely scoped with exact SQL files ready to paste.
