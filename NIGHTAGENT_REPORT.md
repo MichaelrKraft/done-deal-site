@@ -932,3 +932,26 @@ Investigated the `"renders without crashing"` timeout in `src/app/__tests__/page
 
 ---
 *Appended by NightAgent: 2026-08-05*
+
+## Summary — 2026-08-05
+
+### Deviation from the standard plan
+Tonight's auto-generated strategic plan was a generic fallback (TODO/FIXME scan, stub-function scan, Stripe scaffolding) that didn't match reality: a pre-check found zero TODO/FIXME comments in `src/`, a pricing page already exists, and billing is intentionally out of scope (lives externally at app.done-deal.info). Rather than manufacture busywork against a plan that didn't fit the codebase, the team's mission was redirected to (1) resolve the actual standing blocker documented in the 2026-07-17 report — a 68-commit branch never merged, and two Supabase migrations still unapplied in production — and (2) run a real bug/security audit and matching test coverage instead of a checklist pass.
+
+### What got done
+**Pipeline & migrations:** `gh` CLI auth, broken since at least 2026-07-17, is now working (fixed by a human at some point since then). Opened **PR #3** (`nightagent/2026-07-17` → `master`, 70 commits) — redirected from `main` to `master` after confirming `master`, not `main`, is the repo's actual default/deployed branch (`main` is 20 commits behind with zero unique commits). PR is unmerged, awaiting human review. The two pending migrations (`20260715000000_add_source_to_contact_submissions.sql`, `20260716000000_create_voice_demo_usage.sql`) remain **unapplied in production**, unchanged since 2026-07-17 — confirmed via `npm run smoke:schema`, still 0/3 checks passing. This requires the same ~2-minute human action flagged for three prior sessions running.
+
+**Bugs:** Found and fixed one real concurrency bug — `src/app/api/yourcastle/signup/route.ts` returned a generic 500 instead of the friendly "already claimed" 409 when a concurrent duplicate-email signup hit the DB unique constraint (commit `cd83747`). Documented but did not fix a second race (free-deal-counter over-allocation) since a proper fix needs a new migration file, off-limits tonight. Everything else audited (contact form, voice-demo, rate limiting, input validation, logging hygiene, client-side loading/error states) was already solid — no manufactured fixes.
+
+**Tests:** Added a regression test for the signup race fix (commit `5d218fe`); root-caused and fixed a genuine intermittent flake in `page.test.tsx` (CPU contention pushing a 13-section render past the global 5s timeout under full-suite load) with a scoped per-test timeout rather than masking it. Suite: 130 → 131 tests, 131/131 passing across two consecutive full runs.
+
+### Launchability Score: 76/100
+Up from 74. The audit/test work is real and clean (tsc, lint, full suite all green), and the stranded branch now has an actual PR instead of just being pushed and forgotten. Not higher because the core production risk — two unapplied migrations meaning contact-form leads may still be silently dropping and the TTS cost cap is still a no-op — is now going on its fourth night unresolved, and it requires a human, not an agent.
+
+### Tomorrow's Top 3 priorities
+1. **Human, ~2 min:** Apply the two pending migrations via the Supabase SQL Editor for `zjuoxaqdqqdtihmekrcz` (see `NIGHTAGENT_MIGRATION_STATUS.md` for exact files/order). This is the single longest-standing blocker across NightAgent sessions.
+2. **Human:** Review and merge (or request changes on) PR #3 — https://github.com/MichaelrKraft/done-deal-site/pull/3 — 70 commits of verified work waiting since 2026-07-17.
+3. A future session should author the atomic-increment migration for the free-deal counter race in `yourcastle/signup` (pattern already exists: `increment_voice_demo_usage` in `20260716000000_create_voice_demo_usage.sql`) — low risk, small over-allocation, but a real correctness gap under concurrent traffic.
+
+### Blockers encountered
+None new. The migration-apply blocker is unchanged (no DB credentials/psql/Supabase CLI available to any agent in this sandbox — confirmed impossible again this session, not re-attempted after already being conclusively diagnosed on 2026-07-17).
