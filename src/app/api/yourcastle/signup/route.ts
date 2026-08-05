@@ -94,7 +94,21 @@ export async function POST(request: Request) {
         source: 'yourcastle-event-2026',
       });
 
-    if (insertError) throw insertError;
+    if (insertError) {
+      // 23505 = unique_violation. The pre-check above is a select-then-insert
+      // and is race-prone under concurrent submissions for the same email;
+      // the DB-level unique constraint (see
+      // supabase/migrations/20260716010000_ensure_yourcastle_signups_email_unique.sql)
+      // is the real backstop. Surface the same friendly message here instead
+      // of falling through to the generic 500 handler below.
+      if (insertError.code === '23505') {
+        return NextResponse.json(
+          { error: 'This email has already claimed a spot.' },
+          { status: 409 }
+        );
+      }
+      throw insertError;
+    }
 
     // Send Telegram notification
     const dealStatus = gotFreeDeal ? `✅ FREE DEAL — Spot #${spotNumber}` : `📋 Waitlisted (no free deal)`;

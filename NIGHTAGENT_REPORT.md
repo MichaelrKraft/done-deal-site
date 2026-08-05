@@ -854,3 +854,60 @@ Up slightly from 71. Justification: the structural blocker that capped every pri
 
 ### Blockers encountered
 `gh` CLI auth remains broken (separate from the now-fixed `git push` path) — could not open a PR via CLI. Supabase DDL access remains unavailable to any agent in this sandbox (no `psql`/CLI/`DATABASE_URL`), so the two pending migrations could be verified but not applied — this is a permissions/tooling gap, not a diagnosis gap, and is now precisely scoped with exact SQL files ready to paste.
+
+## Pipeline & Migration Status — 2026-08-05
+
+### Smoke test result: migrations still UNAPPLIED
+`npm run smoke:schema` initially failed with "missing required env vars" — the script doesn't read `.env.local` automatically. Sourced `.env.local` (which already contained `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`) and re-ran; this remained read-only per the script's own design (no inserts/updates, RPC check uses a not-found probe, not a real call). Result: **0/3 checks passed**, unchanged since 2026-07-17:
+- `[FAIL] contact_submissions.source column exists` — column still missing
+- `[FAIL] voice_demo_usage table exists and is queryable` — table still missing
+- `[FAIL] increment_voice_demo_usage RPC exists` — function still missing
+
+Both migrations (`20260715000000_add_source_to_contact_submissions.sql`, `20260716000000_create_voice_demo_usage.sql`) remain unapplied in production. No human action has been taken on this since the 2026-07-17 diagnosis. **This is still the single most important human action outstanding**: paste both files into the Supabase SQL Editor for project `zjuoxaqdqqdtihmekrcz`.
+
+### gh CLI auth: now WORKING (previously broken, now fixed — likely by a human between 07-17 and today)
+`gh auth status` returned:
+```
+github.com
+  ✓ Logged in to github.com account MichaelrKraft (keyring)
+  - Active account: true
+  - Git operations protocol: https
+  - Token: gho_************************************
+  - Token scopes: 'gist', 'read:org', 'repo', 'workflow'
+```
+`gh pr list` and `gh pr create` both worked without error.
+
+### PR opened
+Opened **https://github.com/MichaelrKraft/done-deal-site/pull/3** — `nightagent/2026-07-17` → `master` (70 commits, not merged; open for human review).
+
+**Deviation from instructions worth flagging**: the task asked for a PR into `main`, but this repo's actual GitHub default branch is `master` (confirmed via `gh repo view --json defaultBranchRef`). `git log main..master` shows `main` is a stale branch 20 commits behind `master` with no unique commits of its own (`git log master..main` = 0). Opening against `main` would have targeted a branch nobody deploys from. Opened against `master` instead so the PR is mergeable into what's actually live; noted this explicitly in the PR body for human review. The commit list (70 commits) is identical either way since `main` is a strict subset of `master`.
+
+### Next steps for the human
+1. Apply both pending migrations via Supabase SQL Editor (project `zjuoxaqdqqdtihmekrcz`) — see file paths above.
+2. Re-run `npm run smoke:schema` (with `.env.local` sourced) after applying — should go from 0/3 to 3/3.
+3. Review and merge (or request changes on) https://github.com/MichaelrKraft/done-deal-site/pull/3 — confirm `master` is the correct target and decide whether `main` should be deleted/rebased to match, since it's currently a diverged, unused stale branch.
+4. No further action needed on `gh` auth — confirmed working.
+
+---
+*Appended by NightAgent: 2026-08-05T14:59:09Z*
+
+## Bugs Fixed — 2026-08-05
+
+Ran a targeted audit of `src/app/api/**` routes (contact, voice-demo, yourcastle/signup, yourcastle/count), the client components that call them (`VoiceDemo.tsx`, `YourCastleSignup.tsx`, `YourCastleHero.tsx`, `contact/page.tsx`), the shared libs (`rateLimit.ts`, `voiceDemoUsage.ts`), and `generate-remi-audio.mjs`.
+
+### Fixed
+- `src/app/api/yourcastle/signup/route.ts:97` — when the DB-level unique constraint on `email` rejects a concurrent duplicate signup (Postgres error `23505`), the code fell through to `throw insertError` and returned the generic `"Something went wrong. Please try again."` 500 instead of the friendly `"This email has already claimed a spot."` 409 that the pre-check path already returns for the common (non-race) case. Added an explicit `23505` check that returns the same 409/message as the pre-check, so both paths give the user the same accurate, actionable error. This only fires under a real concurrent-duplicate race (the select-then-insert pre-check is inherently race-prone; the unique constraint from `supabase/migrations/20260716010000_ensure_yourcastle_signups_email_unique.sql` is the actual backstop), so it was previously untested/unhit in normal usage.
+
+### Found, not fixed (documented, needs a migration — out of scope tonight)
+- `src/app/api/yourcastle/signup/route.ts:74-81` — the free-deal allocation (`currentCount` → `gotFreeDeal`/`spotNumber`) is a classic read-then-write race: two concurrent signups can both read the same `count` before either inserts, so both can be granted a free deal even at the `FREE_DEAL_LIMIT` boundary, potentially over-allocating by a small number under simultaneous traffic. The email-uniqueness race has a DB-level backstop (unique constraint); this one does not. Fixing it properly needs an atomic Postgres function (same pattern as `increment_voice_demo_usage` in `20260716000000_create_voice_demo_usage.sql`), which means a new file under `supabase/migrations/` — explicitly off-limits tonight per PipelineAgent's ownership of that area. Flagging for a future migration-authoring session.
+
+### Checked, found clean (no changes made)
+- Contact form route, voice-demo route, and their client components already have: rate limiting (in-memory + persistent Supabase daily cap for the paid Gemini TTS call), input validation (required fields, type checks, length caps, email regex) on every user-facing input, Telegram HTML-escaping to prevent markup injection into notifications, try/catch with specific (not generic-only) error messages, and no secrets/PII logged (errors are logged via `.message` only, IPs aren't logged, no tokens in console output).
+- Client components (`VoiceDemo.tsx`, `YourCastleSignup.tsx`, `contact/page.tsx`) all have loading states (disabled buttons + "Thinking…"/"Sending…"/"Claiming your spot..." text) for actions that call the network, and visible success/error feedback (Toast component or state transition) — no silent failures found.
+- `generate-remi-audio.mjs` is a local one-off content-generation script (not part of the deployed app/build), not invoked by any API route or CI. Its error handling (skip-if-exists, per-item try continuing on `json.error`) is adequate for its actual use as a manual local tool; did not touch it.
+
+### Verification
+`npx tsc --noEmit` — clean. `npm run lint` — 0 errors (4 pre-existing warnings, unrelated files). Full test suite: 129/130 passed; the 1 failure (`src/app/__tests__/page.test.tsx`) is a pre-existing timeout flake when run as part of the full 130-test suite — confirmed by stashing my change and re-running (still occurs) and by running that file in isolation both with and without my change (passes both times). Not caused by this session's edit.
+
+---
+*Appended by NightAgent: 2026-08-05T09:02:00Z*
