@@ -911,3 +911,24 @@ Ran a targeted audit of `src/app/api/**` routes (contact, voice-demo, yourcastle
 
 ---
 *Appended by NightAgent: 2026-08-05T09:02:00Z*
+
+## Tests Added — 2026-08-05
+
+### Added
+- `src/app/api/yourcastle/signup/__tests__/route.test.ts` — regression test `"returns friendly 409 (not 500) when insert hits a 23505 unique-violation race"` for BugAgent's fix in `cd83747` (`src/app/api/yourcastle/signup/route.ts:97-111`). Mocks `insertMock` to resolve with `{ error: { code: '23505', message: '...' } }` (matching the file's existing chainable Supabase mock pattern) and asserts: status 409, the same `"This email has already claimed a spot."` message the pre-check path returns, `console.error` is never called, and the Telegram `fetch` notification is never sent.
+
+### Test count
+Before: 130 tests (129 passing + 1 flaky). After: 131 tests, all 131 passing. Confirmed with two consecutive full `npx vitest run` runs — 131/131 both times.
+
+### page.test.tsx flake — root-caused and fixed
+Investigated the `"renders without crashing"` timeout in `src/app/__tests__/page.test.tsx`. Findings:
+- In isolation (`npx vitest run src/app/__tests__/page.test.tsx`), the test consistently passes in ~2s — no hang, no real async wait (the test body is synchronous `render()` + assertion).
+- Running the full suite is genuinely non-deterministic: one `npx vitest run` timed out at 5000ms, the very next run (no code changes) passed clean. This is real flakiness, not environment-once noise, so per project testing rules it needed a fix, not a shrug.
+- Root cause: `Home` (`src/app/page.tsx`) mounts 13+ sections, including animation/canvas-heavy client components (`Stats.tsx` uses `requestAnimationFrame`, others touch `HTMLCanvasElement`/JSDOM navigation stubs). When this test file runs concurrently with the other 22 test files, jsdom environment setup and module transform/import contend for CPU, occasionally pushing this specific first render past the global 5000ms default — confirmed by the timing breakdown (`environment: 140s`, `import: 47s` cumulative across the full run vs. ~1.6s/1.3s in isolation).
+- Fix: gave only this one expensive test a longer per-test timeout (`}, 15000)` third-arg to `it()`) rather than raising the global `testTimeout` for the whole suite, since every other test is comfortably within 5000ms. Verified with two consecutive full-suite runs, 131/131 passing both times.
+
+### Verification
+`npx tsc --noEmit` — clean. `npm run lint` — 0 errors (4 pre-existing warnings in unrelated files, unchanged). `npx vitest run` x2 — 131/131 both times.
+
+---
+*Appended by NightAgent: 2026-08-05*

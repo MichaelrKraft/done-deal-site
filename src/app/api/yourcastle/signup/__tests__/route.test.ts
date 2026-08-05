@@ -108,6 +108,29 @@ describe('POST /api/yourcastle/signup', () => {
     expect(insertMock).not.toHaveBeenCalled();
   });
 
+  // Regression test: the Bug Agent found that a concurrent duplicate-email
+  // submission which raced past the select-then-insert pre-check (both
+  // requests see no existing row, then both attempt an insert) hit the DB's
+  // unique constraint and fell through to the generic 500 handler instead of
+  // the friendly 409 "already claimed" response the pre-check path returns.
+  // insertError.code === '23505' (Postgres unique_violation) must short-circuit
+  // to the same 409 response.
+  it('regression: returns friendly 409 (not 500) when insert hits a 23505 unique-violation race', async () => {
+    insertMock.mockResolvedValueOnce({
+      error: { code: '23505', message: 'duplicate key value violates unique constraint' },
+    });
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { POST } = await loadRoute();
+
+    const res = await POST(makeRequest(validPayload, '30.0.0.9'));
+    const json = await res.json();
+
+    expect(res.status).toBe(409);
+    expect(json.error).toBe('This email has already claimed a spot.');
+    expect(consoleSpy).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('waitlists signups once the free-deal limit is reached', async () => {
     countResponse = { count: 20 }; // FREE_DEAL_LIMIT default is 20
     const { POST } = await loadRoute();
