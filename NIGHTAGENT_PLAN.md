@@ -1,6 +1,28 @@
 # NightAgent Strategic Plan — done-deal-site
-*Generated: 2026-07-17T08:03:33.070Z*
+*Generated: 2026-08-05T14:56:08.471Z (fallback)*
 
-It looks like ExitPlanMode isn't available as a separate tool call in this environment — plan mode here is likely exited by the harness once I present the finished plan. The plan is complete and written to `/Users/michaelkraft/.claude/plans/you-are-a-senior-quiet-abelson.md`.
+## Product Assessment
+Strategist analysis unavailable. Proceeding with standard focus areas.
 
-**Summary**: This repo is a marketing-only shell (auth/billing live externally at app.done-deal.info), so the real story isn't feature gaps — it's that **shipping is broken**: git push/gh auth failures have stranded 63+ commits across 10+ nights, and two Supabase migrations (contact form `source` column, voice-demo daily cost cap) are unconfirmed in production, meaning leads may be silently dropping and the TTS cost-safety cap may be a no-op right now. Tonight's plan leads with fixing the pipeline and verifying/applying those migrations before any new feature work, plus adding a post-deploy smoke test so this class of silent breakage can't recur.
+## Tonight's Priority Task List
+
+1. **Scan for all TODO and FIXME comments** — implement or resolve each one
+   - Category: Feature | Effort: Medium
+2. **Complete all stub functions** — find functions that return null/undefined/placeholder values
+   - Category: Feature | Effort: Medium
+3. **Add error handling** — wrap all async operations in try/catch with meaningful error messages
+   - Category: Bug | Effort: Small
+4. **Check for missing Stripe integration** — if no payment code exists, add Stripe scaffolding
+   - Category: Monetization | Effort: Large
+5. **Add input validation** — ensure all user-facing inputs are validated
+   - Category: Bug | Effort: Small
+
+## Monetization Gaps
+- Check for Stripe integration and add if missing
+- Check for pricing page and create if missing
+- Identify features that should be gated
+
+## Quick Wins
+1. Add loading states to all async operations
+2. Add meaningful error messages to all error states
+3. Ensure all buttons have disabled states during loading

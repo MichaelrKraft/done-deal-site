@@ -1,37 +1,36 @@
 # NightAgent Evaluation — done-deal-site
-*7/16/2026, 2:27:12 AM*
+*7/17/2026, 2:18:57 AM*
 
-## Overall Score: 65/100
+## Overall Score: 58/100
 
 | Dimension | Score | Max |
 |:---|:---:|:---:|
-| Features Completed | 5 | 25 |
-| Bugs Fixed | 14 | 20 |
-| Monetization Progress | 8 | 20 |
-| Code Quality | 17 | 20 |
-| Tests Added | 12 | 15 |
+| Features Completed | 2 | 25 |
+| Bugs Fixed | 3 | 20 |
+| Monetization Progress | 0 | 20 |
+| Code Quality | 15 | 20 |
+| Tests Added | 8 | 15 |
 
 ## Product Scores
-- **Launchability Score**: 71/100
+- **Launchability Score**: 74/100
 - **Revenue Readiness Score**: 40/100
 
 ## Summary
-The session correctly diagnosed two real, previously-misreported production issues (missing contact_submissions.source column, unbounded cost exposure on the paid TTS route) and shipped a fail-closed fix for the latter with solid test coverage. However the actual git diff for this session shows only documentation file changes, not the application code changes described in the narrative, and the structural blocker of unmerged branches/unapplied migrations continues for another consecutive night with no resolution.
+This session's real contribution was infrastructural, not feature work: it diagnosed and fixed the git-push credential issue that had stranded 68 commits across many prior nights, and added a smoke test to catch future migration drift (catching and fixing a real self-inflicted bug in that same test during review). However, no application code changed (git diff is empty), the two known production-breaking gaps (missing Supabase column, no-op cost cap) are still unresolved after being flagged 'fixable in 2 minutes' repeatedly, and no PR was opened despite the push blocker being resolved — so still nothing has actually reached production.
 
 ## Top Achievements
-- Root-caused and fixed a real cost-exposure bug: the in-memory rate limiter reset on every redeploy with no persistent ceiling on the paid Gemini TTS endpoint, now backed by a fail-closed Supabase daily cap (30/IP/day)
-- Correctly re-verified the standing 'contact form is fixed' claim against live production instead of trusting prior reports, confirming the `source` column migration was never actually applied and reproducing the exact production failure
-- Verified `yourcastle_signups.email` has a real unique constraint in production via a live duplicate-insert test, closing a previously-unverified assumption with an idempotent migration
+- Root-caused and fixed the actual git push blocker (HTTPS+osxkeychain vs SSH) and got all 68 stranded commits onto origin — the single highest-leverage unblock in 14 nights of sessions
+- Added a non-mutating schema smoke test (with a self-caught bug where the first draft would have written real rows to production on every run) to prevent silent migration drift from recurring
+- Correctly deferred new feature work in favor of fixing the pipeline, rather than piling more commits onto an already-unmergeable branch
 
 ## Top Failures / Missed Opportunities
-- This is the 10th+ consecutive session ending with zero commits merged to main — 63 commits now stranded on nightagent branches, and tonight's diff only touched CLAUDE.md/NIGHTAGENT_EVAL.md/NIGHTAGENT_PLAN.md (no actual application code changed per the git diff summary), despite the report describing three substantive commits
-- Two now-critical Supabase migrations (source column, voice_demo_usage table) remain unapplied in production for a 2nd+ night running, meaning the contact form is still broken live and the new cost-safety mechanism isn't actually protecting anything yet
-- The git diff summary shows only doc-file churn, which conflicts with the report's claims of 3 code commits (871d7cd, 709298f, 06a91f8) — raises doubt about whether this evaluation is scoring the actual session or a stale/mismatched diff
+- Zero net code delivered this session — git diff shows 'No changes detected' relative to the prior commit despite the report describing 4 commits; the two production-breaking migrations (contact form dropping leads, TTS cost cap being a no-op) remain unapplied for the 3rd straight session, still blocked on a human action that was flagged as '~2 minutes' two sessions ago
+- No PR was opened even after fixing the push blocker — 68 commits are now on origin but still not merged to main, so none of ~14 nights of accumulated work has shipped to production
 
 ## Tomorrow's Top 3
-1. Human: apply both pending Supabase migrations (source column on contact_submissions, voice_demo_usage table+RPC) via SQL Editor for project zjuoxaqdqqdtihmekrcz — this is now blocking two separate production fixes
-2. Human: restore git push/gh auth credentials and merge the accumulated nightagent branch (or apply the generated git bundle) — 63+ unmerged commits is a growing risk, not just a formality
-3. Once merged and migrations applied, do a live pass confirming both the contact form 200s with a populated `source` field and the voice-demo daily cap actually blocks the 31st request
+1. Human: apply both pending Supabase migrations (source column, voice_demo_usage table) via SQL Editor — this has been 'tomorrow's priority #1' for 3+ sessions running
+2. Human: run gh auth login to restore PR creation, then open and merge the PR from nightagent/2026-07-17 into main
+3. Once merged, verify the voice-demo daily cap and contact form actually work against production, not just against mocks
 
 ## Program Improvement Suggestion
-Add a hard pre-flight check that fails the session early if `gh auth status` / `git push --dry-run` don't succeed, since 10+ nights of otherwise-good work have accumulated with zero path to production — surfacing this as a blocking precondition (not just a nightly footnote) would force it to get fixed instead of re-flagged indefinitely.
+Add an escalation rule: if the same human-blocking action (e.g. 'apply migration X') has been reported as the #1 priority for 2+ consecutive sessions without resolution, the next session should stop repeating it as a to-do and instead treat it as a hard stop — e.g. send an actual notification/alert instead of writing it into a markdown file nobody reads, since 3 sessions of identical unresolved blockers indicates the reporting channel itself isn't working.
