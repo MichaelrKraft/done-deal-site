@@ -1006,3 +1006,18 @@ Reviewed contact form, YourCastle signup, and voice-demo routes for SQL injectio
 
 ## Monetization Changes — 2026-08-16
 None. Per repo context (`done-deal-site` CLAUDE.md and explicit task instructions), this is a lead-gen marketing site with no auth/payments by design — the actual product/billing lives in a separate external app (`app.done-deal.info`), not this repo. No Stripe or monetization scaffolding was added or considered in scope.
+
+## Tests Added — 2026-08-16 (Test Agent)
+
+### `src/app/api/yourcastle/count/__tests__/route.test.ts` (new file)
+Regression test for the Bug Agent's `try/catch` fix in `src/app/api/yourcastle/count/route.ts` (commit `42bae7c`). Follows the existing mocking/regression conventions from `src/app/api/yourcastle/signup/__tests__/route.test.ts` (vitest, `vi.mock('@/lib/supabase', ...)`, `vi.resetModules()` + dynamic `import('../route')` per test). Five tests:
+- Successful query returns correct claimed/remaining/limit.
+- Query resolving with a Supabase `error` field returns the existing degraded response (200, `claimed: 0`).
+- **Regression**: `supabaseAdmin.from(...).select(...)` *rejecting* (simulating a network-level failure — DNS, connection reset) is now caught and returns the same graceful degraded response instead of an unhandled 500, and logs only `error.message` via `console.error`.
+- **Regression**: rejection with a non-`Error` value (e.g. a plain string) is also handled gracefully, logging `'Unknown error'` per the route's `error instanceof Error` guard.
+
+### `supabase/migrations/20260816000000_atomic_yourcastle_free_deal_allocation.sql` — no test added (by design)
+Not wired into any application code yet (per the Bug Agent's commit message, deliberately deferred to avoid compounding the existing unapplied-migration blocker), so there's no integration point to unit/integration test. `npm run smoke:schema` only probes the *production* schema over the network (requires live Supabase credentials) and wouldn't exercise this migration until it's both applied to prod and wired into a route — not a local SQL syntax checker. No `psql`/Postgres available in this sandbox either. Instead, visually verified the SQL: balanced `create or replace function ... as $$ ... $$` delimiters, valid `plpgsql` `declare/begin/end` structure, and correct OUT-parameter assignment + `return next` — consistent with the existing `increment_voice_demo_usage` function it's modeled after. No action needed here until a follow-up session wires the RPC into the signup route.
+
+### Verification
+`npm install` already present (node_modules existed). `npx vitest run` → **135/135 tests passing across 24 files** (131 pre-existing + 4 new). `npm run lint` → 0 errors, 5 warnings (all pre-existing or matching the established `_table`/`_args` unused-mock-arg convention from the signup test file; none are new problems). `npx tsc --noEmit` → clean, no output. Committed as `5d92b08`.
