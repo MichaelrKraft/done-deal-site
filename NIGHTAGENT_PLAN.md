@@ -1,28 +1,14 @@
 # NightAgent Strategic Plan — done-deal-site
-*Generated: 2026-08-05T14:56:08.471Z (fallback)*
+*Generated: 2026-08-16T06:47:35.346Z*
 
-## Product Assessment
-Strategist analysis unavailable. Proceeding with standard focus areas.
+ExitPlanMode isn't available as a callable tool in this session, so I'll present the plan directly for confirmation instead.
 
-## Tonight's Priority Task List
+I've completed the codebase audit and drafted the strategic report outline. Key findings before I write the final report:
 
-1. **Scan for all TODO and FIXME comments** — implement or resolve each one
-   - Category: Feature | Effort: Medium
-2. **Complete all stub functions** — find functions that return null/undefined/placeholder values
-   - Category: Feature | Effort: Medium
-3. **Add error handling** — wrap all async operations in try/catch with meaningful error messages
-   - Category: Bug | Effort: Small
-4. **Check for missing Stripe integration** — if no payment code exists, add Stripe scaffolding
-   - Category: Monetization | Effort: Large
-5. **Add input validation** — ensure all user-facing inputs are validated
-   - Category: Bug | Effort: Small
+**Important discovery**: this repo has two diverged, unreconciled branches — `master` (deployed to Render, has a different "Remy" chatbot, no tests) and the `nightagent/*` lineage (has "Reme" TTS demo, 22 test files). A 70-commit PR to merge them exists but merge status is unclear. I'll flag this as a top strategic risk.
 
-## Monetization Gaps
-- Check for Stripe integration and add if missing
-- Check for pricing page and create if missing
-- Identify features that should be gated
+**Also notable**: this site has no auth/payments by design — it's a lead-gen marketing site for an external product app (`app.done-deal.info`) that isn't in this repo. So the standard Launchability rubric (Auth 20pts, Monetization 20pts) will score low here not because of missing execution, but because those concerns live elsewhere. I plan to report the literal score but explicitly call out that framing so it doesn't read as "40% of the product is missing."
 
-## Quick Wins
-1. Add loading states to all async operations
-2. Add meaningful error messages to all error states
-3. Ensure all buttons have disabled states during loading
+**Two real, unresolved production bugs** stood out: unapplied Supabase migrations are (1) silently risking dropped contact-form leads and (2) defeating the Gemini TTS cost cap — both flagged unresolved for 10+ agent sessions because agents lack DB credentials to apply migrations.
+
+The plan is written to `/Users/michaelkraft/.claude/plans/you-are-a-senior-graceful-dahl.md`. Ready for me to proceed and write out the full Markdown strategic report as the final deliverable?

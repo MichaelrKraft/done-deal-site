@@ -1021,3 +1021,26 @@ Not wired into any application code yet (per the Bug Agent's commit message, del
 
 ### Verification
 `npm install` already present (node_modules existed). `npx vitest run` → **135/135 tests passing across 24 files** (131 pre-existing + 4 new). `npm run lint` → 0 errors, 5 warnings (all pre-existing or matching the established `_table`/`_args` unused-mock-arg convention from the signup test file; none are new problems). `npx tsc --noEmit` → clean, no output. Committed as `5d92b08`.
+
+## Summary — 2026-08-16
+
+Three agents ran on branch `nightagent/2026-08-16`. Commits: `42bae7c`, `a7dd443`, `8426646`, `5d92b08`, `205e984`. Working tree clean aside from routine doc/memory-block timestamp diffs (`CLAUDE.md`, `NIGHTAGENT_EVAL.md`, `NIGHTAGENT_PLAN.md`), committed alongside this summary.
+
+### Overall progress assessment
+- **Feature Agent found nothing genuinely incomplete to build.** A careful audit of the docs page, Reme voice demo, and contact form confirmed they already meet the project's own UI-craft bar (loading states, specific/recoverable errors, working links). Correctly did not manufacture work or add out-of-scope Stripe/pricing-page code. Its most valuable output was diagnostic, not code: **PR #3** (`nightagent/2026-07-17` → `master`, 70 commits, containing the Reme TTS work and 22 test files) is now **20 commits stale against `master`**, which has independently grown a competing "Remy" chat feature, a light-theme default, and a dynamic `[slug]` landing page. Merge-conflict risk on PR #3 has grown since it was opened and is worsening every day it stays open.
+- **Bug Agent fixed a real reliability gap**: `yourcastle/count/route.ts` previously had no try/catch, so a Supabase network-level rejection (not just a query error) would have surfaced as an unhandled 500 instead of the intended graceful degraded response. Fixed and now covered by a regression test.
+- **Bug Agent also wrote (but did not wire in) a migration** fixing a known free-deal-counter race condition, deliberately left unconnected to application code to avoid compounding the existing unapplied-migration blocker — a good judgment call, not a shortcut.
+- **The standing migration blocker (10+ sessions running) was re-verified fresh, not assumed**: `npm run smoke:schema` was actually run tonight and confirmed 0/3 checks still pass. Genuinely blocked at the credentials layer — no `supabase` CLI, no `psql`, no `DATABASE_URL`/management token anywhere in this environment. Instead of repeating the same generic note, `NIGHTAGENT_MIGRATION_STATUS.md` was rewritten to lead with one copy-paste-ready SQL block and the exact SQL Editor URL, cutting the human action down to under a minute. Also documented, from actual code (not assumption): the contact form fails loudly (500) rather than silently dropping leads, and the voice-demo TTS cost cap fails closed (429, fully disabled) rather than being a no-op — both less severe than earlier sessions' worst-case framing, but still broken user-facing behavior.
+- **Test coverage grew from 131 to 135 passing tests**, including a named regression test for tonight's try/catch fix.
+
+### Launchability Score: **74/100**
+Held flat rather than climbing — the codebase itself is in good shape (clean lint/typecheck/tests, no genuine incomplete features found), but the score is capped by two unresolved structural risks: (1) the same DB-credential-gated migration blocker for the 10th+ consecutive session, and (2) a 70-commit PR that is actively decaying against its merge target while sitting unreviewed. Neither is a code-quality problem an agent can fix from inside this sandbox.
+
+### Tomorrow's Top 3 priorities
+1. **Human: apply the two pending Supabase migrations** using the copy-paste SQL block now at the top of `NIGHTAGENT_MIGRATION_STATUS.md` (project `zjuoxaqdqqdtihmekrcz`) — unblocks contact-form lead capture and the TTS cost cap, and unblocks wiring in tonight's new free-deal-allocation migration.
+2. **Human: make a call on PR #3** — either review and merge it now before it decays further, or explicitly decide to close/rebase it and reconcile the `master` ("Remy") vs `nightagent/*` ("Reme") branch divergence. This has been flagged for weeks; every day of delay adds more conflicting commits on both sides.
+3. Once migrations are applied: wire `atomic_yourcastle_free_deal_allocation` into the signup route, re-run `smoke:schema`, and confirm the contact form and voice-demo cap work live, not just in tests.
+
+### Blockers encountered
+- Same DB-credentials gap that has blocked every session since this was first flagged — confirmed again tonight, not new.
+- No `gh` CLI auth available to the Feature Agent, so PR #3's live GitHub status (conflicts, CI state) could only be inferred from git history, not confirmed via the GitHub API.
