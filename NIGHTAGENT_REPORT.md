@@ -955,3 +955,54 @@ Up from 74. The audit/test work is real and clean (tsc, lint, full suite all gre
 
 ### Blockers encountered
 None new. The migration-apply blocker is unchanged (no DB credentials/psql/Supabase CLI available to any agent in this sandbox — confirmed impossible again this session, not re-attempted after already being conclusively diagnosed on 2026-07-17).
+
+## Features Completed — 2026-08-16
+
+### PR #3 / branch-divergence status (strategic, human decision needed)
+`gh` CLI auth is broken again this session (`gh auth status`: "token in default is invalid" — HTTP 401 on `gh pr view`/`gh pr list`), so PR #3's live GitHub status (open/conflicts/checks) could not be re-verified via API. Confirmed the underlying divergence directly via git instead:
+
+- Repo default branch is `master` (confirmed via `git remote show origin`), not `main`.
+- Current branch lineage (`nightagent/2026-07-17` → ... → `nightagent/2026-08-16`, this branch) is **75 commits ahead of `origin/master`** and **0 commits behind `origin/main`** — `main` is a stale mirror, 20 commits behind `master`.
+- `master` has grown **20 of its own commits** since the nightagent lineage forked, none of which are on this branch: a "Remy" Gemini chat feature (`d974aff`, `9a72d13`), light-theme-as-default + Reme voice orb (`2294a56`, `e02b897`), a hybrid DB-backed brokerage `[slug]` landing page (`ff6259a`), Resend welcome emails (`91546d8`, `6fdeda9`), and a shared rate-limit utility (`130386f`) — none of which exist on this branch (confirmed: no `[slug]` route, no beta pages here).
+- Per the 2026-08-05 report already in this file, PR #3 (`nightagent/2026-07-17` → `master`, 70 commits, the "Reme" TTS demo + 22 test files) was opened that session and was still unmerged as of that report. This session's git evidence shows the gap has only widened since: master picked up its own independent feature work in the meantime, so PR #3 is now more likely to have real merge conflicts on shared files (VoiceDemo/Gemini chat, theme, landing sections) than it was when opened. **This still requires a human decision** (which of the two "Reme"/"Remy" implementations is canonical, how to reconcile the beta-brokerage and Gemini-chat work) — not attempted here per instructions.
+- Action needed: a human should re-run `gh auth login` (or refresh the token) to restore PR visibility for future sessions, then review PR #3 at https://github.com/MichaelrKraft/done-deal-site/pull/3 given the increased conflict risk.
+
+### Code/TODO/stub sweep
+- Grepped `src/` for `TODO`, `FIXME`, `XXX`, "not implemented", "coming soon", "stub" — zero genuine hits. All matches were HTML `placeholder=` input attributes (contact form, YourCastleSignup, VoiceDemo live-Q&A input), not incomplete code.
+- No stub functions returning `null`/`undefined` as placeholders were found.
+
+### UI craft review — docs page (`src/app/how-it-works/page.tsx`) and Reme voice/TTS demo (`src/components/sections/VoiceDemo.tsx`)
+- All internal links across the site (`/`, `/contact`, `/how-it-works`, `/pricing`) resolve to real routes on this branch — no broken links found.
+- `VoiceDemo.tsx` (live Gemini-TTS Q&A) already meets the repo's UI craft bar: disabled input + "Thinking…" button state while the `/api/voice-demo` call is in flight, specific recoverable error via `Toast` ("Reme could not answer that just now. Try again in a moment."), blob-URL cleanup to avoid memory leaks on repeated use.
+- `src/app/contact/page.tsx` also already meets the bar: per-field validation errors, disabled+"Sending..." submit state, success confirmation screen with a "Send Another Message" reset action, and a Toast-based error path.
+- `src/app/pricing/page.tsx` is static content with no async actions, so no loading state is applicable.
+- Conclusion: no genuine half-finished UI flows found on this branch to fix. The one route with materially different/newer UX (dynamic `[slug]` brokerage landing pages, light theme default) lives only on `master`, out of scope per the branch-divergence note above.
+
+### Net changes this session
+No code changes made — swept for real TODOs/stubs and audited the docs + Reme demo against the UI craft bar and found nothing genuinely incomplete or low-risk-and-safe to fix without a product decision. `npm`/`node_modules` are not installed in this sandbox (`eslint`/`next` both `command not found`), so build/lint verification could not be run locally this session; nothing was changed that would require it.
+
+## Bugs Fixed — 2026-08-16 (Bug Agent)
+
+### Migration blocker — still blocked, but re-verified fresh and upgraded the human-facing artifact
+Re-checked (not assumed) whether an agent in this sandbox now has DB DDL access: no `supabase` CLI, no `psql`, no `DATABASE_URL`/`SUPABASE_DB_URL`/`SUPABASE_ACCESS_TOKEN` in env or `.env.local`, and no `exec_sql`-style RPC exists in the live database. Confirmed unapplied against production tonight via `npm run smoke:schema` (after `npm install`, which was not present in this sandbox until now) — 0/3 checks pass, same failures as every prior session (`42703` missing column, `PGRST205` missing table, `PGRST202` missing function). This is an environment/credentials gap, not something fixable by trying harder in-sandbox.
+
+What's new tonight: rewrote `NIGHTAGENT_MIGRATION_STATUS.md` to lead with a single copy-paste SQL block (both pending migrations combined) and the exact Supabase SQL Editor URL for project `zjuoxaqdqqdtihmekrcz`, plus a one-line verification command (`npm run smoke:schema`) — designed to be actionable in under 60 seconds instead of requiring the human to open and interpret migration files. Also documented, from reading the actual route code (not assumed), what production is doing *right now* while unapplied:
+- Contact form (`src/app/api/contact/route.ts`): fails loudly with a `500`, does not silently drop leads (the `if (insertError) throw insertError` path already existed and works correctly) — leads are still lost, but visibly, not silently.
+- Voice demo TTS (`src/lib/voiceDemoUsage.ts` + `src/app/api/voice-demo/route.ts`): the fail-closed cost cap from a prior session means the RPC 404 currently makes the daily-cap check return `{ allowed: false }`, so the demo is fully disabled (`429` on every request) rather than unlimited/no-op. Safe from a cost standpoint, but worth knowing if anyone reports "the Reme demo doesn't work."
+
+### `src/app/api/yourcastle/count/route.ts` — unhandled promise rejection on Supabase network failure
+The `GET` handler awaited `supabaseAdmin.from(...).select(...)` with no `try/catch`. It correctly degraded to a safe default (`{ claimed: 0, remaining: FREE_DEAL_LIMIT, ... }`) when Supabase returned a query-level `error`, but a network-level failure (DNS, connection reset) would reject the promise itself and surface as an unhandled Next.js 500 instead of the same graceful fallback. Wrapped the handler body in `try/catch`, returning the identical degraded response and logging via `console.error` with `.message` only (no stack/PII), matching the pattern already used in `contact/route.ts` and `voice-demo/route.ts`.
+
+### New migration authored, not yet wired into code (documented, not a silent regression)
+Wrote `supabase/migrations/20260816000000_atomic_yourcastle_free_deal_allocation.sql`, an `allocate_yourcastle_signup(...)` Postgres function that fixes the free-deal-counter read-then-write race documented in the 2026-08-05 report (two concurrent signups can both read the same count before either inserts, over-allocating free deals past `FREE_DEAL_LIMIT`). It uses `pg_advisory_xact_lock` to serialize concurrent calls, same idempotent/additive pattern as `increment_voice_demo_usage`.
+
+Initially wired this into `src/app/api/yourcastle/signup/route.ts` via `supabaseAdmin.rpc(...)`, then reverted that route change after realizing it would make the route call a function that doesn't exist yet in production — turning every signup into a `500` (PGRST202) until a human applies this migration too, on top of the two already pending. That's a worse outcome than the narrow race it fixes. The migration file is committed and ready; the route change is intentionally deferred to a follow-up session, to be wired in only after this migration is confirmed applied (see the migration file's own header comment).
+
+### Security / input validation review
+Reviewed contact form, YourCastle signup, and voice-demo routes for SQL injection, XSS, and missing validation. All three already use parameterized Supabase client calls (no raw SQL string interpolation, no injection surface), Telegram HTML-escaping on all user-controlled fields (`escapeTelegramHtml`), required-field/type/length checks, and email regex validation. No new issues found — this matches the 2026-08-05 session's findings and nothing has regressed.
+
+### Verification
+`npm install` (not previously present in this sandbox) → `npx tsc --noEmit` clean → `npm run lint` 0 errors (4 pre-existing warnings, unrelated files) → `npx vitest run` 131/131 passing → `npm run smoke:schema` 0/3 (confirms migration blocker unchanged, as expected).
+
+## Monetization Changes — 2026-08-16
+None. Per repo context (`done-deal-site` CLAUDE.md and explicit task instructions), this is a lead-gen marketing site with no auth/payments by design — the actual product/billing lives in a separate external app (`app.done-deal.info`), not this repo. No Stripe or monetization scaffolding was added or considered in scope.
