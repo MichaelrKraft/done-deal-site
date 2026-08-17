@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import Pricing from '@/components/sections/Pricing';
 import FAQ from '@/components/sections/FAQ';
 import PricingObjections from '@/components/sections/PricingObjections';
+import ExternalCtaLink from '@/components/ui/ExternalCtaLink';
 
 export const metadata: Metadata = {
   title: 'Pricing — Done Deal AI Transaction Coordination',
@@ -232,24 +232,24 @@ export default function PricingPage() {
 
             {/* Per-tier CTAs */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-10 max-w-4xl mx-auto">
-              <Link
+              <ExternalCtaLink
                 href="https://app.done-deal.info/signup"
-                className="text-center px-6 py-3 rounded-full font-semibold text-sm border border-white/20 text-gray-300 hover:bg-white/5 transition-colors"
+                className="block text-center px-6 py-3 rounded-full font-semibold text-sm border border-white/20 text-gray-300 hover:bg-white/5 transition-colors"
               >
                 Start Pay-Per-Transaction
-              </Link>
-              <Link
+              </ExternalCtaLink>
+              <ExternalCtaLink
                 href="https://app.done-deal.info/signup"
-                className="text-center cyan-button px-6 py-3 rounded-full font-semibold text-sm"
+                className="block text-center cyan-button px-6 py-3 rounded-full font-semibold text-sm"
               >
                 Start Annual Standard
-              </Link>
-              <Link
+              </ExternalCtaLink>
+              <ExternalCtaLink
                 href="https://app.done-deal.info/signup"
-                className="text-center px-6 py-3 rounded-full font-semibold text-sm border border-[#8b5cf6]/40 text-white hover:bg-[#8b5cf6]/10 transition-colors"
+                className="block text-center px-6 py-3 rounded-full font-semibold text-sm border border-[#8b5cf6]/40 text-white hover:bg-[#8b5cf6]/10 transition-colors"
               >
                 Start Annual Unlimited
-              </Link>
+              </ExternalCtaLink>
             </div>
           </div>
         </section>
