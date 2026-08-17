@@ -1111,3 +1111,27 @@ Follows the existing `Toast.test.tsx` / `VoiceDemo.test.tsx` conventions (Vitest
 ### Verification
 - `npx vitest run` — 25 files / 141 tests, all pass, 0 retries needed.
 - `npm run build` — clean, Next.js 16.1.6 Turbopack, all 14 routes, 0 errors.
+
+## Summary — 2026-08-17 (Lead Agent)
+
+### Overall progress assessment
+Small, high-precision session. Rather than run the generic three-agent template blind, the team was redirected to execute the two concrete, non-blocked action items from tonight's strategic assessment (`/Users/michaelkraft/.claude/plans/you-are-a-senior-temporal-pumpkin.md`), and explicitly told **not** to re-attempt the two items that report already confirmed are blocked on human action across 4+ prior sessions (Supabase migration application, the stranded `nightagent/2026-07-17` branch). Both agents respected scope; no wasted cycles re-verifying settled blockers.
+
+- **Feature Agent**: fixed the Reme voice-demo copy so it no longer implies conversational AI (it's TTS-only), and added a loading/error fallback (`ExternalCtaLink`) around the three pricing-page CTAs that deep-link to the external app — closing the "dead click if app.done-deal.info is slow/down" gap. 2 commits, tests updated inline.
+- **Bug Agent**: full audit of the 4 scoped areas (yourcastle error UX, API try/catch coverage, monetization state, input-validation/XSS/SQL-injection sweep) found **zero bugs** — everything already fixed by prior sessions. Correctly declined to build Stripe blind, since it's a genuine open product question (does billing belong in this repo or purely in app.done-deal.info) rather than a missing feature to fill in. 1 report-only commit.
+- **Test Agent**: closed the one real gap (new `ExternalCtaLink` component had no test file), added 6 tests using fake timers (no real sleeps), verified the Feature Agent's inline VoiceDemo test updates were genuine, not just search-and-replace. 1 commit.
+
+Net: 5 commits, +6 tests (135 → 141, 25 files), `npm run build` clean throughout, working tree clean (only pre-existing unrelated modifications to CLAUDE.md/NIGHTAGENT_EVAL.md/NIGHTAGENT_PLAN.md remain, not touched by any teammate).
+
+### Launchability Score: 42/100
+Marginal move up from last night's 40/100 assessment — the two shipped fixes address real UX/trust gaps (Reme overclaiming, dead pricing CTAs), but the score is still capped by the same structural gaps the strategic report identified: no monetization infrastructure in this repo, and two unapplied migrations plus a stranded branch that no agent can resolve without human action.
+
+### Tomorrow's Top 3 priorities
+1. **Human action still required, now 11+ sessions running**: apply the two pending Supabase migrations (`contact_submissions.source`, `voice_demo_usage` table + RPC) via the Supabase SQL Editor — full copy-paste block in `NIGHTAGENT_MIGRATION_STATUS.md`. Currently the Reme voice demo is fully disabled in production (fails closed, 429s every request) until this is applied. ~60 seconds of human time, highest leverage item in the repo.
+2. **Get a merge/close decision on `nightagent/2026-07-17`** (93 files, 11k+ lines, diverging further every session) — this is a decision task, not something another night of agent work should keep building around.
+3. **Answer the monetization scope question**: should Stripe/checkout live in this repo, or purely in `app.done-deal.info`? Both Bug Agent tonight and the strategic assessment declined to guess-build this — it's now blocked on a product decision, not effort.
+
+### Blockers encountered
+- Supabase migrations: confirmed (again) not applicable from this sandbox — no `supabase` CLI, no `psql`, no DB connection string in env; service-role key can't run DDL. Re-verified, not re-attempted.
+- Stranded branch `nightagent/2026-07-17`: untouched, flagged for human merge/close decision per the strategic report.
+- Stripe/monetization: intentionally not built pending a human decision on where billing should live.
