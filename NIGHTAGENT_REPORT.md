@@ -1086,3 +1086,28 @@ Implemented the two scoped items from the strategic assessment (plan items #4 an
 ### Verification (both tasks)
 - `npx vitest run` — all 135 tests pass (24 files), including the updated `VoiceDemo.test.tsx` and unchanged `pricing/page.test.tsx`.
 - `npm run build` — clean on first attempt (Next.js 16.1.6, Turbopack, all 14 routes compiled, 0 errors).
+
+## Tests Added — 2026-08-17 (Test Agent)
+
+Verified Feature Agent's two commits (`52e892e`, `b2192fe`) and closed a test gap.
+
+### Findings
+- `52e892e` (Reme copy fix): `VoiceDemo.test.tsx` was already updated in the same commit and genuinely exercises the new copy — `getByPlaceholderText(/hear it in reme's voice/i)` and `getByRole('button', { name: /hear it in reme's voice/i })` are used throughout, not just the old strings. No gap.
+- `b2192fe` (`ExternalCtaLink`): new component had **no dedicated test file**. `src/components/ui/__tests__/` only contained `Toast.test.tsx`. Gap closed below.
+
+### New file: `src/components/ui/__tests__/ExternalCtaLink.test.tsx` (6 tests)
+Follows the existing `Toast.test.tsx` / `VoiceDemo.test.tsx` conventions (Vitest + Testing Library, `vi.useFakeTimers()`, no real sleeps). Covers:
+1. Renders the link with correct `href` and label.
+2. Shows the `Opening…` pending state (`aria-busy="true"`) immediately on click.
+3. Calls `onClickTrack` on click.
+4. After `vi.advanceTimersByTime(4000)` with `document.visibilityState` left `'visible'` (navigation never happened), the recoverable error `Toast` (`role="alert"`) appears with the exact message and a "Try opening app.done-deal.info again" retry link. Timer advance wrapped in `act()` since the Toast's `AnimatePresence`/state update needs a flush.
+5. If `document.visibilityState` is set to `'hidden'` before the timeout fires (navigation succeeded), no error toast appears — confirms the component doesn't false-positive after a successful redirect.
+6. Dismissing the toast returns the component to idle (button reverts to its original label/href).
+
+### Test counts
+- Before: 24 test files / 135 tests passing.
+- After: 25 test files / 141 tests passing (+1 file, +6 tests).
+
+### Verification
+- `npx vitest run` — 25 files / 141 tests, all pass, 0 retries needed.
+- `npm run build` — clean, Next.js 16.1.6 Turbopack, all 14 routes, 0 errors.
