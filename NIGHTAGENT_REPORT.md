@@ -1044,3 +1044,20 @@ Held flat rather than climbing — the codebase itself is in good shape (clean l
 ### Blockers encountered
 - Same DB-credentials gap that has blocked every session since this was first flagged — confirmed again tonight, not new.
 - No `gh` CLI auth available to the Feature Agent, so PR #3's live GitHub status (conflicts, CI state) could only be inferred from git history, not confirmed via the GitHub API.
+
+## Bugs Fixed — 2026-08-17 (Bug Agent)
+
+No code changes were required tonight. Audited all four scoped areas and found each already correct:
+
+- **Yourcastle waitlist duplicate-email UX (plan item #6)**: Already good, no fix needed. `src/app/api/yourcastle/signup/route.ts` returns `{ error: 'This email has already claimed a spot.' }` on both the pre-check duplicate path and the `23505` DB-constraint race-condition path (409). `src/components/sections/YourCastleSignup.tsx` surfaces `result.error` via `setServerError`, rendered through the shared `Toast` component (`role="alert"`, dismissible, red variant) — a specific, recoverable message, not a generic failure.
+- **API route try/catch sweep**: Checked all 4 routes under `src/app/api/` (`contact`, `voice-demo`, `yourcastle/count`, `yourcastle/signup`). All have full try/catch coverage already. `yourcastle/count/route.ts`'s network-rejection gap (the class of bug fixed in commit `42bae7c`) is already fixed and tested (commit `5d92b08`). No new gaps found.
+- **Security sweep**: Grepped all API routes for injection risk — no raw SQL/`.rpc()` calls anywhere; all DB access goes through the parameterized Supabase query builder, so no SQL injection surface. Telegram notification text (`contact` and `yourcastle/signup` routes) is already HTML-escaped via `escapeTelegramHtml()` before interpolation, preventing markup injection into the bot message. Input validation present on both POST routes: required-field checks, `typeof` guards, email regex, and explicit max-length limits on every string field. No concrete, verified issues found — nothing fixed.
+- **Migration blocker**: Re-confirmed via `NIGHTAGENT_MIGRATION_STATUS.md` — still blocked on human action (no `supabase` CLI/psql/DATABASE_URL in this sandbox). Not attempted, per standing instruction.
+
+`npm run build` passed clean on first attempt (Next.js 16.1.6, Turbopack, all 14 routes compiled, 0 errors).
+
+No commits made — working tree had no code changes to stage.
+
+## Monetization Changes — 2026-08-17 (Bug Agent)
+
+**Stripe was intentionally NOT built.** Confirmed a `/pricing` page exists (`src/app/pricing/page.tsx`) with three tier cards; all CTAs (`href="https://app.done-deal.info/signup"`) link out to the external product app rather than an in-repo checkout, and no Stripe SDK or checkout code exists anywhere in this repo currently. Whether billing/checkout should live in this marketing site or purely in `app.done-deal.info` remains an open product decision per the strategic assessment — flagged as **blocked/needs-human-decision**, not attempted.
