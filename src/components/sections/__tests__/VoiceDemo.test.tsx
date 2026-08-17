@@ -58,7 +58,7 @@ describe('VoiceDemo', () => {
   it('does not show the live-question input until the intro finishes', () => {
     render(<VoiceDemo />);
     expect(
-      screen.queryByPlaceholderText(/ask reme something else, live/i)
+      screen.queryByPlaceholderText(/hear it in reme's voice/i)
     ).not.toBeInTheDocument();
   });
 
@@ -81,7 +81,7 @@ describe('VoiceDemo', () => {
 
     expect(await screen.findByText('What deadlines do you track?')).toBeInTheDocument();
     expect(
-      screen.getByPlaceholderText(/ask reme something else, live/i)
+      screen.getByPlaceholderText(/hear it in reme's voice/i)
     ).toBeInTheDocument();
   });
 
@@ -109,9 +109,9 @@ describe('VoiceDemo', () => {
     fireEvent.click(screen.getByRole('button', { name: /hear reme/i }));
     finishPlayback();
 
-    const input = await screen.findByPlaceholderText(/ask reme something else, live/i);
+    const input = await screen.findByPlaceholderText(/hear it in reme's voice/i);
     fireEvent.change(input, { target: { value: 'What about title work?' } });
-    fireEvent.click(screen.getByRole('button', { name: /ask live/i }));
+    fireEvent.click(screen.getByRole('button', { name: /hear it in reme's voice/i }));
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
@@ -140,12 +140,12 @@ describe('VoiceDemo', () => {
     fireEvent.click(screen.getByRole('button', { name: /hear reme/i }));
     finishPlayback();
 
-    const input = await screen.findByPlaceholderText(/ask reme something else, live/i);
+    const input = await screen.findByPlaceholderText(/hear it in reme's voice/i);
     fireEvent.change(input, { target: { value: 'What about HOA docs?' } });
-    fireEvent.click(screen.getByRole('button', { name: /ask live/i }));
+    fireEvent.click(screen.getByRole('button', { name: /hear it in reme's voice/i }));
 
     expect(
-      await screen.findByText(/reme could not answer that just now\. try again in a moment\./i)
+      await screen.findByText(/reme could not read that back just now\. try again in a moment\./i)
     ).toBeInTheDocument();
 
     // Only the intro Audio should have been created — no audio played from a failed call.
@@ -161,12 +161,12 @@ describe('VoiceDemo', () => {
     fireEvent.click(screen.getByRole('button', { name: /hear reme/i }));
     finishPlayback();
 
-    const input = await screen.findByPlaceholderText(/ask reme something else, live/i);
+    const input = await screen.findByPlaceholderText(/hear it in reme's voice/i);
     fireEvent.change(input, { target: { value: 'What about deadlines?' } });
-    fireEvent.click(screen.getByRole('button', { name: /ask live/i }));
+    fireEvent.click(screen.getByRole('button', { name: /hear it in reme's voice/i }));
 
     expect(
-      await screen.findByText(/reme could not answer that just now\. try again in a moment\./i)
+      await screen.findByText(/reme could not read that back just now\. try again in a moment\./i)
     ).toBeInTheDocument();
   });
 
@@ -176,7 +176,7 @@ describe('VoiceDemo', () => {
     fireEvent.click(screen.getByRole('button', { name: /hear reme/i }));
     finishPlayback();
 
-    const askButton = await screen.findByRole('button', { name: /ask live/i });
+    const askButton = await screen.findByRole('button', { name: /hear it in reme's voice/i });
     expect(askButton).toBeDisabled();
   });
 });

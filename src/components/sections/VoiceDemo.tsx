@@ -57,13 +57,14 @@ export default function VoiceDemo() {
       });
 
       if (!res.ok) {
-        throw new Error('Reme could not answer that just now.');
+        throw new Error('Reme could not read that back just now.');
       }
 
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
-      // Revoke the previous live-answer blob URL before creating a new one
-      // so repeated "ask live" usage doesn't leak memory for the session.
+      // Revoke the previous preview blob URL before creating a new one so
+      // repeated "hear it in Reme's voice" usage doesn't leak memory for
+      // the session.
       if (liveObjectUrlRef.current) {
         URL.revokeObjectURL(liveObjectUrlRef.current);
       }
@@ -71,7 +72,7 @@ export default function VoiceDemo() {
       play(url, null);
       track('voice_demo_live_qa_submit');
     } catch {
-      setLiveError('Reme could not answer that just now. Try again in a moment.');
+      setLiveError('Reme could not read that back just now. Try again in a moment.');
     } finally {
       setLiveLoading(false);
     }
@@ -248,7 +249,10 @@ export default function VoiceDemo() {
             )}
           </AnimatePresence>
 
-          {/* Ask something live — real Gemini TTS call, not pre-recorded */}
+          {/* Type your own text, hear it read back in Reme's voice — a live
+              Gemini TTS call, not pre-recorded. This is a voice preview, not
+              a Q&A chat: Reme reads back whatever text is typed, she does
+              not listen, answer, or reason about it. */}
           <AnimatePresence>
             {state === 'done' && (
               <motion.div
@@ -266,7 +270,7 @@ export default function VoiceDemo() {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') askLive();
                     }}
-                    placeholder="Ask Reme something else, live…"
+                    placeholder="Type anything to hear it in Reme's voice…"
                     disabled={liveLoading}
                     className="flex-1 rounded-xl px-4 py-3 text-sm bg-white/5 border border-white/10 text-white placeholder:text-gray-500 focus:outline-none focus:border-[#00BEFF]/50 disabled:opacity-50"
                   />
@@ -280,7 +284,7 @@ export default function VoiceDemo() {
                       color: '#00BEFF',
                     }}
                   >
-                    {liveLoading ? 'Thinking…' : 'Ask live'}
+                    {liveLoading ? 'Generating…' : "Hear it in Reme's voice"}
                   </button>
                 </div>
                 <div className="mt-2">
