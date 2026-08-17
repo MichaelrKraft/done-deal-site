@@ -1,36 +1,36 @@
 # NightAgent Evaluation — done-deal-site
-*8/5/2026, 9:10:49 AM*
+*8/16/2026, 1:03:36 AM*
 
-## Overall Score: 30/100
+## Overall Score: 72/100
 
 | Dimension | Score | Max |
 |:---|:---:|:---:|
-| Features Completed | 0 | 25 |
-| Bugs Fixed | 0 | 20 |
-| Monetization Progress | 0 | 20 |
-| Code Quality | 10 | 20 |
-| Tests Added | 0 | 15 |
+| Features Completed | 8 | 25 |
+| Bugs Fixed | 14 | 20 |
+| Monetization Progress | 2 | 20 |
+| Code Quality | 17 | 20 |
+| Tests Added | 12 | 15 |
 
 ## Product Scores
 - **Launchability Score**: 74/100
 - **Revenue Readiness Score**: 40/100
 
 ## Summary
-This session did no feature/bug/test work — it only confirmed gh auth was restored, opened PR #3 for 70 previously-stranded commits, and re-verified via smoke test that two long-pending Supabase migrations remain unapplied in production. Valuable pipeline-unblocking progress (a real PR finally exists), but the diff is documentation-only and the core production risk (dropped contact leads, no-op cost cap) is unchanged after 10+ sessions of the same flag.
+A competent, low-risk maintenance session: real bugs were found and fixed with proper regression tests, and a legitimately flaky test was root-caused rather than papered over. But this continues a long streak of zero shippable progress — the same two production blockers (unapplied migrations, unmerged branch) that have been flagged for 10+ nights remain unresolved, and the growing divergence between the stranded PR and master is a compounding risk nobody is acting on.
 
 ## Top Achievements
-- gh CLI auth confirmed working and PR #3 opened (nightagent/2026-07-17 → master, 70 commits) after a multi-night push blocker
-- Correctly identified master (not main) as the real default/deployed branch before opening the PR, avoiding a wasted merge target
-- Ran a read-only smoke test confirming the two pending Supabase migrations are still unapplied in production, keeping the diagnosis current instead of stale
+- Fixed a real concurrency bug (yourcastle signup 500→409 on duplicate-email race) with a proper regression test
+- Root-caused a flaky test (page.test.tsx timeout under full-suite CPU contention) instead of ignoring or masking it, and fixed it with a scoped per-test timeout
+- Re-verified the standing migration blocker fresh via a real smoke-test run rather than repeating stale prior-session claims, and tightened the human-facing remediation doc to a single copy-paste action
 
 ## Top Failures / Missed Opportunities
-- Zero shipped code this session — the entire diff is 3 markdown files (CLAUDE.md/NIGHTAGENT_EVAL.md/NIGHTAGENT_PLAN.md), no features, bugs, or tests despite dimensions being scored elsewhere for those categories
-- The single highest-leverage action (applying the two migrations) has now been flagged as 'the standing blocker' for 10+ consecutive sessions with zero progress toward actually closing it — repeatedly re-diagnosing instead of escalating harder or trying an alternative unblock path
+- Zero net code shipped to production again — no new feature work landed, and the two migrations blocking the contact form and TTS cost cap have now been unapplied for 10+ consecutive sessions with no escalation beyond documentation
+- PR #3 (70 commits) continues to rot unmerged and is now confirmed to be diverging further from master's independent feature work (competing 'Remy' chat, theme changes, dynamic landing pages), raising real merge-conflict risk with no forcing function to resolve it
 
 ## Tomorrow's Top 3
-1. Human: apply the two pending Supabase migrations (source column + voice_demo_usage table/RPC) via SQL Editor for project zjuoxaqdqqdtihmekrcz — unblocks contact-form leads and the TTS cost cap
-2. Human: review and merge PR #3 (70 commits, open since this session) so 3+ weeks of accumulated work actually reaches production
-3. Agent: once merged, re-run npm run smoke:schema and the Playwright contact/yourcastle e2e specs against production to confirm the fixes hold live
+1. Apply both pending Supabase migrations (contact_submissions.source, voice_demo_usage) via the SQL Editor for project zjuoxaqdqqdtihmekrcz — the single highest-leverage 2-minute action outstanding
+2. Get a human decision on PR #3: merge now or explicitly reconcile/close given growing divergence from master
+3. Wire the already-authored atomic_yourcastle_free_deal_allocation migration into the signup route once its migration is applied
 
 ## Program Improvement Suggestion
-This 'session' produced only a git-status/PR-status update — no Feature/Bug/Test agents ran. Have the harness explicitly flag doc-only/status-check sessions as a distinct category before scoring, so they aren't graded on the same rubric (featuresCompleted/bugsFixed/testsAdded) as full 3-agent nights; also add an escalation rule that after N consecutive sessions re-flagging the same human-blocked migration, the agent should try an alternative unblock (e.g., draft the exact CLI command with a placeholder access token, or ping via a configured notification channel) instead of repeating the same markdown note.
+The nightly loop has been re-diagnosing the same two blockers (unapplied migrations, unmerged 70-commit PR) for 10+ sessions without any mechanism to force resolution — add an explicit escalation rule: after N consecutive sessions flagging the same human-only blocker, the agent should stop doing incremental feature/test work on top of it and instead produce a single, maximally-actionable one-pager (or send a direct notification) so the loop doesn't keep compounding unmerged/unapplied work indefinitely.
