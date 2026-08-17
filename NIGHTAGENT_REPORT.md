@@ -1061,3 +1061,28 @@ No commits made — working tree had no code changes to stage.
 ## Monetization Changes — 2026-08-17 (Bug Agent)
 
 **Stripe was intentionally NOT built.** Confirmed a `/pricing` page exists (`src/app/pricing/page.tsx`) with three tier cards; all CTAs (`href="https://app.done-deal.info/signup"`) link out to the external product app rather than an in-repo checkout, and no Stripe SDK or checkout code exists anywhere in this repo currently. Whether billing/checkout should live in this marketing site or purely in `app.done-deal.info` remains an open product decision per the strategic assessment — flagged as **blocked/needs-human-decision**, not attempted.
+
+## Features Completed — 2026-08-17 (Feature Agent)
+
+Implemented the two scoped items from the strategic assessment (plan items #4 and #5). Stripe/monetization and the Supabase migration/stranded-branch items were explicitly out of scope and untouched.
+
+### 1. Reme voice demo copy fix (Plan item #4) — DONE
+- `src/components/sections/VoiceDemo.tsx` has an "Ask something live" panel that calls `POST /api/voice-demo` (Gemini TTS) and plays back whatever text the user typed. It is a voice preview, not a conversational Q&A feature — it doesn't listen, answer, or reason — but the old copy ("Ask live" button, "Ask Reme something else, live…" placeholder, "Reme could not answer that just now" error) implied a chatbot.
+- Reworded copy only, no behavior change:
+  - Button label: `Ask live` → `Hear it in Reme's voice` (loading state `Thinking…` → `Generating…`).
+  - Input placeholder: `Ask Reme something else, live…` → `Type anything to hear it in Reme's voice…`.
+  - Error copy: `Reme could not answer that just now (...)` → `Reme could not read that back just now (...)`.
+  - Added a code comment above the panel clarifying it's a TTS preview, not Q&A chat.
+- Updated `src/components/sections/__tests__/VoiceDemo.test.tsx` to match the new copy (placeholder text, button accessible name, error text). All 9 tests in that file still pass.
+- Commit: `fix(voice-demo): clarify Reme voice preview copy is not conversational` (52e892e).
+
+### 2. Pricing CTA fallback state (Plan item #5) — DONE
+- `src/app/pricing/page.tsx`'s three per-tier CTAs ("Start Pay-Per-Transaction" / "Start Annual Standard" / "Start Annual Unlimited") were plain `next/link` elements deep-linking to `https://app.done-deal.info/signup` with zero feedback if that external app was slow or unreachable — a click gave no indication anything happened.
+- Added new `src/components/ui/ExternalCtaLink.tsx`, a small client component that wraps an external `<a>`: on click it shows a pending `Opening…` label (`aria-busy`), and if the page is still visible after a 4s timeout (navigation never happened — likely a slow/down external app), it reveals a specific, recoverable error via the existing `Toast` component ("Done Deal is taking longer than expected to load. You can retry, or open it directly.") plus a manual retry link. Follows the same inline-Toast pattern already used by `VoiceDemo` and `YourCastleSignup` rather than inventing a new one.
+- Swapped the three pricing-page comparison-table CTAs in `src/app/pricing/page.tsx` from `next/link` to `ExternalCtaLink`. Scope kept to `/pricing`'s own CTAs only — the shared `Pricing.tsx` section (also rendered on the homepage) and other `app.done-deal.info` links sitewide were left untouched to keep the change minimal and surgical, per the plan's scope.
+- Existing `src/app/pricing/__tests__/page.test.tsx` assertions (`getByRole('link', ...)` + `href` check) still pass unchanged since `ExternalCtaLink` renders a real `<a href>`.
+- Commit: `feat(pricing): add loading/error fallback for external app CTAs` (b2192fe).
+
+### Verification (both tasks)
+- `npx vitest run` — all 135 tests pass (24 files), including the updated `VoiceDemo.test.tsx` and unchanged `pricing/page.test.tsx`.
+- `npm run build` — clean on first attempt (Next.js 16.1.6, Turbopack, all 14 routes compiled, 0 errors).
