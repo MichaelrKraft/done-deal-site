@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import ExternalCtaLink from '../ExternalCtaLink';
 
+vi.mock('@vercel/analytics', () => ({
+  track: vi.fn(),
+}));
+
 describe('ExternalCtaLink', () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -21,19 +25,63 @@ describe('ExternalCtaLink', () => {
 
   it('renders the link with its href and label', () => {
     render(
-      <ExternalCtaLink href="https://app.done-deal.info" className="btn">
+      <ExternalCtaLink href="https://app.done-deal.info" className="btn" campaign="hero" ctaLabel="Start free trial">
         Start free trial
       </ExternalCtaLink>
     );
 
     const link = screen.getByRole('link', { name: 'Start free trial' });
     expect(link).toBeInTheDocument();
-    expect(link).toHaveAttribute('href', 'https://app.done-deal.info');
+    expect(link).toHaveAttribute(
+      'href',
+      'https://app.done-deal.info/?utm_source=done-deal-site&utm_medium=cta&utm_campaign=hero'
+    );
+  });
+
+  it('appends UTM params identifying the source campaign to the href', () => {
+    render(
+      <ExternalCtaLink
+        href="https://app.done-deal.info/signup"
+        className="btn"
+        campaign="pricing_annual_standard"
+        ctaLabel="Start Annual Standard"
+      >
+        Start Annual Standard
+      </ExternalCtaLink>
+    );
+
+    const link = screen.getByRole('link', { name: 'Start Annual Standard' });
+    const url = new URL(link.getAttribute('href')!);
+    expect(url.pathname).toBe('/signup');
+    expect(url.searchParams.get('utm_source')).toBe('done-deal-site');
+    expect(url.searchParams.get('utm_medium')).toBe('cta');
+    expect(url.searchParams.get('utm_campaign')).toBe('pricing_annual_standard');
+  });
+
+  it('fires a track() analytics event with the campaign and CTA label on click', async () => {
+    const { track } = await import('@vercel/analytics');
+    render(
+      <ExternalCtaLink
+        href="https://app.done-deal.info/signup"
+        className="btn"
+        campaign="pricing_annual_standard"
+        ctaLabel="Start Annual Standard"
+      >
+        Start Annual Standard
+      </ExternalCtaLink>
+    );
+
+    fireEvent.click(screen.getByRole('link', { name: 'Start Annual Standard' }));
+
+    expect(track).toHaveBeenCalledWith('external_cta_click', {
+      campaign: 'pricing_annual_standard',
+      ctaLabel: 'Start Annual Standard',
+    });
   });
 
   it('shows the "Opening…" pending state on click', () => {
     render(
-      <ExternalCtaLink href="https://app.done-deal.info" className="btn">
+      <ExternalCtaLink href="https://app.done-deal.info" className="btn" campaign="hero" ctaLabel="Start free trial">
         Start free trial
       </ExternalCtaLink>
     );
@@ -48,7 +96,7 @@ describe('ExternalCtaLink', () => {
   it('calls onClickTrack when clicked', () => {
     const onClickTrack = vi.fn();
     render(
-      <ExternalCtaLink href="https://app.done-deal.info" className="btn" onClickTrack={onClickTrack}>
+      <ExternalCtaLink href="https://app.done-deal.info" className="btn" campaign="hero" ctaLabel="Start free trial" onClickTrack={onClickTrack}>
         Start free trial
       </ExternalCtaLink>
     );
@@ -60,7 +108,7 @@ describe('ExternalCtaLink', () => {
 
   it('shows the recoverable error toast with a retry link after the 4s stall timeout if the page is still visible', async () => {
     render(
-      <ExternalCtaLink href="https://app.done-deal.info" className="btn">
+      <ExternalCtaLink href="https://app.done-deal.info" className="btn" campaign="hero" ctaLabel="Start free trial">
         Start free trial
       </ExternalCtaLink>
     );
@@ -86,7 +134,7 @@ describe('ExternalCtaLink', () => {
 
   it('does not show the error toast after the timeout if the page already navigated away (hidden)', async () => {
     render(
-      <ExternalCtaLink href="https://app.done-deal.info" className="btn">
+      <ExternalCtaLink href="https://app.done-deal.info" className="btn" campaign="hero" ctaLabel="Start free trial">
         Start free trial
       </ExternalCtaLink>
     );
@@ -107,7 +155,7 @@ describe('ExternalCtaLink', () => {
 
   it('dismisses the error toast and returns to idle when the toast is dismissed', async () => {
     render(
-      <ExternalCtaLink href="https://app.done-deal.info" className="btn">
+      <ExternalCtaLink href="https://app.done-deal.info" className="btn" campaign="hero" ctaLabel="Start free trial">
         Start free trial
       </ExternalCtaLink>
     );

@@ -25,17 +25,21 @@ describe('Benefits', () => {
     expect(screen.getByText('Scalable Solutions:')).toBeInTheDocument();
   });
 
-  it('renders the CTA link pointing to the signup app', () => {
+  it('renders the CTA link pointing to the signup app with UTM attribution', () => {
     render(<Benefits />);
     const link = screen.getByRole('link', { name: /start free trial/i });
-    expect(link).toHaveAttribute('href', 'https://app.done-deal.info/signup');
+    expect(link.getAttribute('href')).toMatch(/^https:\/\/app\.done-deal\.info\/signup\?/);
+    expect(link.getAttribute('href')).toContain('utm_campaign=benefits');
   });
 
-  it('tracks benefits_cta_click_signup when the CTA is clicked', () => {
+  it('tracks external_cta_click with the benefits campaign when the CTA is clicked', () => {
     render(<Benefits />);
     const link = screen.getByRole('link', { name: /start free trial/i });
     fireEvent.click(link);
-    expect(track).toHaveBeenCalledWith('benefits_cta_click_signup');
+    expect(track).toHaveBeenCalledWith('external_cta_click', {
+      campaign: 'benefits',
+      ctaLabel: 'Start Free Trial',
+    });
   });
 
   it('calls track exactly once per click', () => {

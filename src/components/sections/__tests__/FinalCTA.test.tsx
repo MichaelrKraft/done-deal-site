@@ -18,17 +18,21 @@ describe('FinalCTA', () => {
     expect(screen.getByText(/start exploring done-deal and experience/i)).toBeInTheDocument();
   });
 
-  it('renders the CTA link pointing to the signup app', () => {
+  it('renders the CTA link pointing to the signup app with UTM attribution', () => {
     render(<FinalCTA />);
     const link = screen.getByRole('link', { name: /start free trial/i });
-    expect(link).toHaveAttribute('href', 'https://app.done-deal.info/signup');
+    expect(link.getAttribute('href')).toMatch(/^https:\/\/app\.done-deal\.info\/signup\?/);
+    expect(link.getAttribute('href')).toContain('utm_campaign=final_cta');
   });
 
-  it('tracks final_cta_click_signup when the CTA is clicked', () => {
+  it('tracks external_cta_click with the final_cta campaign when the CTA is clicked', () => {
     render(<FinalCTA />);
     const link = screen.getByRole('link', { name: /start free trial/i });
     fireEvent.click(link);
-    expect(track).toHaveBeenCalledWith('final_cta_click_signup');
+    expect(track).toHaveBeenCalledWith('external_cta_click', {
+      campaign: 'final_cta',
+      ctaLabel: 'Start Free Trial',
+    });
   });
 
   it('calls track exactly once per click', () => {

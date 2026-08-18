@@ -24,17 +24,21 @@ describe('CompetitionCallout', () => {
     expect(screen.getByText(/but their ai might be/i)).toBeInTheDocument();
   });
 
-  it('renders the CTA link pointing to the signup app', () => {
+  it('renders the CTA link pointing to the signup app with UTM attribution', () => {
     render(<CompetitionCallout />);
     const link = screen.getByRole('link', { name: /start free trial/i });
-    expect(link).toHaveAttribute('href', 'https://app.done-deal.info/signup');
+    expect(link.getAttribute('href')).toMatch(/^https:\/\/app\.done-deal\.info\/signup\?/);
+    expect(link.getAttribute('href')).toContain('utm_campaign=competition_callout');
   });
 
-  it('tracks competition_callout_cta_click_signup when the CTA is clicked', () => {
+  it('tracks external_cta_click with the competition_callout campaign when the CTA is clicked', () => {
     render(<CompetitionCallout />);
     const link = screen.getByRole('link', { name: /start free trial/i });
     fireEvent.click(link);
-    expect(track).toHaveBeenCalledWith('competition_callout_cta_click_signup');
+    expect(track).toHaveBeenCalledWith('external_cta_click', {
+      campaign: 'competition_callout',
+      ctaLabel: 'Start Free Trial',
+    });
   });
 
   it('calls track exactly once per click', () => {

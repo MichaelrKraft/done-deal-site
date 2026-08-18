@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { track } from '@vercel/analytics';
 import DotGrid from '@/components/DotGrid';
+import { withUtm } from '@/lib/externalCta';
 
 const cyclingWords = ['No Missed Deadlines.', 'No Burnout.', 'No Mistakes.', 'No Excuses.', 'No Sick Days.'];
 
@@ -88,8 +89,8 @@ export default function Hero() {
               className="flex flex-wrap items-center gap-4 justify-center"
             >
               <Link
-                href="https://app.done-deal.info/signup"
-                onClick={() => track('hero_cta_click_signup')}
+                href={withUtm('https://app.done-deal.info/signup', 'hero')}
+                onClick={() => track('external_cta_click', { campaign: 'hero', ctaLabel: 'Start Free Trial' })}
                 className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-[#00BEFF] text-black font-semibold text-lg hover:bg-[#00a8d9] transition-colors"
               >
                 Start Free Trial
@@ -98,8 +99,8 @@ export default function Hero() {
                 </svg>
               </Link>
               <Link
-                href="https://app.done-deal.info/login"
-                onClick={() => track('hero_cta_click_login')}
+                href={withUtm('https://app.done-deal.info/login', 'hero')}
+                onClick={() => track('external_cta_click', { campaign: 'hero', ctaLabel: 'Sign In' })}
                 className="text-lg font-medium text-white hover:text-[#00BEFF] transition-colors"
               >
                 Sign In

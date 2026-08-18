@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { track } from '@vercel/analytics';
 import LightRays from '@/components/LightRays/LightRays';
+import { withUtm } from '@/lib/externalCta';
 
 export default function CompetitionCallout() {
   return (
@@ -49,8 +50,8 @@ export default function CompetitionCallout() {
               and take on more deals. Don&apos;t get left behind.
             </p>
             <Link
-              href="https://app.done-deal.info/signup"
-              onClick={() => track('competition_callout_cta_click_signup')}
+              href={withUtm('https://app.done-deal.info/signup', 'competition_callout')}
+              onClick={() => track('external_cta_click', { campaign: 'competition_callout', ctaLabel: 'Start Free Trial' })}
               className="mt-10 inline-block px-10 py-4 rounded-full font-semibold text-lg text-black"
               style={{ background: '#00BEFF' }}
             >

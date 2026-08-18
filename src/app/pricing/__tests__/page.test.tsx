@@ -15,7 +15,7 @@ describe('PricingPage', () => {
     expect(screen.getAllByText('Annual Unlimited').length).toBeGreaterThan(0);
   });
 
-  it('links each tier CTA to the app signup page', () => {
+  it('links each tier CTA to the app signup page with UTM attribution', () => {
     render(<PricingPage />);
 
     const ctaLinks = [
@@ -25,7 +25,11 @@ describe('PricingPage', () => {
     ];
 
     for (const link of ctaLinks) {
-      expect(link).toHaveAttribute('href', 'https://app.done-deal.info/signup');
+      const href = link.getAttribute('href');
+      expect(href).toMatch(/^https:\/\/app\.done-deal\.info\/signup\?/);
+      const url = new URL(href!);
+      expect(url.searchParams.get('utm_source')).toBe('done-deal-site');
+      expect(url.searchParams.get('utm_medium')).toBe('cta');
     }
   });
 

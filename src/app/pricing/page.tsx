@@ -234,18 +234,24 @@ export default function PricingPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-10 max-w-4xl mx-auto">
               <ExternalCtaLink
                 href="https://app.done-deal.info/signup"
+                campaign="pricing_pay_per_transaction"
+                ctaLabel="Start Pay-Per-Transaction"
                 className="block text-center px-6 py-3 rounded-full font-semibold text-sm border border-white/20 text-gray-300 hover:bg-white/5 transition-colors"
               >
                 Start Pay-Per-Transaction
               </ExternalCtaLink>
               <ExternalCtaLink
                 href="https://app.done-deal.info/signup"
+                campaign="pricing_annual_standard"
+                ctaLabel="Start Annual Standard"
                 className="block text-center cyan-button px-6 py-3 rounded-full font-semibold text-sm"
               >
                 Start Annual Standard
               </ExternalCtaLink>
               <ExternalCtaLink
                 href="https://app.done-deal.info/signup"
+                campaign="pricing_annual_unlimited"
+                ctaLabel="Start Annual Unlimited"
                 className="block text-center px-6 py-3 rounded-full font-semibold text-sm border border-[#8b5cf6]/40 text-white hover:bg-[#8b5cf6]/10 transition-colors"
               >
                 Start Annual Unlimited

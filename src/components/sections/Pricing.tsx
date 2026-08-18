@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { track } from '@vercel/analytics';
 import AnimatedSection from '@/components/AnimatedSection';
+import { withUtm } from '@/lib/externalCta';
 
 const sharedFeatures = [
   'AI Transaction Coordination',
@@ -79,8 +80,8 @@ export default function Pricing() {
               </ul>
 
               <Link
-                href="https://app.done-deal.info/signup"
-                onClick={() => track('pricing_cta_click_pay_per_transaction')}
+                href={withUtm('https://app.done-deal.info/signup', 'pricing_pay_per_transaction')}
+                onClick={() => track('external_cta_click', { campaign: 'pricing_pay_per_transaction', ctaLabel: 'Get Started' })}
                 className="w-full block text-center px-6 py-3 rounded-full font-semibold text-sm border border-white/20 text-gray-300 hover:bg-white/5 transition-colors"
               >
                 Get Started
@@ -137,8 +138,8 @@ export default function Pricing() {
 
                   {/* CTA */}
                   <Link
-                    href="https://app.done-deal.info/signup"
-                    onClick={() => track('pricing_cta_click_annual_standard')}
+                    href={withUtm('https://app.done-deal.info/signup', 'pricing_annual_standard')}
+                    onClick={() => track('external_cta_click', { campaign: 'pricing_annual_standard', ctaLabel: 'Start Your Free Trial' })}
                     className="w-full cyan-button block text-center px-8 py-4 rounded-full font-semibold text-lg"
                   >
                     Start Your Free Trial
@@ -189,8 +190,8 @@ export default function Pricing() {
                 </ul>
 
                 <Link
-                  href="https://app.done-deal.info/signup"
-                  onClick={() => track('pricing_cta_click_annual_unlimited')}
+                  href={withUtm('https://app.done-deal.info/signup', 'pricing_annual_unlimited')}
+                  onClick={() => track('external_cta_click', { campaign: 'pricing_annual_unlimited', ctaLabel: 'Get Started' })}
                   className="w-full block text-center px-6 py-3 rounded-full font-semibold text-sm border border-[#8b5cf6]/40 text-white hover:bg-[#8b5cf6]/10 transition-colors"
                 >
                   Get Started

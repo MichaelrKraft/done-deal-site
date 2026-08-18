@@ -49,15 +49,20 @@ describe('Home', () => {
     });
   });
 
-  it('links the hero CTA to the app signup page', () => {
+  // Same full-tree render cost as the "renders without crashing" test above,
+  // so it gets the same extended timeout to avoid flaking under full-suite
+  // CPU contention (see comment there).
+  it('links the hero CTA to the app signup page with UTM attribution', () => {
     render(<Home />);
 
     const signupLinks = screen.getAllByRole('link', { name: /start free trial/i });
     expect(signupLinks.length).toBeGreaterThan(0);
     expect(
-      signupLinks.some((link) => link.getAttribute('href') === 'https://app.done-deal.info/signup')
+      signupLinks.some((link) =>
+        (link.getAttribute('href') ?? '').startsWith('https://app.done-deal.info/signup?')
+      )
     ).toBe(true);
-  });
+  }, 15000);
 
   it('renders the Voice Demo orb as an interactive element', () => {
     render(<Home />);

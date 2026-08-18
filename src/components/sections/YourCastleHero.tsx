@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { track } from '@vercel/analytics';
 import DotGrid from '@/components/DotGrid';
+import { withUtm } from '@/lib/externalCta';
 
 const fadeUp = (delay: number) => ({
   initial: { opacity: 0, y: 30 },
@@ -86,8 +87,8 @@ export default function YourCastleHero() {
                 </svg>
               </a>
               <a
-                href="https://app.done-deal.info/login"
-                onClick={() => track('yourcastle_hero_cta_click_login')}
+                href={withUtm('https://app.done-deal.info/login', 'hero')}
+                onClick={() => track('external_cta_click', { campaign: 'hero', ctaLabel: 'Already have an account?' })}
                 className="text-lg font-medium text-white hover:text-[#00BEFF] transition-colors"
               >
                 Already have an account?

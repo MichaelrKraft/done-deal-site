@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { track } from '@vercel/analytics';
 import AnimatedSection from '@/components/AnimatedSection';
+import { withUtm } from '@/lib/externalCta';
 
 const steps = [
   'The AI reviews and tracks all transaction milestones from contract to close',
@@ -56,8 +57,8 @@ export default function HowItWorks() {
 
             <AnimatedSection delay={0.8}>
               <Link
-                href="https://app.done-deal.info/signup"
-                onClick={() => track('howitworks_cta_click_signup')}
+                href={withUtm('https://app.done-deal.info/signup', 'how_it_works_section')}
+                onClick={() => track('external_cta_click', { campaign: 'how_it_works_section', ctaLabel: 'Build my FREE Ai Bot' })}
                 className="cyan-button inline-block px-8 py-4 rounded-full font-semibold"
               >
                 Build my FREE Ai Bot

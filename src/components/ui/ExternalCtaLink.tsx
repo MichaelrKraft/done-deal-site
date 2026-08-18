@@ -1,13 +1,19 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { track } from '@vercel/analytics';
 import Toast from '@/components/ui/Toast';
+import { withUtm, type CtaCampaign } from '@/lib/externalCta';
 
 interface ExternalCtaLinkProps {
   href: string;
   children: React.ReactNode;
   className: string;
   onClickTrack?: () => void;
+  /** utm_campaign tag identifying this CTA's page/placement, e.g. "pricing_annual_standard". */
+  campaign: CtaCampaign;
+  /** Human-readable label for the analytics event, e.g. "Start Annual Standard". */
+  ctaLabel: string;
 }
 
 /** How long to wait before assuming a click didn't navigate away (slow/unreachable app). */
@@ -22,9 +28,17 @@ const NAVIGATION_TIMEOUT_MS = 4000;
  * retry button and a plain-link fallback instead of leaving the user
  * staring at an unresponsive button.
  */
-export default function ExternalCtaLink({ href, children, className, onClickTrack }: ExternalCtaLinkProps) {
+export default function ExternalCtaLink({
+  href,
+  children,
+  className,
+  onClickTrack,
+  campaign,
+  ctaLabel,
+}: ExternalCtaLinkProps) {
   const [status, setStatus] = useState<'idle' | 'pending' | 'timedOut'>('idle');
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const trackedHref = withUtm(href, campaign);
 
   useEffect(() => {
     return () => {
@@ -33,6 +47,7 @@ export default function ExternalCtaLink({ href, children, className, onClickTrac
   }, []);
 
   const handleClick = () => {
+    track('external_cta_click', { campaign, ctaLabel });
     onClickTrack?.();
     setStatus('pending');
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -49,7 +64,7 @@ export default function ExternalCtaLink({ href, children, className, onClickTrac
   return (
     <div>
       <a
-        href={href}
+        href={trackedHref}
         onClick={handleClick}
         aria-busy={status === 'pending'}
         className={`${className} ${status === 'pending' ? 'opacity-70 cursor-wait' : ''}`}
@@ -64,7 +79,7 @@ export default function ExternalCtaLink({ href, children, className, onClickTrac
             onDismiss={() => setStatus('idle')}
           />
           <a
-            href={href}
+            href={trackedHref}
             onClick={handleClick}
             className="mt-1 inline-block text-xs text-[#00BEFF] underline underline-offset-2 hover:text-white"
           >

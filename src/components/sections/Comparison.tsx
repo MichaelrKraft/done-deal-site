@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { track } from '@vercel/analytics';
 import AnimatedSection from '@/components/AnimatedSection';
+import { withUtm } from '@/lib/externalCta';
 
 const comparisonData = [
   { feature: 'Availability', ai: '24/7', human: 'Business Hours' },
@@ -66,15 +67,15 @@ export default function Comparison() {
           <p className="text-gray-400 mb-6">Start your free trial now:</p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
-              href="https://app.done-deal.info/signup"
-              onClick={() => track('comparison_cta_click_start_trial')}
+              href={withUtm('https://app.done-deal.info/signup', 'comparison_start_trial')}
+              onClick={() => track('external_cta_click', { campaign: 'comparison_start_trial', ctaLabel: 'Start 14-day Free Trial' })}
               className="cyan-button px-8 py-4 rounded-full font-semibold"
             >
               Start 14-day Free Trial →
             </Link>
             <Link
-              href="https://app.done-deal.info/signup"
-              onClick={() => track('comparison_cta_click_get_started')}
+              href={withUtm('https://app.done-deal.info/signup', 'comparison_get_started')}
+              onClick={() => track('external_cta_click', { campaign: 'comparison_get_started', ctaLabel: 'Get Started' })}
               className="px-8 py-4 rounded-full font-semibold border border-white/20 hover:border-[#00BEFF] transition-colors"
             >
               Get Started →

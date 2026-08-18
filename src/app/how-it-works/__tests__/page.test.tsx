@@ -15,7 +15,7 @@ describe('HowItWorksPage', () => {
     expect(screen.getByText('One dashboard, every deal')).toBeInTheDocument();
   });
 
-  it('links the CTA to the app signup page and to /pricing', () => {
+  it('links the CTA to the app signup page (with UTM attribution) and to /pricing', () => {
     render(<HowItWorksPage />);
 
     // Navbar renders its own "Start Free Trial" CTA (desktop + mobile) in
@@ -24,7 +24,9 @@ describe('HowItWorksPage', () => {
     const trialLinks = screen.getAllByRole('link', { name: /start free trial/i });
     expect(trialLinks.length).toBeGreaterThan(0);
     expect(
-      trialLinks.some((link) => link.getAttribute('href') === 'https://app.done-deal.info/signup')
+      trialLinks.some((link) =>
+        (link.getAttribute('href') ?? '').startsWith('https://app.done-deal.info/signup?')
+      )
     ).toBe(true);
 
     expect(screen.getByRole('link', { name: /view pricing/i })).toHaveAttribute(

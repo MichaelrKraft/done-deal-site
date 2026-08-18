@@ -4,6 +4,7 @@ import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 import AnimatedSection from '@/components/AnimatedSection';
 import FAQ from '@/components/sections/FAQ';
+import ExternalCtaLink from '@/components/ui/ExternalCtaLink';
 
 export const metadata: Metadata = {
   title: 'How It Works — Done Deal AI Transaction Coordination',
@@ -236,12 +237,14 @@ export default function HowItWorksPage() {
                 Start a 14-day free trial — no credit card required.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
-                <Link
+                <ExternalCtaLink
                   href="https://app.done-deal.info/signup"
+                  campaign="how_it_works_page"
+                  ctaLabel="Start Free Trial"
                   className="cyan-button px-8 py-4 rounded-full font-semibold"
                 >
                   Start Free Trial →
-                </Link>
+                </ExternalCtaLink>
                 <Link
                   href="/pricing"
                   className="px-8 py-4 rounded-full font-semibold border border-white/20 hover:border-[#00BEFF] transition-colors"

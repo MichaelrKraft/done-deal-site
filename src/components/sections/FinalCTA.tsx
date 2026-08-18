@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { track } from '@vercel/analytics';
 import AnimatedSection from '@/components/AnimatedSection';
+import { withUtm } from '@/lib/externalCta';
 
 export default function FinalCTA() {
   return (
@@ -26,8 +27,8 @@ export default function FinalCTA() {
             className="inline-block"
           >
             <Link
-              href="https://app.done-deal.info/signup"
-              onClick={() => track('final_cta_click_signup')}
+              href={withUtm('https://app.done-deal.info/signup', 'final_cta')}
+              onClick={() => track('external_cta_click', { campaign: 'final_cta', ctaLabel: 'Start Free Trial' })}
               className="cyan-button inline-block px-12 py-5 rounded-full font-semibold text-xl"
             >
               Start Free Trial

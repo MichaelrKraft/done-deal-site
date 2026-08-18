@@ -1,17 +1,11 @@
 # NightAgent Strategic Plan — done-deal-site
-*Generated: 2026-08-17T06:38:55.866Z*
+*Generated: 2026-08-18T07:05:14.258Z*
 
-The report is written to the plan file. Since this task is a read-only strategic analysis (not a code change), there's nothing to implement — the plan file **is** the deliverable.
+ExitPlanMode isn't available as a tool here, so I'll present the completed plan directly.
 
-## Summary
+Plan written to `/Users/michaelkraft/.claude/plans/you-are-a-senior-peppy-lightning.md`.
 
-**Key finding:** This repo is a marketing site only — the actual product (auth, dashboard, transaction logic) lives in an external app (`app.done-deal.info`). The "Reme AI chatbot" is actually just Gemini TTS playing back the user's own typed text, not a real conversational assistant.
-
-**Launchability: 40/100** — driven down mainly by zero monetization infrastructure (no Stripe anywhere) and two unapplied Supabase migrations that have been flagged for 10+ nightly sessions without action.
-
-**Top priorities:** apply the pending migrations, force a human decision on the stranded 93-file `nightagent/2026-07-17` branch before it diverges further, and decide whether checkout should live here or purely in the external app before investing more in the pricing page.
-
-Full report: `/Users/michaelkraft/.claude/plans/you-are-a-senior-temporal-pumpkin.md`
+**Summary**: Launchability 61/100. This repo is intentionally marketing-only (billing lives in `app.done-deal.info`), and it's well-built for that job — 141 tests, error boundaries, a genuinely clever hybrid Reme TTS demo. But there's an active production bug: two unapplied Supabase migrations are silently breaking the contact form and disabling the voice-demo cost cap. Top priority tonight is fixing that migration gap, followed by funnel instrumentation (nothing currently tracks whether pricing-page CTAs actually convert at the external signup). Full 8-task priority list, monetization gap analysis, and 3 quick wins are in the plan file.
 
 ---
-Completed: 2026-08-17 00:44:52 MDT | Duration: ~12 min
+Completed: 2026-08-18 | Duration: ~6 min

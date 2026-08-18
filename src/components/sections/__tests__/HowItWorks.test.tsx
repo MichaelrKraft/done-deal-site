@@ -33,17 +33,21 @@ describe('HowItWorks', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders the CTA link pointing to the signup app', () => {
+  it('renders the CTA link pointing to the signup app with UTM attribution', () => {
     render(<HowItWorks />);
     const link = screen.getByRole('link', { name: /build my free ai bot/i });
-    expect(link).toHaveAttribute('href', 'https://app.done-deal.info/signup');
+    expect(link.getAttribute('href')).toMatch(/^https:\/\/app\.done-deal\.info\/signup\?/);
+    expect(link.getAttribute('href')).toContain('utm_campaign=how_it_works_section');
   });
 
-  it('tracks howitworks_cta_click_signup when the CTA is clicked', () => {
+  it('tracks external_cta_click with the how_it_works_section campaign when the CTA is clicked', () => {
     render(<HowItWorks />);
     const link = screen.getByRole('link', { name: /build my free ai bot/i });
     fireEvent.click(link);
-    expect(track).toHaveBeenCalledWith('howitworks_cta_click_signup');
+    expect(track).toHaveBeenCalledWith('external_cta_click', {
+      campaign: 'how_it_works_section',
+      ctaLabel: 'Build my FREE Ai Bot',
+    });
   });
 
   it('calls track exactly once per click', () => {

@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import { track } from '@vercel/analytics';
 import Toast from '@/components/ui/Toast';
+import { withUtm } from '@/lib/externalCta';
 
 type FormData = {
   firstName: string;
@@ -182,8 +183,8 @@ export default function YourCastleSignup() {
             )}
 
             <a
-              href="https://app.done-deal.info/signup"
-              onClick={() => track('yourcastle_signup_cta_click_signup')}
+              href={withUtm('https://app.done-deal.info/signup', 'yourcastle_signup')}
+              onClick={() => track('external_cta_click', { campaign: 'yourcastle_signup', ctaLabel: 'Set Up My Account Now' })}
               className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-[#00BEFF] text-black font-semibold text-lg hover:bg-[#00a8d9] transition-colors"
             >
               Set Up My Account Now →

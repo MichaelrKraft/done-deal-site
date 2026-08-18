@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { track } from '@vercel/analytics';
+import { withUtm } from '@/lib/externalCta';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -61,13 +63,15 @@ export default function Navbar() {
           {/* CTA Button */}
           <div className="hidden md:flex items-center gap-4">
             <Link
-              href="https://app.done-deal.info/login"
+              href={withUtm('https://app.done-deal.info/login', 'navbar_desktop')}
+              onClick={() => track('external_cta_click', { campaign: 'navbar_desktop', ctaLabel: 'Sign In' })}
               className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
             >
               Sign In
             </Link>
             <Link
-              href="https://app.done-deal.info/signup"
+              href={withUtm('https://app.done-deal.info/signup', 'navbar_desktop')}
+              onClick={() => track('external_cta_click', { campaign: 'navbar_desktop', ctaLabel: 'Start Free Trial' })}
               className="cyan-button px-6 py-2 rounded-full font-semibold"
             >
               Start Free Trial
@@ -121,9 +125,12 @@ export default function Navbar() {
               ))}
               <div className="flex flex-col gap-2 px-4 pt-4 border-t border-white/10">
                 <Link
-                  href="https://app.done-deal.info/signup"
+                  href={withUtm('https://app.done-deal.info/signup', 'navbar_mobile')}
                   className="cyan-button px-6 py-2 rounded-full font-semibold text-center"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={() => {
+                    track('external_cta_click', { campaign: 'navbar_mobile', ctaLabel: 'Start Free Trial' });
+                    setIsMenuOpen(false);
+                  }}
                 >
                   Start Free Trial
                 </Link>

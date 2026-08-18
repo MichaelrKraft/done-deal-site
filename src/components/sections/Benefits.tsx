@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { track } from '@vercel/analytics';
 import AnimatedSection from '@/components/AnimatedSection';
+import { withUtm } from '@/lib/externalCta';
 
 const benefits = [
   {
@@ -65,8 +66,8 @@ export default function Benefits() {
         <AnimatedSection delay={0.5}>
           <div className="text-center">
             <Link
-              href="https://app.done-deal.info/signup"
-              onClick={() => track('benefits_cta_click_signup')}
+              href={withUtm('https://app.done-deal.info/signup', 'benefits')}
+              onClick={() => track('external_cta_click', { campaign: 'benefits', ctaLabel: 'Start Free Trial' })}
               className="cyan-button inline-block px-8 py-4 rounded-full font-semibold text-lg"
             >
               Start Free Trial

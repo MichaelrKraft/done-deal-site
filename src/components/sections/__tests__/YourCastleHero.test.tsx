@@ -91,7 +91,10 @@ describe('YourCastleHero', () => {
     const link = screen.getByRole('link', { name: /already have an account/i });
     fireEvent.click(link);
 
-    expect(track).toHaveBeenCalledWith('yourcastle_hero_cta_click_login');
+    expect(track).toHaveBeenCalledWith('external_cta_click', {
+      campaign: 'hero',
+      ctaLabel: 'Already have an account?',
+    });
   });
 
   it('renders the "Claim My Free Deal" anchor pointing at #claim', async () => {
