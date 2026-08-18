@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "node scripts/smoke-test-schema.mjs --non-blocking || true",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
