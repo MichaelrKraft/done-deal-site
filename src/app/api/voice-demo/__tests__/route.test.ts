@@ -158,6 +158,37 @@ describe('POST /api/voice-demo', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  // Regression test for the exact unapplied-migration state confirmed live in
+  // production tonight (2026-08-18) via `npm run smoke:schema`: the
+  // `increment_voice_demo_usage` RPC (migration
+  // 20260716000000_create_voice_demo_usage.sql) doesn't exist, so PostgREST
+  // returns PGRST202. This has reportedly left the voice demo silently
+  // returning 500s or unlimited passthrough in some prior sessions' worry —
+  // this test proves definitively, end-to-end through the real route (not
+  // just the isolated helper), that the daily-cap RPC being 404 blocks the
+  // request with 429 and never reaches the paid Gemini TTS API. See
+  // NIGHTAGENT_MIGRATION_STATUS.md for the live verification and the fix.
+  it('fails closed end-to-end when Supabase 404s the RPC exactly as it does in production right now (PGRST202)', async () => {
+    rpcMock.mockResolvedValue({
+      data: null,
+      error: {
+        message:
+          'Could not find the function public.increment_voice_demo_usage(p_daily_cap, p_ip) in the schema cache',
+        code: 'PGRST202',
+      },
+    });
+    const { POST } = await loadRoute();
+
+    const res = await POST(makeRequest({ text: 'Hello world' }, '30.0.0.14'));
+
+    expect(res.status).toBe(429);
+    const json = await res.json();
+    expect(json.error).toMatch(/daily usage limit/i);
+    // The whole point of fail-closed: an unapplied migration must never let
+    // requests fall through to the paid, per-call Gemini TTS API.
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('checks the daily cap using the same client IP the per-minute limiter used', async () => {
     const { POST } = await loadRoute();
     const ip = '30.0.0.11';

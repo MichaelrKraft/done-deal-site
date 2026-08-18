@@ -66,4 +66,29 @@ describe('checkVoiceDemoDailyCap', () => {
     expect(result.allowed).toBe(false);
     expect(result.reason).toMatch(/verification unavailable/i);
   });
+
+  // Regression test for the exact production state confirmed live tonight
+  // (2026-08-18) via `npm run smoke:schema`: the `increment_voice_demo_usage`
+  // RPC does not exist because migration 20260716000000_create_voice_demo_usage.sql
+  // has never been applied. PostgREST returns error code PGRST202 with this
+  // exact message shape — not a generic network error — when a function is
+  // missing from the schema cache. This asserts the fail-closed path is
+  // actually exercised by that specific error, not just "some error object."
+  // See NIGHTAGENT_MIGRATION_STATUS.md for the live verification.
+  it('fails closed when the RPC is missing (PGRST202 — unapplied migration state)', async () => {
+    rpcMock.mockResolvedValue({
+      data: null,
+      error: {
+        message:
+          'Could not find the function public.increment_voice_demo_usage(p_daily_cap, p_ip) in the schema cache',
+        code: 'PGRST202',
+      },
+    });
+    const { checkVoiceDemoDailyCap } = await loadModule();
+
+    const result = await checkVoiceDemoDailyCap('1.2.3.4');
+
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toMatch(/verification unavailable/i);
+  });
 });
