@@ -1135,3 +1135,33 @@ Marginal move up from last night's 40/100 assessment — the two shipped fixes a
 - Supabase migrations: confirmed (again) not applicable from this sandbox — no `supabase` CLI, no `psql`, no DB connection string in env; service-role key can't run DDL. Re-verified, not re-attempted.
 - Stranded branch `nightagent/2026-07-17`: untouched, flagged for human merge/close decision per the strategic report.
 - Stripe/monetization: intentionally not built pending a human decision on where billing should live.
+
+## Bugs Fixed — 2026-08-18 (Bug Agent)
+
+### Task 1: Unapplied Supabase migrations (contact form + voice-demo cost cap) — PARTIALLY ADDRESSED, root cause NOT fixable from this sandbox
+- Re-verified live tonight (not assumed from prior reports): `npm run smoke:schema` against production still shows all 3 checks FAILING — `contact_submissions.source` column missing, `voice_demo_usage` table missing, `increment_voice_demo_usage` RPC missing. This is the same state documented for 12+ prior sessions.
+- Confirmed (again, independently) no direct-apply path exists in this sandbox: no `supabase`/`psql` CLI installed, no `DATABASE_URL`/`SUPABASE_DB_URL`/`SUPABASE_ACCESS_TOKEN` in env or `.env.local` — only `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, none of which authorize DDL (`CREATE TABLE`/`ALTER TABLE`/`CREATE FUNCTION`) via PostgREST. Did not attempt any workaround given production-data safety instructions.
+- **What I did instead (loud-failure-detection, per instructions)**: the read-only `scripts/smoke-test-schema.mjs` tripwire already existed from a prior session but only ran on manual `npm run smoke:schema` — nothing surfaced the drift automatically. Wired it into `postbuild` (`package.json`) with a new `--non-blocking` flag: prints the full loud failure block (which columns/tables/RPCs are missing) on every Render build, but exits 0 so it never blocks an unrelated deploy for an already-known, human-actioned issue. Verified locally with real prod credentials sourced from `.env.local`: correctly detects and prints all 3 failures; also verified it degrades gracefully (skips, doesn't crash) when env vars aren't present at all.
+- Commit: `ed270e8` (`fix(migrations): fail loudly on schema drift every deploy, not just manually`)
+- **Still requires human action**: paste the SQL block in `NIGHTAGENT_MIGRATION_STATUS.md` into the Supabase SQL Editor (project `zjuoxaqdqqdtihmekrcz`), ~60 seconds. This has been the same blocker for 12+ sessions and is genuinely outside what any agent in this sandbox can resolve without new credentials (a `SUPABASE_ACCESS_TOKEN` or `DATABASE_URL` would unblock it).
+
+### Task 2: Regression test for fail-closed voice-demo behavior — DONE
+- Found existing fail-closed tests in `src/lib/__tests__/voiceDemoUsage.test.ts` and `src/app/api/voice-demo/__tests__/route.test.ts` used a generic `{ message: 'connection refused' }` error — not the actual error shape production returns right now.
+- Added new tests to both files using the *exact* PGRST202 "function not found in schema cache" error confirmed live via tonight's `smoke:schema` run, asserting: (a) `checkVoiceDemoDailyCap` returns `{ allowed: false }`, and (b) end-to-end through the real `/api/voice-demo` route, the response is 429 and the paid Gemini TTS `fetch` is never called.
+- Commit: `2d13a12` (`test(voice-demo): assert fail-closed against the exact live PGRST202 error`)
+- Result: confirms the fail-closed path is genuinely engaged under the current real production state, not just a hypothetical error.
+
+### Task 7: Gemini TTS cost cap audit — DONE
+- Confirmed current pricing (ai.google.dev, cross-checked): $0.50/1M input tokens, $10.00/1M output tokens, 25 audio tokens/sec.
+- Worst case per-IP/day under the existing 5 req/min + 30 req/day cap: ~$0.45/day. Realistic case (short demo phrases): ~$0.02-0.06/day per IP.
+- Conclusion: current cap is adequately conservative, no change made to the numbers. Logged full math and one residual gap (no aggregate/global ceiling across many simultaneous IPs — low priority given current traffic) in `CLAUDE.md`.
+- Commit: `e8bf4e7` (`docs(voice-demo): log Gemini TTS cost cap audit against live pricing`)
+
+### Security pass — no new findings
+- Reviewed `/api/contact` and `/api/yourcastle/signup` (most recently touched routes): both have proper type/length validation, HTML-escaping before Telegram interpolation (XSS-safe), parameterized Supabase queries (no SQL injection surface), rate limiting, and the yourcastle signup route already handles the select-then-insert race condition via a DB-level unique constraint + 23505 error code check. Matches the prior session's "zero findings" audit — nothing new to fix.
+
+### Coordination note
+Flagged one pre-existing failing test to FeatureAgent (`src/app/pricing/__tests__/page.test.tsx`, stale href assertion after their UTM instrumentation work) via SendMessage rather than fixing it myself, since it's their file/scope. Did not touch `ExternalCtaLink` click tracking per my instructions.
+
+## Monetization Changes — 2026-08-18 (Bug Agent)
+None. Per the plan (Task 8), billing/checkout is explicitly out of scope for this repo — it lives externally at `app.done-deal.info`. No Stripe or checkout flow was built or attempted. This remains a human decision (where should billing live), not a coding gap; re-flagging per the plan's own framing rather than re-litigating it.
