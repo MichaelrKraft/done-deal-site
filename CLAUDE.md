@@ -30,6 +30,35 @@ freemium
 ## Architecture Notes
 *(NightAgent will populate this as it learns the codebase. You can also add notes here manually.)*
 
+### Reme voice-demo (Gemini TTS) cost cap audit — 2026-08-18
+Audited `src/app/api/voice-demo/route.ts`'s two-layer cap (5 req/min/IP via
+`rateLimit.ts`, 30 req/IP/day via `voiceDemoUsage.ts`) against live Gemini
+2.5 Flash Preview TTS pricing: **$0.50/1M input tokens, $10.00/1M output
+tokens, output audio = 25 tokens/second** (confirmed via ai.google.dev
+pricing page, cross-checked against a second source).
+
+- Cost driver is output audio duration, not input text length: $0.00025/sec
+  of generated audio ($0.015/min).
+- **Worst case per IP/day** (30 requests, each a maximal ~60s of audio):
+  **~$0.45/day**. Realistic case (short demo phrases, a few seconds of
+  audio each): **~$0.02–0.06/day per IP**.
+- **Conclusion: the current cap is adequately conservative per-IP.** No
+  change needed to the 5/min or 30/day numbers.
+- **Residual gap (not fixed tonight, flagging for awareness)**: the cap is
+  per-IP, not global. A distributed spike (many IPs at once — e.g. a bot
+  swarm or viral traffic) has no aggregate ceiling; each IP is individually
+  cheap but N IPs × $0.45/day has no upper bound. If this ever becomes a
+  real concern, the next lever is a global daily spend/request ceiling in
+  `voiceDemoUsage.ts` (e.g. a single shared counter row) in addition to the
+  existing per-IP one — not needed today given this is a low-traffic
+  marketing site, but worth revisiting if traffic grows materially.
+- Also noted: `text` input has no server- or client-side max length —
+  someone could paste a very long string. Input cost stays negligible even
+  for large pastes ($0.001 for ~2000 tokens), but a longer text prompt could
+  in theory increase requested output audio duration too. Not addressed
+  tonight (low individual cost impact, would need product input on what a
+  reasonable max demo length is).
+
 ## Code Standards
 - Follow existing patterns in the codebase
 - Add JSDoc comments to all new functions
@@ -46,6 +75,9 @@ freemium
 *(NightAgent will populate this. You can also add key files manually.)*
 
 ## Recent Progress
+- 8/17/2026: *(Lead agent appends here after all teammates finish)*
+
+All three teammates completed their assigned scope on branch `nightagent/2026-07-04`, 6 commits total (`68755c9`, `6c4614f`, `710a418`, `c2cba9f`, `70428cc`, `b1dc283`). Working tree is clean; nothing left uncommitted.
 - 8/16/2026: *(Lead agent appends here after all teammates finish)*
 
 All three teammates completed their assigned scope on branch `nightagent/2026-07-04`, 6 commits total (`68755c9`, `6c4614f`, `710a418`, `c2cba9f`, `70428cc`, `b1dc283`). Working tree is clean; nothing left uncommitted.
@@ -88,7 +120,11 @@ All three teammates completed their assigned scope on branch `nightagent/2026-07
 *(NightAgent will document blockers here)*
 
 ---
-*Last updated by NightAgent: 2026-08-16T07:05:37.642Z*
+*Last updated by NightAgent: 2026-08-17T06:53:26.917Z*
+
+
+
+
 
 
 
@@ -132,10 +168,10 @@ All three teammates completed their assigned scope on branch `nightagent/2026-07
 
 
 <!-- coder1-mem:start -->
-<!-- Auto-updated by coder1-mem on 2026-08-17 — do not edit this block manually -->
+<!-- Auto-updated by coder1-mem on 2026-08-18 — do not edit this block manually -->
 ## Recent Session Context
 
-**Project:** done-deal-site | **Sessions:** 96 | **Last active:** just now
+**Project:** done-deal-site | **Sessions:** 103 | **Last active:** just now
 
 Session topic: ...
 
