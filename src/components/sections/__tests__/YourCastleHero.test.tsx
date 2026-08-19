@@ -59,6 +59,41 @@ describe('YourCastleHero', () => {
     expect(screen.queryByText(/of 20/i)).not.toBeInTheDocument();
   });
 
+  // Regression test: the interval count-poll .catch(() => {}) previously
+  // discarded fetch failures with zero trace. Before the fix, this assertion
+  // would fail (nothing logged); after the fix, the failure must be logged
+  // via console.error on the 30s poll so a persistent network/API problem is
+  // debuggable in production instead of silently invisible. (The initial
+  // mount fetch uses a separate .catch(() => setRemaining(null)) that was
+  // not part of this fix and is intentionally not asserted here.)
+  it('regression: logs (does not silently swallow) a failed count-poll fetch on the 30s interval', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ json: async () => ({ remaining: 10 }) }) // initial mount succeeds
+      .mockRejectedValue(new Error('network down')); // interval poll fails
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<YourCastleHero />);
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    await act(async () => {
+      vi.advanceTimersByTime(30000);
+    });
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '[yourcastle-hero] count poll failed:',
+        'network down'
+      );
+    });
+
+    consoleSpy.mockRestore();
+  });
+
   it('polls the count endpoint again after 30 seconds', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       json: async () => ({ remaining: 5 }),

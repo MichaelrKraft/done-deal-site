@@ -90,6 +90,27 @@ describe('YourCastleSignup', () => {
     });
   });
 
+  // Regression test: the count-fetch .catch(() => {}) on mount previously
+  // discarded fetch/parse failures with zero trace. Before the fix, this
+  // assertion would fail (nothing logged); after the fix, the failure must
+  // be logged via console.error so a persistent network/API problem is
+  // debuggable in production instead of silently invisible.
+  it('regression: logs (does not silently swallow) a failed count fetch on mount', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')));
+
+    render(<YourCastleSignup />);
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '[yourcastle-signup] count fetch failed:',
+        'network down'
+      );
+    });
+
+    consoleSpy.mockRestore();
+  });
+
   it('submits successfully and shows the success state when the API call succeeds', async () => {
     const fetchMock = vi.fn((url: string) => {
       if (typeof url === 'string' && url.includes('/api/yourcastle/count')) {

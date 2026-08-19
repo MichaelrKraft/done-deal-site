@@ -229,6 +229,28 @@ describe('POST /api/yourcastle/signup', () => {
     expect(insertMock).not.toHaveBeenCalled();
   });
 
+  // Gap found in review: the RPC error-handling branches only cover
+  // `{ data: null, error }` responses (function-missing PGRST202, or a
+  // 23505 unique violation). If supabaseAdmin.rpc() itself throws (e.g. a
+  // network failure or unexpected exception, not a returned error object),
+  // that isn't caught by the RPC branch logic at all — it propagates up to
+  // the route's outer try/catch, which must still return the generic 500
+  // instead of crashing the request.
+  it('returns 500 (via the outer catch) when the RPC call itself throws instead of returning an error object', async () => {
+    rpcMock.mockRejectedValueOnce(new Error('connection reset'));
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { POST } = await loadRoute();
+
+    const res = await POST(makeRequest(validPayload, '30.0.0.11'));
+    const json = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(json.error).toBe('Something went wrong. Please try again.');
+    expect(consoleSpy).toHaveBeenCalledWith('Signup error:', 'connection reset');
+    // Must not fall through to the fallback insert path or succeed.
+    expect(insertMock).not.toHaveBeenCalled();
+  });
+
   it('returns 500 without logging the raw error object when the insert fails', async () => {
     insertMock.mockResolvedValueOnce({ error: new Error('db down') });
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});

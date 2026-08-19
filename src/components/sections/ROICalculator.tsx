@@ -10,7 +10,7 @@ const ANNUAL_STANDARD_LIMIT = 10;
 const ANNUAL_UNLIMITED_PRICE = 2500;
 const HUMAN_TC_PER_DEAL = 400;
 
-function getBestPlan(deals: number): { name: string; annual: number } {
+export function getBestPlan(deals: number): { name: string; annual: number } {
   const paygo = deals * PER_TRANSACTION_PRICE;
   const standard = deals <= ANNUAL_STANDARD_LIMIT ? ANNUAL_STANDARD_PRICE : Infinity;
   const unlimited = ANNUAL_UNLIMITED_PRICE;
