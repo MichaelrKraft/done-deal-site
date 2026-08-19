@@ -1165,3 +1165,22 @@ Flagged one pre-existing failing test to FeatureAgent (`src/app/pricing/__tests_
 
 ## Monetization Changes — 2026-08-18 (Bug Agent)
 None. Per the plan (Task 8), billing/checkout is explicitly out of scope for this repo — it lives externally at `app.done-deal.info`. No Stripe or checkout flow was built or attempted. This remains a human decision (where should billing live), not a coding gap; re-flagging per the plan's own framing rather than re-litigating it.
+
+## Bugs Fixed — 2026-08-19 (Bug Agent)
+
+Full review pass across `src/app/api/*` routes (contact, voice-demo, yourcastle/count, yourcastle/signup) and their client-side callers (VoiceDemo, YourCastleHero, YourCastleSignup, ExternalCtaLink, contact page). Codebase was already in strong shape from prior sessions — validation, rate limiting, fail-closed Supabase usage caps, XSS-safe Telegram escaping, and the atomic yourcastle race-condition fix (Feature Agent, in progress this session) were all already present. Found and fixed one real, narrow issue:
+
+- **`src/components/sections/YourCastleHero.tsx`** (line ~29) and **`src/components/sections/YourCastleSignup.tsx`** (lines ~30, ~37) — the 15s/30s polling loops for the live free-deal counter had `.catch(() => {})`, silently discarding fetch/parse failures with zero trace. Per this repo's logging rule ("a `.catch()` that maps an error to a neutral value without logging is itself a bug"), a persistent network or API problem on the yourcastle promo page would have been invisible in production logs — no way to tell "counter stuck because polling is broken" from "counter stuck because value hasn't changed." Now logs the error message (`err instanceof Error ? err.message : 'Unknown error'`, no PII/tokens) via `console.error` so it's debuggable, while still degrading gracefully in the UI (counter just stops updating rather than showing an error to the visitor, which is correct here — a background polling failure isn't user-actionable).
+- Commit: `78bc615` (`fix(yourcastle): log swallowed count-poll fetch errors instead of discarding silently`)
+
+### Reviewed, no changes needed
+- `src/app/api/contact/route.ts`, `src/app/api/voice-demo/route.ts`, `src/app/api/yourcastle/count/route.ts` — all have try/catch at the top level, fail-closed or graceful-degradation behavior, proper input validation/length limits, and no secrets/PII in logs.
+- `src/app/api/yourcastle/signup/route.ts` — currently being modified by the Feature Agent in parallel (atomic free-deal-allocation migration wiring per `20260816000000_atomic_yourcastle_free_deal_allocation.sql`); left untouched per coordination instructions.
+- `dangerouslySetInnerHTML` usages (`src/app/page.tsx`, `how-it-works/page.tsx`, `pricing/page.tsx`) — all serialize hardcoded, static JSON-LD objects (`JSON.stringify` of constants with no user input reachable), not an XSS vector.
+- `src/components/sections/ROICalculator.tsx` — reviewed the plan-picking math (`getBestPlan`) for a bug per the flagged risk; logic is correct (compares pay-per-transaction vs. annual-standard-if-under-limit vs. annual-unlimited and picks the true minimum). No bug found; left test coverage to the Test Agent as instructed.
+- `src/lib/rateLimit.ts` `getClientIp` fallback-to-`'unknown'` behavior — already reviewed and intentionally accepted in a prior session (`NIGHTAGENT_REPORT.md` 2026-08-18 entry), with full test coverage in `src/lib/__tests__/rateLimit.test.ts`. Re-verified it's still covered; no new gap.
+- `npm run lint` — 0 errors, 5 pre-existing warnings (unused test vars, one `<img>` LCP suggestion in `Testimonials.tsx`), none related to this session's changes.
+- `npm run build` — succeeds cleanly.
+
+## Monetization Changes — 2026-08-19 (Bug Agent)
+None. Reviewed the repo for a genuine, scoped monetization gap belonging to this marketing site specifically (per instructions, not a generic Stripe/payments buildout). The only in-repo monetization-adjacent flow is the YourCastle free-deal promo signup, which the Feature Agent is actively completing (atomic allocation) this session. No other gap found — pricing/checkout intentionally lives in the external `app.done-deal.info` product. Nothing built.
