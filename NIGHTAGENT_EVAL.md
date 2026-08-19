@@ -1,37 +1,36 @@
 # NightAgent Evaluation — done-deal-site
-*8/17/2026, 12:51:25 AM*
+*8/18/2026, 1:18:12 AM*
 
-## Overall Score: 58/100
+## Overall Score: 62/100
 
 | Dimension | Score | Max |
 |:---|:---:|:---:|
-| Features Completed | 12 | 25 |
-| Bugs Fixed | 9 | 20 |
-| Monetization Progress | 4 | 20 |
-| Code Quality | 15 | 20 |
-| Tests Added | 10 | 15 |
+| Features Completed | 15 | 25 |
+| Bugs Fixed | 3 | 20 |
+| Monetization Progress | 2 | 20 |
+| Code Quality | 16 | 20 |
+| Tests Added | 12 | 15 |
 
 ## Product Scores
 - **Launchability Score**: 74/100
-- **Revenue Readiness Score**: 40/100
+- **Revenue Readiness Score**: 20/100
 
 ## Summary
-A small, disciplined session: two agents shipped narrow, well-tested UX fixes (Reme copy honesty, pricing CTA fallback) while a third correctly declined to manufacture bug or monetization work where none existed. Good judgment throughout, but the session made zero progress on the two structural blockers (unapplied migrations, stranded 70-commit branch) that have now persisted for 12+ nights, capping real-world impact despite clean code and full test/build verification.
+A tight, well-scoped session that avoided busywork — no manufactured features, honest audits that found few new issues, and useful defensive tooling (schema-drift tripwire, CTA fallback UX). But it's the 14th night in a row blocked on the same two unapplied migrations and a decaying unmerged PR, with zero monetization progress; the program is optimizing code quality on a branch that still isn't shipping.
 
 ## Top Achievements
-- Shipped two real, scoped UX fixes: corrected the Reme voice-demo copy from implying conversational AI to accurately describing a TTS preview, and added a loading/timeout/error fallback (ExternalCtaLink) around pricing CTAs that deep-link to an external app
-- Bug agent ran a genuine audit (yourcastle error UX, API try/catch coverage, XSS/SQL-injection sweep) and correctly reported zero findings rather than manufacturing busywork
-- Test agent caught and closed the one real gap (no test file for the new ExternalCtaLink component) with 6 well-constructed fake-timer tests, verified 141/141 passing and a clean build
+- Bug Agent live-verified the exact production PGRST202 error and wrote a genuinely useful loud-failure schema-drift tripwire (postbuild, non-blocking) instead of repeating the same stale note a 13th time
+- Feature Agent fixed real trust/UX gaps: Reme voice-demo copy no longer overclaims conversational AI, and pricing CTAs now have a loading/timeout/retry fallback instead of a silent dead click
+- Test Agent closed the actual coverage gap (ExternalCtaLink had zero tests) and added exact-error-shape regression tests rather than generic mocks, growing the suite to 141 passing tests
 
 ## Top Failures / Missed Opportunities
-- The single highest-leverage blocker — two unapplied Supabase migrations that leave the contact form failing and the voice-demo cost cap fully disabled in production — is now unresolved for 12+ consecutive sessions with no new escalation attempted tonight beyond restating the known blocker
-- A 70+ commit branch (nightagent/2026-07-17) diverging further from master every night remains unmerged with no decision forced or new attempt to escalate it, despite being flagged as increasingly risky since 2026-08-05
-- Monetization work was explicitly and correctly declined (good judgment), but this means 12+ nights in have produced no progress at all on revenue-readiness — the repo still has zero in-repo path from traffic to paid conversion
+- 14th consecutive session with the exact same two Supabase migrations unapplied in production — the contact form and voice-demo cost cap are still broken/disabled live, and no session has escalated this beyond re-writing the same status doc
+- Zero monetization work again, and the branch-divergence problem (PR #3 now stale against master's independent 'Remy' feature work) is getting worse every night without a human decision, actively increasing future merge-conflict cost
 
 ## Tomorrow's Top 3
-1. Apply the two pending Supabase migrations via SQL Editor (project zjuoxaqdqqdtihmekrcz) — this is a ~60 second human action that has blocked lead capture and the TTS cost cap for over a week
-2. Force a merge/close decision on nightagent/2026-07-17 before it decays further against master's independent feature work
-3. Get a human decision on where billing/monetization should live (this repo vs. app.done-deal.info) so agents stop correctly-but-repeatedly declining monetization work with no path forward
+1. Human: apply the two pending Supabase migrations (contact_submissions.source, voice_demo_usage) — copy-paste block already staged in NIGHTAGENT_MIGRATION_STATUS.md
+2. Human: resolve PR #3 / master divergence — decide Reme vs Remy, merge or close before conflicts compound further
+3. Agent: once migrations land, wire the already-written atomic_yourcastle_free_deal_allocation RPC into the signup route and verify live
 
 ## Program Improvement Suggestion
-The nightly loop keeps re-confirming the same two blockers (Supabase migrations, stranded branch) without ever escalating beyond 'flag it again' — add an explicit escalation ladder to program.md: after N consecutive nights a blocker is re-flagged unresolved, the agent should attempt a stronger unblock (e.g., draft the exact PR-merge command, or open a tracking issue) rather than repeating the same markdown note.
+Add a hard escalation rule: if the same blocker (e.g. a migration) has been flagged unresolved for N>5 consecutive sessions, the nightly program should stop assigning agents to re-verify/re-document it and instead spend that budget on a workaround (e.g. an app-level feature flag that disables the dependent feature gracefully) or on making the ask so trivially small a human can't defer it (e.g. a Slack/email ping with the exact SQL, not just a markdown file nobody reads).

@@ -1,11 +1,10 @@
 # NightAgent Strategic Plan — done-deal-site
-*Generated: 2026-08-18T07:05:14.258Z*
+*Generated: 2026-08-19T06:34:43.323Z*
 
-ExitPlanMode isn't available as a tool here, so I'll present the completed plan directly.
+Plan mode is still active, so I can't write to CLAUDE.md right now — I'm restricted to the plan file. The learnings worth preserving for next session:
 
-Plan written to `/Users/michaelkraft/.claude/plans/you-are-a-senior-peppy-lightning.md`.
+- This repo is pure marketing/lead-gen by design — no auth/payments/dashboard live here (those are in the external `app.done-deal.info`); future launchability scoring should be scoped as a conversion-site audit, not a full-product audit.
+- Real open risk: the YourCastle free-first-transaction promo has a migration for enforcing the free-deal cap (`a7dd443`) that git history flags as "not yet wired in" — worth verifying before that page gets traffic.
+- `ROICalculator.tsx` does real math with zero test coverage.
 
-**Summary**: Launchability 61/100. This repo is intentionally marketing-only (billing lives in `app.done-deal.info`), and it's well-built for that job — 141 tests, error boundaries, a genuinely clever hybrid Reme TTS demo. But there's an active production bug: two unapplied Supabase migrations are silently breaking the contact form and disabling the voice-demo cost cap. Top priority tonight is fixing that migration gap, followed by funnel instrumentation (nothing currently tracks whether pricing-page CTAs actually convert at the external signup). Full 8-task priority list, monetization gap analysis, and 3 quick wins are in the plan file.
-
----
-Completed: 2026-08-18 | Duration: ~6 min
+Once you exit plan mode I can append these to CLAUDE.md under a "Session Learnings" section — want me to do that now?
