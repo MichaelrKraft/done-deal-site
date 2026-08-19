@@ -4,6 +4,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 //   supabaseAdmin.from(...).select(...).eq(...).single()   -> duplicate check
 //   supabaseAdmin.from(...).select(..., { count, head })   -> count query
 //   supabaseAdmin.from(...).insert(...)                    -> insert
+//   supabaseAdmin.rpc('allocate_yourcastle_signup', ...)   -> atomic allocation
 const singleMock = vi.fn();
 const eqMock = vi.fn(() => ({ single: singleMock }));
 const insertMock = vi.fn();
@@ -21,9 +22,22 @@ const fromMock = vi.fn((_table: string) => ({
   insert: insertMock,
 }));
 
+// Default: simulate the atomic allocation migration NOT yet being applied to
+// production (matches reality as of 2026-08-19 — see
+// NIGHTAGENT_MIGRATION_STATUS.md), so the route falls back to the pre-existing
+// select-then-insert path and every test below continues to exercise that
+// path via fromMock/insertMock exactly as before this RPC was wired in.
+const rpcMock = vi.fn(() =>
+  Promise.resolve({
+    data: null,
+    error: { code: 'PGRST202', message: 'function not found in schema cache' },
+  })
+);
+
 vi.mock('@/lib/supabase', () => ({
   supabaseAdmin: {
     from: (table: string) => fromMock(table),
+    rpc: (...args: unknown[]) => rpcMock(...args),
   },
 }));
 
@@ -56,6 +70,10 @@ describe('POST /api/yourcastle/signup', () => {
     singleMock.mockResolvedValue({ data: null }); // no existing signup by default
     countResponse = { count: 0 };
     insertMock.mockResolvedValue({ error: null });
+    rpcMock.mockResolvedValue({
+      data: null,
+      error: { code: 'PGRST202', message: 'function not found in schema cache' },
+    });
     fetchMock.mockResolvedValue({ ok: true, json: async () => ({}) });
     process.env.TELEGRAM_BOT_TOKEN = 'test-token';
     process.env.TELEGRAM_CHAT_ID = 'test-chat-id';
@@ -127,7 +145,10 @@ describe('POST /api/yourcastle/signup', () => {
 
     expect(res.status).toBe(409);
     expect(json.error).toBe('This email has already claimed a spot.');
-    expect(consoleSpy).not.toHaveBeenCalled();
+    // The transitional fallback path logs that the atomic RPC is unavailable
+    // (expected while the migration is unapplied), but must never fall
+    // through to the generic 500 handler's "Signup error:" log.
+    expect(consoleSpy).not.toHaveBeenCalledWith('Signup error:', expect.anything());
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -187,6 +208,27 @@ describe('POST /api/yourcastle/signup', () => {
     expect(body.text).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
   });
 
+  // Once supabase/migrations/20260816000000_atomic_yourcastle_free_deal_allocation.sql
+  // is applied to production, allocate_yourcastle_signup will succeed and the
+  // route should use its result directly instead of the select-then-insert
+  // fallback.
+  it('uses the atomic allocation RPC result when the migration is applied', async () => {
+    rpcMock.mockResolvedValueOnce({
+      data: [{ new_id: 'abc-123', got_free_deal: true, spot_number: 1 }],
+      error: null,
+    });
+    const { POST } = await loadRoute();
+
+    const res = await POST(makeRequest(validPayload, '30.0.0.10'));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.gotFreeDeal).toBe(true);
+    expect(json.spotNumber).toBe(1);
+    // The fallback select/insert path must not run when the RPC succeeds.
+    expect(insertMock).not.toHaveBeenCalled();
+  });
+
   it('returns 500 without logging the raw error object when the insert fails', async () => {
     insertMock.mockResolvedValueOnce({ error: new Error('db down') });
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -198,7 +240,7 @@ describe('POST /api/yourcastle/signup', () => {
     // Regression: previously logged the raw error object (risk of leaking
     // stack traces/internals); now must log only error.message as a string.
     expect(consoleSpy).toHaveBeenCalledWith('Signup error:', 'db down');
-    const loggedArgs = consoleSpy.mock.calls[0];
+    const loggedArgs = consoleSpy.mock.calls.find((call) => call[0] === 'Signup error:')!;
     expect(loggedArgs[1]).toBe('db down');
     expect(loggedArgs[1]).not.toBeInstanceOf(Error);
   });
