@@ -27,13 +27,13 @@ export default function YourCastleSignup() {
     fetch('/api/yourcastle/count')
       .then((r) => r.json())
       .then((d) => setRemaining(d.remaining))
-      .catch(() => {});
+      .catch((err) => console.error('[yourcastle-signup] count fetch failed:', err instanceof Error ? err.message : 'Unknown error'));
 
     const interval = setInterval(() => {
       fetch('/api/yourcastle/count')
         .then((r) => r.json())
         .then((d) => setRemaining(d.remaining))
-        .catch(() => {});
+        .catch((err) => console.error('[yourcastle-signup] count poll failed:', err instanceof Error ? err.message : 'Unknown error'));
     }, 15000);
 
     return () => clearInterval(interval);

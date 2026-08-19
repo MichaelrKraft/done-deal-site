@@ -26,7 +26,7 @@ export default function YourCastleHero() {
       fetch('/api/yourcastle/count')
         .then((r) => r.json())
         .then((d) => setRemaining(d.remaining))
-        .catch(() => {});
+        .catch((err) => console.error('[yourcastle-hero] count poll failed:', err instanceof Error ? err.message : 'Unknown error'));
     }, 30000);
 
     return () => clearInterval(interval);
