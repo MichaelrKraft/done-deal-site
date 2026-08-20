@@ -10,6 +10,22 @@ export const metadata: Metadata = {
   title: 'How It Works — Done Deal AI Transaction Coordination',
   description:
     'What a transaction coordinator does, how Done Deal automates the job with AI, and answers to common questions about getting started.',
+  alternates: {
+    canonical: '/how-it-works',
+  },
+  openGraph: {
+    title: 'How It Works — Done Deal AI Transaction Coordination',
+    description:
+      'What a transaction coordinator does, how Done Deal automates the job with AI, and answers to common questions about getting started.',
+    url: '/how-it-works',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'How It Works — Done Deal AI Transaction Coordination',
+    description:
+      'What a transaction coordinator does, how Done Deal automates the job with AI.',
+  },
 };
 
 /**

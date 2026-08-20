@@ -10,6 +10,22 @@ export const metadata: Metadata = {
   title: 'Pricing — Done Deal AI Transaction Coordination',
   description:
     'Compare Done Deal pricing plans: pay-per-transaction, Annual Standard, and Annual Unlimited. Half the cost of a human TC, with all of the results.',
+  alternates: {
+    canonical: '/pricing',
+  },
+  openGraph: {
+    title: 'Pricing — Done Deal AI Transaction Coordination',
+    description:
+      'Compare Done Deal pricing plans: pay-per-transaction, Annual Standard, and Annual Unlimited. Half the cost of a human TC, with all of the results.',
+    url: '/pricing',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Pricing — Done Deal AI Transaction Coordination',
+    description:
+      'Compare Done Deal pricing plans: pay-per-transaction, Annual Standard, and Annual Unlimited.',
+  },
 };
 
 /**
