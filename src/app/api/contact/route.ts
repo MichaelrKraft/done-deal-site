@@ -15,13 +15,24 @@ function escapeTelegramHtml(value: string): string {
     .replace(/>/g, '&gt;');
 }
 
+// Best-effort notification: the contact submission is already persisted by
+// the time this runs, so a Telegram failure (bad token, network blip,
+// Telegram API outage) must never bubble up and cause the outer try/catch to
+// report a successful submission as a 500 to the user.
 async function sendTelegramNotification(text: string) {
   if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return;
-  await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text, parse_mode: 'HTML' }),
-  });
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text, parse_mode: 'HTML' }),
+    });
+    if (!res.ok) {
+      console.error('[contact] Telegram notification failed:', res.status);
+    }
+  } catch (error) {
+    console.error('[contact] Telegram notification error:', error instanceof Error ? error.message : 'Unknown error');
+  }
 }
 
 export async function POST(request: Request) {
