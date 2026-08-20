@@ -1228,3 +1228,50 @@ Small move up from the 42/100 baseline. This repo is a marketing/lead-gen site b
 ### Blockers encountered
 - Supabase migration application: same sandbox limitation as prior sessions (no `supabase`/`psql` CLI, no DB-level credentials) — re-confirmed, not re-attempted, correctly worked around via the defensive-fallback pattern instead of blocking on it.
 - No other blockers; all three teammates completed their scoped work without escalation.
+
+## Bugs Fixed — 2026-08-20 (Bug Agent)
+
+### 1. Telegram notification failure could report a successful submission as a 500 — DONE
+- `sendTelegramNotification()` in both `src/app/api/contact/route.ts` and
+  `src/app/api/yourcastle/signup/route.ts` called `fetch()` to the Telegram
+  API with no `try/catch` and no `res.ok` check, awaited directly in the
+  route handler after the Supabase insert (or atomic signup RPC) had already
+  succeeded.
+- If Telegram was down, rate-limited, or misconfigured (bad token), that
+  `fetch` would throw or the caller would have no way to detect a non-2xx
+  response; the thrown error would be caught by the route's outer
+  `try/catch` and return a generic 500 to the user — even though their
+  contact form submission or free-deal signup had already been persisted.
+  For the signup route this is worse than a UX annoyance: a user could see
+  "Something went wrong, please try again," retry, and only be saved by the
+  pre-existing unique-email/23505 handling rather than getting the success
+  screen for a signup that already landed.
+- Fix: wrapped both `sendTelegramNotification` bodies in their own
+  `try/catch`, added a `res.ok` check, and log failures via
+  `console.error` with just the HTTP status or `error.message` (no
+  submission content, no PII, matches existing logging conventions in these
+  files). Notification failures are now logged and swallowed at the
+  notification layer instead of propagating past the point where the DB
+  write already succeeded.
+- Verified: relevant test suites (`src/app/api/contact`,
+  `src/app/api/yourcastle/signup`, 20 tests) pass unchanged, `eslint` clean
+  on both files.
+- Reviewed but did not change: the two known-and-tracked Supabase migration
+  items (`contact_submissions.source`, `voice_demo_usage`) per explicit
+  scope instructions — not re-diagnosed. The `dangerouslySetInnerHTML` uses
+  in `src/app/page.tsx`, `how-it-works/page.tsx`, and `pricing/page.tsx` are
+  all `JSON.stringify()` of static schema.org objects (no user input), so
+  no XSS risk. No hardcoded secrets found; all `process.env.*` usage is
+  server-side only (API routes, `src/lib/supabase.ts`).
+- Commit: `fix(api): don't fail successful submissions when Telegram notify fails` (1400a2c).
+
+## Monetization Changes — 2026-08-20 (Bug Agent)
+
+None made. Stripe integration and a new pricing page are explicitly out of
+scope for this repo: this is the marketing/lead-gen shell for Done Deal —
+the actual product, auth, and Stripe billing live in the separate
+`app.done-deal.info` app. A prior strategic review confirmed the pricing
+page here already exists (copy plus outbound links to the real app) and
+there is nothing in this repo to gate or paywall. Adding Stripe or a new
+pricing surface here would be architecturally wrong, so this section is
+intentionally a no-op by design rather than an oversight.
