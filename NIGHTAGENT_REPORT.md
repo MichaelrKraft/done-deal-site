@@ -1275,3 +1275,17 @@ page here already exists (copy plus outbound links to the real app) and
 there is nothing in this repo to gate or paywall. Adding Stripe or a new
 pricing surface here would be architecturally wrong, so this section is
 intentionally a no-op by design rather than an oversight.
+
+## Features Completed — 2026-08-20 (Feature Agent)
+
+Reviewed the homepage, `/pricing`, `/how-it-works`, and `/contact` pages against prior audits. This repo is already quite mature — CTA click tracking with UTM tagging, error boundaries around WebGL sections, a reusable Toast component, FAQ JSON-LD, a feature comparison table, and per-IP rate limiting are all already in place. Rather than manufacture busywork on top of that, found one genuinely missing, small, concrete gap: social/link-preview metadata.
+
+### Social sharing / SEO metadata (OG + Twitter cards, canonical URLs) — DONE
+- `src/app/layout.tsx` had no `metadataBase`, no Open Graph image, no Twitter card, and no canonical URL. Any link to the site shared on LinkedIn, Slack, or via text (the exact channels real estate agents would use to share a demo link) rendered with zero preview image. Added `metadataBase`, an `openGraph.images` entry using the existing `public/dd-logo-landing.png` (1100x440, already landscape-oriented — no new asset needed), a matching `twitter` card block (`summary_large_image`), and `alternates.canonical`.
+- `src/app/pricing/page.tsx` and `src/app/how-it-works/page.tsx` already had page-specific `title`/`description` but no canonical URL or OG/Twitter overrides — added both so shared links to those pages show correct page-specific previews instead of falling back to the homepage's OG data.
+- `src/app/contact/page.tsx` is a `'use client'` component and had **zero** metadata — the App Router doesn't allow client components to export `metadata`, so it silently inherited the generic homepage title/description on the single highest-intent conversion page (demo booking). Added `src/app/contact/layout.tsx`, a thin server-component wrapper that exports real `metadata` (title, description, canonical, OG/Twitter) and simply passes `children` through — no change to the existing client page's behavior.
+- Verification: `npx tsc --noEmit` clean on all changed files (pre-existing, unrelated type errors in `src/app/api/yourcastle/signup/__tests__/route.test.ts` confirmed via `git stash` to predate this session — not touched, out of scope). `npx eslint` clean on all 4 files. `npm run build` succeeded — all routes (`/`, `/pricing`, `/how-it-works`, `/contact`) still generate as static (`○`), confirming the new `contact/layout.tsx` didn't force `/contact` to dynamic rendering.
+- Commit: `feat(seo): add OG/Twitter card metadata and canonical URLs` (`707f51f`).
+
+### Scope note
+Did not touch auth/Stripe/monetization (out of scope for this repo), did not re-diagnose the known unapplied-migrations blocker (already exhaustively documented across 13+ prior sessions), and did not fix bugs/write tests (owned by other agents this session). Left `src/app/api/contact/route.ts` and `src/app/api/yourcastle/signup/route.ts`, which showed as modified in the working tree at session start, untouched — that's a concurrent agent's in-progress work on the shared branch, not mine.
