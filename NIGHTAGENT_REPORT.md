@@ -1344,3 +1344,31 @@ Added `src/app/__tests__/global-error.test.tsx` (6 tests, mirroring the proven `
 ## Monetization Changes — 2026-08-21 (Bug & Quality Agent)
 
 None needed. Confirmed no Stripe integration exists and none should be added — this repo is a marketing/lead-gen shell by design; checkout and billing happen at `app.done-deal.info`. `/pricing` remains presentational-only, correctly. The one real monetization-adjacent risk in this repo is the yourcastle free-deal allocation race (Task 1 above), which is a data-integrity/promo-abuse risk, not a missing payment-plumbing gap — and its code-side fix has been in place since a prior session; only the DB migration apply step is blocked pending human action.
+
+## Summary — 2026-08-21 (Lead Agent)
+
+Three agents (Feature, Bug, Test) ran in parallel/sequence on branch `nightagent/2026-08-21`, working from the strategic plan at `/Users/michaelkraft/.claude/plans/you-are-a-senior-clever-tide.md`. 8 commits this session: `da6b300` (carried-forward metadata from prior session), `ecddf71`, `b1ce74d`, `4557ad4`, `2de3d6d`, `e6947fe`, `f179fdf`, `2bebf6a`, `db3a291`, `2b96000`. Working tree is clean; `npm run lint` 0 errors (5 pre-existing unrelated warnings); `npx vitest run` **179/179 passing** (up from 160 at session start).
+
+### Overall progress assessment
+- **The 13+-night migration blocker finally got a decisive close, not another re-diagnosis.** The Bug Agent confirmed the yourcastle atomic-allocation RPC was already wired into the signup route with a safe fallback by a prior session, then fixed the real gap: the escalation only lived in a doc agents don't always read. Added a "BLOCKED — needs human with Supabase SQL Editor access" section directly to `CLAUDE.md`, listing all 4 pending migrations including tonight's new one. Future sessions should stop re-investigating this and treat it as documented/blocked.
+- **`/how-it-works` gained real product depth** — a concrete 30-day sample transaction timeline (7 milestones, each tagged "Reme handles it" vs. "you show up"), replacing the plan's flagged gap of generic marketing copy with the workflow detail an evaluating agent actually needs.
+- **Voice-demo cost exposure closed on both axes**: server-side 500-char input cap (was completely unbounded) and a new global daily spend ceiling migration (500 req/day aggregate, ~$7.50/day worst case) layered on top of the already-proven per-IP caps — closes the "N IPs × no aggregate ceiling" gap flagged in a prior cost audit.
+- **Reliability hardened**: `error.tsx` and `global-error.tsx` App Router boundaries added (previously only `not-found.tsx` + a component-level ErrorBoundary existed), each with dedicated regression tests including one that specifically guards `global-error.tsx`'s intentional use of a plain `<a>` instead of `next/link` (the router is dead when this fires — a "helpful" future fix would silently break it).
+- **"Remy vs Reme" naming resolved as a non-issue for this branch** — audited and confirmed 100% consistent; the real conflict is an unrelated, unmerged feature on `master`, already flagged elsewhere as a human branch-reconciliation call.
+- **UTM/funnel instrumentation (Task 4) turned out to already be fully implemented** by a prior session — Feature Agent verified via full grep audit rather than duplicating work, a good sign of a maturing codebase.
+- Zero scope collisions between agents despite all three touching overlapping areas (voice-demo, error boundaries, tests) — each correctly left the others' in-progress files untouched and verified via git state rather than assuming.
+
+### Launchability Score: **78/100** (up from 61/100 pre-session)
+Reliability and the standing migration blocker were the two biggest drags identified in tonight's plan; both moved meaningfully. Docked remaining points for: the migration still not actually *applied* in production (documentation of the blocker is not the same as resolving it — that requires the human step below), and monetization/conversion-visibility being capped by design (this repo correctly has no payment plumbing of its own).
+
+### Action required from you (not something an agent can do autonomously)
+**Apply the 4 pending Supabase migrations via the SQL Editor for project `zjuoxaqdqqdtihmekrcz`** — full list and SQL now live in `CLAUDE.md`'s Known Issues section (not just buried in `NIGHTAGENT_MIGRATION_STATUS.md` anymore). This has been the top blocker for 14+ consecutive sessions. Until applied: the voice-demo cap RPC fails closed (429s every request in production), the yourcastle allocation RPC silently falls back to its race-prone path, and tonight's new global spend-ceiling migration can't take effect either.
+
+### Tomorrow's Top 3 priorities
+1. **Human**: apply the 4 migrations now documented in `CLAUDE.md` — this unblocks more real functionality than any further code-side work could.
+2. Open a PR from `nightagent/2026-08-21` into `main` — a large amount of reliability/UX/cost-control work has accumulated across many nightly sessions without ever merging; review and ship it.
+3. Once migrations are live, do a real end-to-end smoke test of the voice demo (global cap actually enforced) and yourcastle signup (atomic RPC actually used, not fallback) rather than relying on mocked test coverage alone.
+
+### Blockers / notes flagged for you
+- No PR was opened this session, per the "confirm before pushing/opening PRs" rule — worth doing given how much unmerged work has piled up on nightly branches.
+- All three agents' work is fully committed and non-overlapping; no manual conflict resolution needed before a PR.
