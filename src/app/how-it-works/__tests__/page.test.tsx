@@ -15,6 +15,15 @@ describe('HowItWorksPage', () => {
     expect(screen.getByText('One dashboard, every deal')).toBeInTheDocument();
   });
 
+  it('shows a concrete example transaction timeline, not just abstract steps', () => {
+    render(<HowItWorksPage />);
+
+    expect(screen.getByText('What a 30-Day Deal Looks Like')).toBeInTheDocument();
+    expect(screen.getByText('Contract accepted')).toBeInTheDocument();
+    expect(screen.getByText('Closing')).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: /sample 30-day transaction timeline/i })).toBeInTheDocument();
+  });
+
   it('links the CTA to the app signup page (with UTM attribution) and to /pricing', () => {
     render(<HowItWorksPage />);
 

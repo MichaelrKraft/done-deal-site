@@ -130,6 +130,71 @@ const tcResponsibilities: string[] = [
   'Scheduling inspections, appraisals, and closing appointments',
 ];
 
+/**
+ * A concrete example transaction timeline (30-day residential purchase,
+ * California-style contingency periods) showing exactly what Done Deal
+ * tracks and when it acts — not abstract feature bullets. Day numbers are
+ * relative to contract acceptance (Day 0). This is illustrative; actual
+ * deadlines are pulled from each contract's real dates and state/local
+ * requirements.
+ */
+const sampleTimeline: Array<{
+  day: string;
+  label: string;
+  detail: string;
+  actor: 'reme' | 'agent';
+}> = [
+  {
+    day: 'Day 0',
+    label: 'Contract accepted',
+    detail:
+      'Reme reads the executed contract and builds the full deadline checklist automatically — inspection period, loan contingency, appraisal, disclosures.',
+    actor: 'reme',
+  },
+  {
+    day: 'Day 1',
+    label: 'Disclosures requested',
+    detail:
+      'Reme drafts and sends the disclosure request to the seller’s agent and title company. You approve before it goes out.',
+    actor: 'reme',
+  },
+  {
+    day: 'Day 3',
+    label: 'Inspection scheduled',
+    detail:
+      'Reme follows up with the buyer’s inspector to confirm a date inside the contingency window and adds it to the shared timeline.',
+    actor: 'reme',
+  },
+  {
+    day: 'Day 10',
+    label: 'Inspection contingency deadline',
+    detail:
+      'Escalating alerts start 3 days out. If nothing is logged by Day 9, Reme flags it high-risk at the top of your dashboard.',
+    actor: 'reme',
+  },
+  {
+    day: 'Day 17',
+    label: 'Loan contingency deadline',
+    detail:
+      'Reme pings the lender for a status update if the appraisal or underwriting hasn’t cleared with a week left on the clock.',
+    actor: 'reme',
+  },
+  {
+    day: 'Day 25',
+    label: 'Final walkthrough',
+    detail:
+      'Reme confirms the walkthrough is booked and reminds both agents 48 hours ahead — you just show up.',
+    actor: 'agent',
+  },
+  {
+    day: 'Day 30',
+    label: 'Closing',
+    detail:
+      'Reme verifies all signed docs are in and confirms funding/recording with title before marking the file closed.',
+    actor: 'reme',
+  },
+];
+
 /** Steps in Done Deal's automated workflow, shown as a simple numbered process. */
 const automationSteps: Array<{ title: string; description: string }> = [
   {
@@ -241,6 +306,65 @@ export default function HowItWorksPage() {
                 </AnimatedSection>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Concrete example: a real deal timeline, not abstract feature bullets */}
+        <section className="py-16 bg-white/[0.02]">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <AnimatedSection>
+              <div className="text-center mb-4">
+                <span className="text-[#00BEFF] font-semibold uppercase tracking-wider text-sm">
+                  A REAL EXAMPLE
+                </span>
+                <h2 className="text-3xl font-bold mt-3 mb-3">
+                  What a 30-Day Deal Looks Like
+                </h2>
+                <p className="text-gray-400 max-w-xl mx-auto">
+                  A typical residential purchase, from accepted contract to closing — this is
+                  illustrative; Done Deal builds the real checklist from your contract&apos;s
+                  actual dates and your state/local requirements.
+                </p>
+              </div>
+            </AnimatedSection>
+
+            <ol className="relative mt-12 space-y-8 border-l border-white/10 pl-8" aria-label="Sample 30-day transaction timeline">
+              {sampleTimeline.map((event, index) => (
+                <AnimatedSection key={event.day} delay={index * 0.05}>
+                  <li className="relative">
+                    <span
+                      className="absolute -left-[38px] top-0 flex items-center justify-center rounded-full text-xs font-bold"
+                      style={{
+                        width: 24,
+                        height: 24,
+                        background: event.actor === 'reme' ? 'rgba(0,190,255,0.2)' : 'rgba(139,92,246,0.2)',
+                        border: `1px solid ${event.actor === 'reme' ? 'rgba(0,190,255,0.5)' : 'rgba(139,92,246,0.5)'}`,
+                        color: event.actor === 'reme' ? '#00BEFF' : '#8b5cf6',
+                      }}
+                      aria-hidden="true"
+                    >
+                      {index + 1}
+                    </span>
+                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                      <span className="text-xs font-mono uppercase tracking-wider text-gray-500">
+                        {event.day}
+                      </span>
+                      <h3 className="font-semibold text-white">{event.label}</h3>
+                      <span
+                        className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                        style={{
+                          background: event.actor === 'reme' ? 'rgba(0,190,255,0.1)' : 'rgba(139,92,246,0.1)',
+                          color: event.actor === 'reme' ? '#00BEFF' : '#8b5cf6',
+                        }}
+                      >
+                        {event.actor === 'reme' ? 'Reme handles it' : 'You show up'}
+                      </span>
+                    </div>
+                    <p className="text-gray-400 text-sm mt-2">{event.detail}</p>
+                  </li>
+                </AnimatedSection>
+              ))}
+            </ol>
           </div>
         </section>
 
