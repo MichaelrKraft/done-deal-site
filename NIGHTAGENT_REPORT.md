@@ -1328,6 +1328,19 @@ General bug/security review: reviewed `contact/route.ts`, `yourcastle/count/rout
 
 `npm run lint`: 0 errors (5 pre-existing warnings, unrelated to this session's changes). `npx vitest run`: 172/172 passing (up from 160 at session start).
 
+## Tests Added — 2026-08-21 (Test Agent)
+
+Ran the suite first: 173/173 passing, confirming both agents' reports. Reviewed every diff since `bd66736` (Feature + Bug Agent commits) for undertested code:
+
+- `src/app/api/voice-demo/route.ts` + `voiceDemoUsage.ts` (global cap, max-length) — already thoroughly covered by the agents' own new tests (17 cases across `route.test.ts` and `voiceDemoUsage.test.ts`, including fail-closed/PGRST202/exact-boundary cases). No gap.
+- `src/app/how-it-works/page.tsx` (new timeline content) — already covered by `how-it-works/__tests__/page.test.tsx`. No gap.
+- `src/components/sections/VoiceDemo.tsx` (`maxLength={500}` on the input) — trivial native HTML attribute, no custom logic; not worth a dedicated test.
+- **`src/app/global-error.tsx` — real gap found.** Bug Agent's `error.test.tsx` only imports and tests `error.tsx`; `global-error.tsx` (the last-resort boundary for root-layout failures) had zero test coverage despite being a distinct component: its own `<html>/<body>` root, a plain `<a>` instead of `next/link` (intentional — router providers are gone when this fires), inline `style` instead of the `cyan-button` class, and a different `console.error` prefix (`[global-error-boundary]` vs `[app-error-boundary]`). A future edit to this file (e.g. someone "fixing" the anchor to `next/link`, which would silently break because the layout/router is dead when this renders) would have shipped with no regression signal.
+
+Added `src/app/__tests__/global-error.test.tsx` (6 tests, mirroring the proven `error.test.tsx` pattern): renders without crashing, shows heading/message, never leaks the raw error string, calls `reset()` on click, links home via a real `<a>` tag (asserted by tag name, not just href, since the whole point is it must NOT be a Link), and logs with the correct boundary-specific prefix.
+
+`npm run lint`: 0 errors (same 5 pre-existing warnings, none from the new file). `npx vitest run`: **179/179 passing** (173 → 179, +6 new tests, 0 regressions). Commit: `db3a291` — `test(app): add regression coverage for global-error.tsx boundary`.
+
 ## Monetization Changes — 2026-08-21 (Bug & Quality Agent)
 
 None needed. Confirmed no Stripe integration exists and none should be added — this repo is a marketing/lead-gen shell by design; checkout and billing happen at `app.done-deal.info`. `/pricing` remains presentational-only, correctly. The one real monetization-adjacent risk in this repo is the yourcastle free-deal allocation race (Task 1 above), which is a data-integrity/promo-abuse risk, not a missing payment-plumbing gap — and its code-side fix has been in place since a prior session; only the DB migration apply step is blocked pending human action.
