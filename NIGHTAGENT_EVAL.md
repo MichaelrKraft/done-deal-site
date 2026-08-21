@@ -1,36 +1,36 @@
 # NightAgent Evaluation — done-deal-site
-*8/18/2026, 1:18:12 AM*
+*8/19/2026, 12:49:37 AM*
 
 ## Overall Score: 62/100
 
 | Dimension | Score | Max |
 |:---|:---:|:---:|
-| Features Completed | 15 | 25 |
-| Bugs Fixed | 3 | 20 |
-| Monetization Progress | 2 | 20 |
+| Features Completed | 12 | 25 |
+| Bugs Fixed | 15 | 20 |
+| Monetization Progress | 6 | 20 |
 | Code Quality | 16 | 20 |
 | Tests Added | 12 | 15 |
 
 ## Product Scores
-- **Launchability Score**: 74/100
-- **Revenue Readiness Score**: 20/100
+- **Launchability Score**: 44/100
+- **Revenue Readiness Score**: 30/100
 
 ## Summary
-A tight, well-scoped session that avoided busywork — no manufactured features, honest audits that found few new issues, and useful defensive tooling (schema-drift tripwire, CTA fallback UX). But it's the 14th night in a row blocked on the same two unapplied migrations and a decaying unmerged PR, with zero monetization progress; the program is optimizing code quality on a branch that still isn't shipping.
+A focused, low-scope-creep session that wired an existing atomic-allocation migration into the signup route with a sensible fallback and added solid regression tests, but delivered little net-new product surface. Monetization work remains explicitly out of scope by design and the core production risk (unapplied migrations) has now gone unresolved for well over a dozen sessions, capping any launchability gains from incremental code hygiene.
 
 ## Top Achievements
-- Bug Agent live-verified the exact production PGRST202 error and wrote a genuinely useful loud-failure schema-drift tripwire (postbuild, non-blocking) instead of repeating the same stale note a 13th time
-- Feature Agent fixed real trust/UX gaps: Reme voice-demo copy no longer overclaims conversational AI, and pricing CTAs now have a loading/timeout/retry fallback instead of a silent dead click
-- Test Agent closed the actual coverage gap (ExternalCtaLink had zero tests) and added exact-error-shape regression tests rather than generic mocks, growing the suite to 141 passing tests
+- Wired the previously-orphaned atomic free-deal-allocation RPC into the signup route with a defensive RPC-first/fallback pattern, correctly avoiding a hard break given the migration isn't applied in production yet
+- Bug agent found and fixed a real, narrow issue (silent `.catch(() => {})` swallowing count-poll fetch failures with no logging) rather than manufacturing busywork
+- Test suite grew from 146 to 160 tests with genuine regression tests (verified to fail against pre-fix code), including closing a long-standing zero-coverage gap on ROICalculator's plan-picking math
 
 ## Top Failures / Missed Opportunities
-- 14th consecutive session with the exact same two Supabase migrations unapplied in production — the contact form and voice-demo cost cap are still broken/disabled live, and no session has escalated this beyond re-writing the same status doc
-- Zero monetization work again, and the branch-divergence problem (PR #3 now stale against master's independent 'Remy' feature work) is getting worse every night without a human decision, actively increasing future merge-conflict cost
+- This is now the 13th+ consecutive session reporting the same unapplied Supabase migrations as the top blocker — the loop is diagnosing the same environment limitation nightly instead of escalating it as a hard stop or finding a genuinely different workaround
+- Actual committed diff for this session's HEAD is only 3 markdown files (62 lines) — the substantive code commits (843b666, 9b51491) are real but the 'session' as delivered is mostly narrative repetition layered on modest incremental code work, with monetization progress essentially flat for weeks running
 
 ## Tomorrow's Top 3
-1. Human: apply the two pending Supabase migrations (contact_submissions.source, voice_demo_usage) — copy-paste block already staged in NIGHTAGENT_MIGRATION_STATUS.md
-2. Human: resolve PR #3 / master divergence — decide Reme vs Remy, merge or close before conflicts compound further
-3. Agent: once migrations land, wire the already-written atomic_yourcastle_free_deal_allocation RPC into the signup route and verify live
+1. Apply the pending Supabase migrations (contact_submissions.source, voice_demo_usage, atomic_yourcastle_free_deal_allocation) — still the single highest-leverage human action, now overdue across 13+ sessions
+2. Get a human decision on the stranded/diverged nightagent branch vs master (Remy vs Reme feature conflict) instead of letting more commits accumulate on top of an unreviewed, decaying PR
+3. Verify the atomic RPC against a real post-migration database with concurrent signups to confirm the race is actually closed, not just mocked
 
 ## Program Improvement Suggestion
-Add a hard escalation rule: if the same blocker (e.g. a migration) has been flagged unresolved for N>5 consecutive sessions, the nightly program should stop assigning agents to re-verify/re-document it and instead spend that budget on a workaround (e.g. an app-level feature flag that disables the dependent feature gracefully) or on making the ask so trivially small a human can't defer it (e.g. a Slack/email ping with the exact SQL, not just a markdown file nobody reads).
+Add an explicit escalation rule: if the same blocker (e.g. unapplied migration) is reported N times (say 3+) with no code-side workaround possible, the report should stop repeating full diagnostic detail each night and instead emit a single terse one-line status plus a hard 'ESCALATE TO HUMAN — NOT RETRYABLE' flag, freeing agent budget for other real work instead of re-verifying the same known-blocked fact every session.

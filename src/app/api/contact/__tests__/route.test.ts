@@ -163,4 +163,52 @@ describe('POST /api/contact', () => {
     expect(res.status).toBe(200);
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  // Regression test for commit 1400a2c ("fix(api): don't fail successful
+  // submissions when Telegram notify fails"). Before that fix,
+  // sendTelegramNotification() had no try/catch, so a Telegram fetch
+  // rejection propagated up through the outer try/catch and returned a
+  // false 500 even though the Supabase insert had already succeeded.
+  it('regression (1400a2c): returns 200 when the Telegram fetch throws, since the Supabase write already succeeded', async () => {
+    fetchMock.mockRejectedValueOnce(new Error('network blip'));
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { POST } = await loadRoute();
+
+    const res = await POST(makeRequest(validPayload, '20.0.0.11'));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.success).toBe(true);
+    expect(json.message).toBe('Form submitted successfully');
+    expect(insertMock).toHaveBeenCalledTimes(1);
+    expect(consoleSpy).toHaveBeenCalledWith(
+      '[contact] Telegram notification error:',
+      'network blip'
+    );
+    // Must never fall through to the generic 500 handler's log line.
+    expect(consoleSpy).not.toHaveBeenCalledWith(
+      'Contact form error:',
+      expect.anything()
+    );
+  });
+
+  // Regression test for commit 1400a2c: a non-throwing but non-OK Telegram
+  // response (e.g. bad token -> 401) must also be swallowed as a
+  // best-effort failure, not surfaced as a submission failure.
+  it('regression (1400a2c): returns 200 when the Telegram API responds with a non-OK status', async () => {
+    fetchMock.mockResolvedValueOnce({ ok: false, status: 401, json: async () => ({}) });
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { POST } = await loadRoute();
+
+    const res = await POST(makeRequest(validPayload, '20.0.0.12'));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.success).toBe(true);
+    expect(consoleSpy).toHaveBeenCalledWith('[contact] Telegram notification failed:', 401);
+    expect(consoleSpy).not.toHaveBeenCalledWith(
+      'Contact form error:',
+      expect.anything()
+    );
+  });
 });
