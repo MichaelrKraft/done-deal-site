@@ -123,7 +123,24 @@ All three teammates completed their assigned scope on branch `nightagent/2026-07
 *(Updated each morning by NightAgent after reviewing last night's work)*
 
 ## Known Issues / Blockers
-*(NightAgent will document blockers here)*
+
+### BLOCKED — needs human with Supabase SQL Editor access (yourcastle allocation + 2 other migrations)
+**Status as of 2026-08-21: code-side work is DONE. Only the DB-side apply step remains, and it requires a human.**
+
+Three migrations are written, tested against, and committed to this repo but **not applied to production** Supabase (project `zjuoxaqdqqdtihmekrcz`). This has been independently re-verified across 6+ NightAgent sessions (2026-07-15 through 2026-08-21) — it is a credentials/environment gap, not something another agent attempt will resolve:
+- No `supabase` or `psql` CLI is installed in the agent sandbox.
+- `.env.local` only has `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` — no `DATABASE_URL`/`SUPABASE_DB_URL`/`SUPABASE_ACCESS_TOKEN`.
+- The service-role key authorizes PostgREST calls to *existing* tables/functions only — it cannot run DDL (`CREATE TABLE`/`CREATE FUNCTION`/`ALTER TABLE`). That requires a direct Postgres connection, which no agent has.
+
+**Application code is already safe in the meantime**: `src/app/api/yourcastle/signup/route.ts` calls the atomic `allocate_yourcastle_signup` RPC first; if it 404s (`PGRST202`, migration not applied), it falls back to the pre-existing select-then-insert path instead of 500ing every signup. This fallback has a narrower, pre-existing race (not fixed by this migration) but is not a regression — see route comments and `src/app/api/yourcastle/signup/__tests__/route.test.ts` for full regression coverage of both paths. **No further code change is needed here; do not re-wire this again.**
+
+**Action required (human, ~60 seconds)**: open the Supabase SQL Editor for `zjuoxaqdqqdtihmekrcz` (https://supabase.com/dashboard/project/zjuoxaqdqqdtihmekrcz/sql/new) and run the full copy-paste SQL block plus the atomic-allocation migration file, both documented in `NIGHTAGENT_MIGRATION_STATUS.md` at the repo root — plus the newer global-cap migration below (added 2026-08-21, not yet in that status doc). Then run `npm run smoke:schema` to confirm. The four pending migrations:
+1. `supabase/migrations/20260715000000_add_source_to_contact_submissions.sql` — fixes silently-failing contact form leads (`contact_submissions.source` missing).
+2. `supabase/migrations/20260716000000_create_voice_demo_usage.sql` — fixes TTS cost-cap no-op (currently voice demo is fully disabled/429s in prod as a safe fail-closed side effect).
+3. `supabase/migrations/20260816000000_atomic_yourcastle_free_deal_allocation.sql` — closes the free-deal double-allocation race described above.
+4. `supabase/migrations/20260821000000_add_voice_demo_global_daily_cap.sql` — adds the aggregate (all-IPs) daily spend ceiling for the Reme voice demo referenced in `src/lib/voiceDemoUsage.ts`. Code already calls it with a `p_global_daily_cap` param; until applied, `increment_voice_demo_usage` 404s (`PGRST202`) and `checkVoiceDemoDailyCap()` fails closed — same safe "voice demo returns 429" degraded state as #2 above, not a regression.
+
+Once applied, delete the fallback branch in `yourcastle/signup/route.ts` per its own inline comment, and update this section to reflect resolution.
 
 ---
 *Last updated by NightAgent: 2026-08-19T06:51:38.550Z*
