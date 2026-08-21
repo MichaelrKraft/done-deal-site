@@ -25,11 +25,13 @@ describe('checkVoiceDemoDailyCap', () => {
     const result = await checkVoiceDemoDailyCap('1.2.3.4');
 
     expect(result.allowed).toBe(true);
-    // Assert the exact cap value (30), not just "some number" — this is the
-    // documented daily limit and a silent change to it should fail a test.
+    // Assert the exact cap values (30 per-IP, 500 global), not just "some
+    // number" — these are the documented daily limits and a silent change to
+    // either should fail a test.
     expect(rpcMock).toHaveBeenCalledWith('increment_voice_demo_usage', {
       p_ip: '1.2.3.4',
       p_daily_cap: 30,
+      p_global_daily_cap: 500,
     });
   });
 
