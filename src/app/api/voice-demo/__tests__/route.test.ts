@@ -200,6 +200,7 @@ describe('POST /api/voice-demo', () => {
     expect(rpcMock).toHaveBeenCalledWith('increment_voice_demo_usage', {
       p_ip: ip,
       p_daily_cap: expect.any(Number),
+      p_global_daily_cap: expect.any(Number),
     });
   });
 
@@ -227,5 +228,31 @@ describe('POST /api/voice-demo', () => {
     await POST(makeRequest({ text: 'Hello world' }, '30.0.0.13'));
 
     expect(rpcMock).not.toHaveBeenCalled();
+  });
+
+  // Regression test: CLAUDE.md's 2026-08-18 cost audit flagged that `text`
+  // had no server- or client-side max length, so a very long paste could in
+  // theory request a longer generated-audio duration (the actual cost
+  // driver) with no cap. A malicious/careless caller hitting the route
+  // directly (bypassing any client-side limit) must still be rejected.
+  it('rejects text over the max allowed length before calling the paid Gemini TTS API', async () => {
+    const { POST } = await loadRoute();
+    const tooLong = 'a'.repeat(501);
+
+    const res = await POST(makeRequest({ text: tooLong }, '30.0.0.15'));
+    const json = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(json.error).toMatch(/too long|length/i);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('accepts text exactly at the max allowed length', async () => {
+    const { POST } = await loadRoute();
+    const atLimit = 'a'.repeat(500);
+
+    const res = await POST(makeRequest({ text: atLimit }, '30.0.0.16'));
+
+    expect(res.status).toBe(200);
   });
 });

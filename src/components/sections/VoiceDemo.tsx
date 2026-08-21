@@ -272,6 +272,7 @@ export default function VoiceDemo() {
                     }}
                     placeholder="Type anything to hear it in Reme's voice…"
                     disabled={liveLoading}
+                    maxLength={500}
                     className="flex-1 rounded-xl px-4 py-3 text-sm bg-white/5 border border-white/10 text-white placeholder:text-gray-500 focus:outline-none focus:border-[#00BEFF]/50 disabled:opacity-50"
                   />
                   <button

@@ -5,6 +5,13 @@ import { checkVoiceDemoDailyCap } from '@/lib/voiceDemoUsage';
 const GEMINI_TTS_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent';
 
+// Server-side cap on demo input length. Output audio duration (the real TTS
+// cost driver, per CLAUDE.md's 2026-08-18 cost audit — $0.00025/sec) roughly
+// tracks input length for a read-back demo, so bounding the text also bounds
+// worst-case cost per request. 500 chars is generous for a short demo phrase
+// while ruling out someone pasting a very long document.
+const MAX_TEXT_LENGTH = 500;
+
 // PCM L16 @ 24kHz mono → WAV buffer
 function pcmToWav(pcm: Buffer): Buffer {
   const sampleRate = 24000;
@@ -65,6 +72,12 @@ export async function POST(request: NextRequest) {
     const { text } = await request.json() as { text: string };
     if (!text?.trim()) {
       return NextResponse.json({ error: 'text is required' }, { status: 400 });
+    }
+    if (text.length > MAX_TEXT_LENGTH) {
+      return NextResponse.json(
+        { error: `Text is too long (max ${MAX_TEXT_LENGTH} characters).` },
+        { status: 400 }
+      );
     }
 
     const res = await fetch(`${GEMINI_TTS_URL}?key=${apiKey}`, {
