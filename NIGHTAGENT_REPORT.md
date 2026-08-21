@@ -1289,3 +1289,29 @@ Reviewed the homepage, `/pricing`, `/how-it-works`, and `/contact` pages against
 
 ### Scope note
 Did not touch auth/Stripe/monetization (out of scope for this repo), did not re-diagnose the known unapplied-migrations blocker (already exhaustively documented across 13+ prior sessions), and did not fix bugs/write tests (owned by other agents this session). Left `src/app/api/contact/route.ts` and `src/app/api/yourcastle/signup/route.ts`, which showed as modified in the working tree at session start, untouched — that's a concurrent agent's in-progress work on the shared branch, not mine.
+
+## Features Completed — 2026-08-21 (Feature Agent)
+
+Worked from the strategic plan at `/Users/michaelkraft/.claude/plans/you-are-a-senior-clever-tide.md`. Scope was Task 2 (`/how-it-works` content depth), Task 4 (post-CTA funnel UTM instrumentation), and Task 6 (voice-demo global daily spend ceiling). Skipped Task 1 (migration blocker — read-only escalation only, owned by a different track) and any bug-fix work (owned by the Bug Agent, who was working concurrently on the same branch tonight — left `src/app/api/contact/route.ts`, `src/app/api/yourcastle/signup/route.ts`, `src/app/api/voice-demo/__tests__/route.test.ts`, and the new `src/app/error.tsx`/`global-error.tsx` untouched, all of which showed as in-progress or appeared mid-session).
+
+### Task 4 — UTM/funnel instrumentation: already fully implemented, verified only
+Before writing anything, audited every `ExternalCtaLink`/`withUtm` call site across the repo (`Navbar`, `Hero`, `FinalCTA`, `Pricing` section, `CompetitionCallout`, `Comparison`, `Benefits`, `HowItWorks` section, and both the `/pricing` and `/how-it-works` pages). Every single outbound CTA to `app.done-deal.info` already calls `withUtm(href, campaign)` with a distinct `CtaCampaign` value per page/placement (`navbar_desktop`, `hero`, `final_cta`, `competition_callout`, `comparison_start_trial`, `comparison_get_started`, `benefits`, `how_it_works_section`, `how_it_works_page`, `pricing_pay_per_transaction`, `pricing_annual_standard`, `pricing_annual_unlimited`, `yourcastle_signup`). `src/lib/externalCta.ts` centralizes the `utm_source=done-deal-site&utm_medium=cta&utm_campaign=<campaign>` tagging. This was evidently completed in a prior nightly session — no gap found, no code changed. Confirmed via `grep -rn "campaign=\|withUtm(" src/components src/app`.
+
+### Task 2 — `/how-it-works`: added a concrete sample transaction timeline
+- `src/app/how-it-works/page.tsx` — added a new `sampleTimeline` data array and rendered section: a real 30-day residential purchase example (Day 0 contract acceptance through Day 30 closing), with 7 concrete milestones (disclosures, inspection scheduling, inspection contingency deadline, loan contingency deadline, final walkthrough, closing), each tagged "Reme handles it" or "You show up" so an evaluating agent can see exactly what's automated vs. what still requires them. Placed between the existing "How Done Deal Automates the Job" numbered steps and the bottom CTA. This directly targets the plan's stated gap: the page previously had prose/bullets (still present, unchanged) but nothing showing the actual day-by-day mechanics of a deal.
+- `src/app/how-it-works/__tests__/page.test.tsx` — added a regression test asserting the timeline heading, first/last milestones, and the `aria-label`'d `<ol>` render.
+- Verification: `npx vitest run src/app/how-it-works` (4/4 passed), `npm run lint` clean (only pre-existing unrelated warnings).
+
+### Task 6 — global daily spend ceiling for the Reme voice demo
+- `supabase/migrations/20260821000000_add_voice_demo_global_daily_cap.sql` — new additive migration: a `voice_demo_usage_global` table (one row per day, shared across all IPs) and a redefined `increment_voice_demo_usage(p_ip, p_daily_cap, p_global_daily_cap)` function that atomically checks+increments both the existing per-IP counter and the new global counter in one statement. `p_global_daily_cap` defaults to `null` (skips the aggregate check) so the function stays backward compatible if called without it. Follows the exact pattern of the existing `20260716000000_create_voice_demo_usage.sql` (same RLS posture, same upsert-with-returning atomicity, same "no agent has Supabase DDL access, human must apply via SQL Editor" note).
+- `src/lib/voiceDemoUsage.ts` — `checkVoiceDemoDailyCap` now passes `p_global_daily_cap: 500` (≈$7.50/day aggregate spend ceiling at worst-case per-request cost, per CLAUDE.md's existing Gemini TTS pricing audit — sized to only bite during an actual distributed spike, not normal multi-visitor traffic).
+- `src/lib/__tests__/voiceDemoUsage.test.ts` — updated the existing "exact cap value" assertion to include the new `p_global_daily_cap: 500` parameter.
+- Verification: `npx vitest run src/lib/__tests__/voiceDemoUsage.test.ts` (5/5 passed), `npm run lint` clean.
+- **Follow-up needed**: like all prior migrations in this repo, this one is written but **not applied in production** — it requires a human to paste it into the Supabase SQL Editor for project `zjuoxaqdqqdtihmekrcz`. Per the existing regression test (`fails closed when the RPC is missing`), the voice demo currently 429s on every request in production until `20260716000000_create_voice_demo_usage.sql` is applied — this new migration should be applied in the same sitting, since it's the same function name.
+
+### Commits
+- `ecddf71` — `feat(voice-demo): add global daily spend ceiling for Reme TTS demo`
+- `b1ce74d` — `feat(how-it-works): add concrete sample transaction timeline`
+
+### Scope note
+Did not touch Stripe/monetization/pricing logic, did not attempt the Supabase migration application (no DDL access in this environment, consistent with every prior session), and did not write or modify any bug-fix code — all bug-track files that were mid-edit on the shared branch at session start or during this session were left untouched.
