@@ -46,7 +46,7 @@ describe('GET /api/yourcastle/count', () => {
     const json = await res.json();
 
     expect(res.status).toBe(200);
-    expect(json).toEqual({ claimed: 0, remaining: 20, limit: 20 });
+    expect(json).toEqual({ claimed: 0, remaining: 20, limit: 20, unavailable: true });
   });
 
   // Regression test: the Bug Agent found that supabaseAdmin's query builder
@@ -64,7 +64,7 @@ describe('GET /api/yourcastle/count', () => {
     const json = await res.json();
 
     expect(res.status).toBe(200);
-    expect(json).toEqual({ claimed: 0, remaining: 20, limit: 20 });
+    expect(json).toEqual({ claimed: 0, remaining: 20, limit: 20, unavailable: true });
     expect(consoleSpy).toHaveBeenCalledWith(
       '[yourcastle/count] Unexpected error:',
       'fetch failed: ECONNRESET'
@@ -80,7 +80,7 @@ describe('GET /api/yourcastle/count', () => {
     const json = await res.json();
 
     expect(res.status).toBe(200);
-    expect(json).toEqual({ claimed: 0, remaining: 20, limit: 20 });
+    expect(json).toEqual({ claimed: 0, remaining: 20, limit: 20, unavailable: true });
     expect(consoleSpy).toHaveBeenCalledWith(
       '[yourcastle/count] Unexpected error:',
       'Unknown error'
