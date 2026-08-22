@@ -1,36 +1,36 @@
 # NightAgent Evaluation — done-deal-site
-*8/19/2026, 12:49:37 AM*
+*8/21/2026, 12:49:48 AM*
 
-## Overall Score: 62/100
+## Overall Score: 58/100
 
 | Dimension | Score | Max |
 |:---|:---:|:---:|
-| Features Completed | 12 | 25 |
-| Bugs Fixed | 15 | 20 |
-| Monetization Progress | 6 | 20 |
-| Code Quality | 16 | 20 |
-| Tests Added | 12 | 15 |
+| Features Completed | 14 | 25 |
+| Bugs Fixed | 13 | 20 |
+| Monetization Progress | 8 | 20 |
+| Code Quality | 15 | 20 |
+| Tests Added | 10 | 15 |
 
 ## Product Scores
-- **Launchability Score**: 44/100
+- **Launchability Score**: 62/100
 - **Revenue Readiness Score**: 30/100
 
 ## Summary
-A focused, low-scope-creep session that wired an existing atomic-allocation migration into the signup route with a sensible fallback and added solid regression tests, but delivered little net-new product surface. Monetization work remains explicitly out of scope by design and the core production risk (unapplied migrations) has now gone unresolved for well over a dozen sessions, capping any launchability gains from incremental code hygiene.
+A focused, well-scoped session that closed a long-standing migration-escalation gap, added error boundaries, cost caps, and content depth, with clean test coverage per the report. However, the actual git diff shows no changes, directly contradicting the 8 claimed commits — this discrepancy undermines confidence in the entire report and must be resolved before trusting the stated progress.
 
 ## Top Achievements
-- Wired the previously-orphaned atomic free-deal-allocation RPC into the signup route with a defensive RPC-first/fallback pattern, correctly avoiding a hard break given the migration isn't applied in production yet
-- Bug agent found and fixed a real, narrow issue (silent `.catch(() => {})` swallowing count-poll fetch failures with no logging) rather than manufacturing busywork
-- Test suite grew from 146 to 160 tests with genuine regression tests (verified to fail against pre-fix code), including closing a long-standing zero-coverage gap on ROICalculator's plan-picking math
+- Closed the 13+ session migration-blocker loop by moving the escalation into CLAUDE.md's Known Issues (finally decisive, not another re-diagnosis) and adding a global voice-demo spend ceiling migration on top of existing per-IP caps
+- Added App Router error.tsx/global-error.tsx boundaries with tests, plus a concrete sample-transaction timeline on /how-it-works that gives real product depth instead of generic copy
+- Server-side + client-side 500-char cap closes a previously-flagged unbounded-input cost risk on the paid Gemini TTS endpoint
 
 ## Top Failures / Missed Opportunities
-- This is now the 13th+ consecutive session reporting the same unapplied Supabase migrations as the top blocker — the loop is diagnosing the same environment limitation nightly instead of escalating it as a hard stop or finding a genuinely different workaround
-- Actual committed diff for this session's HEAD is only 3 markdown files (62 lines) — the substantive code commits (843b666, 9b51491) are real but the 'session' as delivered is mostly narrative repetition layered on modest incremental code work, with monetization progress essentially flat for weeks running
+- Git diff summary shows 'No changes detected' despite the report claiming 8 commits (da6b300 through 2b96000) — this is either a reporting/verification gap or the changes were never actually committed to this branch/worktree, which is a serious discrepancy that should have been caught before the summary was finalized
+- For the ~18th consecutive night, nothing was merged to main/master — a large, valuable body of work (SEO, error handling, cost controls, tests) continues to sit unshipped, and the four pending Supabase migrations (including tonight's new one) are still unapplied in production, meaning tonight's global-cap and yourcastle-allocation code still can't run in their intended path
 
 ## Tomorrow's Top 3
-1. Apply the pending Supabase migrations (contact_submissions.source, voice_demo_usage, atomic_yourcastle_free_deal_allocation) — still the single highest-leverage human action, now overdue across 13+ sessions
-2. Get a human decision on the stranded/diverged nightagent branch vs master (Remy vs Reme feature conflict) instead of letting more commits accumulate on top of an unreviewed, decaying PR
-3. Verify the atomic RPC against a real post-migration database with concurrent signups to confirm the race is actually closed, not just mocked
+1. Apply the 4 documented Supabase migrations via SQL Editor (project zjuoxaqdqqdtihmekrcz) — now centralized in CLAUDE.md
+2. Open and merge a PR consolidating the accumulated nightagent work into main/master — verify actual commit/diff state first given tonight's diff-vs-report mismatch
+3. Run a live end-to-end smoke test once migrations are applied: confirm the yourcastle atomic RPC is actually used (not falling back) and the voice-demo global cap is enforced in production
 
 ## Program Improvement Suggestion
-Add an explicit escalation rule: if the same blocker (e.g. unapplied migration) is reported N times (say 3+) with no code-side workaround possible, the report should stop repeating full diagnostic detail each night and instead emit a single terse one-line status plus a hard 'ESCALATE TO HUMAN — NOT RETRYABLE' flag, freeing agent budget for other real work instead of re-verifying the same known-blocked fact every session.
+Add a hard verification gate before the lead agent writes its final summary: run `git log --oneline -n <claimed_commit_count>` and `git diff <session_start_sha>..HEAD --stat` and fail the session (or flag prominently) if the reported commit list doesn't match actual repo state — this session's report and the git diff summary directly contradict each other and that should never reach the final report unflagged.
