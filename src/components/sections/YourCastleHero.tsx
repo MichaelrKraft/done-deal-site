@@ -16,17 +16,27 @@ export default function YourCastleHero() {
   const [remaining, setRemaining] = useState<number | null>(null);
 
   useEffect(() => {
+    // `unavailable: true` means the count API failed open (see
+    // /api/yourcastle/count) — treat that the same as a network-level
+    // failure below and hide the counter rather than show a possibly-wrong
+    // "0 remaining" indefinitely.
+    const applyCount = (d: { remaining: number; unavailable?: boolean }) =>
+      setRemaining(d.unavailable ? null : d.remaining);
+
     fetch('/api/yourcastle/count')
       .then((r) => r.json())
-      .then((d) => setRemaining(d.remaining))
+      .then(applyCount)
       .catch(() => setRemaining(null));
 
     // Poll every 30 seconds
     const interval = setInterval(() => {
       fetch('/api/yourcastle/count')
         .then((r) => r.json())
-        .then((d) => setRemaining(d.remaining))
-        .catch((err) => console.error('[yourcastle-hero] count poll failed:', err instanceof Error ? err.message : 'Unknown error'));
+        .then(applyCount)
+        .catch((err) => {
+          console.error('[yourcastle-hero] count poll failed:', err instanceof Error ? err.message : 'Unknown error');
+          setRemaining(null);
+        });
     }, 30000);
 
     return () => clearInterval(interval);

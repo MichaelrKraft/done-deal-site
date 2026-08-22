@@ -10,7 +10,11 @@ export async function GET() {
       .select('*', { count: 'exact', head: true });
 
     if (error) {
-      return NextResponse.json({ claimed: 0, remaining: FREE_DEAL_LIMIT, limit: FREE_DEAL_LIMIT });
+      // Fail open for cost-safety (never block the signup flow), but flag
+      // `unavailable: true` so the frontend can distinguish "we confirmed 0
+      // claimed" from "we don't actually know" instead of silently showing
+      // a possibly-wrong 0/limit forever.
+      return NextResponse.json({ claimed: 0, remaining: FREE_DEAL_LIMIT, limit: FREE_DEAL_LIMIT, unavailable: true });
     }
 
     const claimed = count ?? 0;
@@ -24,6 +28,6 @@ export async function GET() {
     // Next.js 500 instead of the same graceful degraded response already
     // used for the `{ error }` case above.
     console.error('[yourcastle/count] Unexpected error:', error instanceof Error ? error.message : 'Unknown error');
-    return NextResponse.json({ claimed: 0, remaining: FREE_DEAL_LIMIT, limit: FREE_DEAL_LIMIT });
+    return NextResponse.json({ claimed: 0, remaining: FREE_DEAL_LIMIT, limit: FREE_DEAL_LIMIT, unavailable: true });
   }
 }

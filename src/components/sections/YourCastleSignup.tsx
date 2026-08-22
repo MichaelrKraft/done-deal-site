@@ -24,16 +24,29 @@ export default function YourCastleSignup() {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>();
 
   useEffect(() => {
+    // `unavailable: true` means the count API failed open (see
+    // /api/yourcastle/count) — treat that the same as a network-level
+    // failure below and hide the counter rather than show a possibly-wrong
+    // "0 remaining" indefinitely.
+    const applyCount = (d: { remaining: number; unavailable?: boolean }) =>
+      setRemaining(d.unavailable ? null : d.remaining);
+
     fetch('/api/yourcastle/count')
       .then((r) => r.json())
-      .then((d) => setRemaining(d.remaining))
-      .catch((err) => console.error('[yourcastle-signup] count fetch failed:', err instanceof Error ? err.message : 'Unknown error'));
+      .then(applyCount)
+      .catch((err) => {
+        console.error('[yourcastle-signup] count fetch failed:', err instanceof Error ? err.message : 'Unknown error');
+        setRemaining(null);
+      });
 
     const interval = setInterval(() => {
       fetch('/api/yourcastle/count')
         .then((r) => r.json())
-        .then((d) => setRemaining(d.remaining))
-        .catch((err) => console.error('[yourcastle-signup] count poll failed:', err instanceof Error ? err.message : 'Unknown error'));
+        .then(applyCount)
+        .catch((err) => {
+          console.error('[yourcastle-signup] count poll failed:', err instanceof Error ? err.message : 'Unknown error');
+          setRemaining(null);
+        });
     }, 15000);
 
     return () => clearInterval(interval);
