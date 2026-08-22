@@ -1395,3 +1395,23 @@ General pass: reviewed all 4 API routes (`contact`, `voice-demo`, `yourcastle/co
 ## Monetization Changes — 2026-08-22 (Bug & Quality Agent)
 
 None needed, and none should be added. This repo is a marketing/lead-gen site by design — all conversion (signup, checkout, billing) happens off-site at `app.done-deal.info`, not in this codebase. `/pricing` already exists here as a presentational page only; adding Stripe or an in-repo checkout flow would be architecturally wrong for this project (it belongs in the separate app repo, not the marketing site). No monetization-adjacent code was touched this session beyond the yourcastle free-deal counter fix above, which is a data-display correctness fix, not a billing change.
+
+## Tests Added — 2026-08-22 (Test Agent)
+
+**Fixed the known failing test** (stale, not a regression): `Pricing.test.tsx`'s `calls track exactly once per CTA click` assumed only `external_cta_click` fires. Feature Agent's `a2144aa` intentionally added a second `pricing_cta_click` event per CTA. Updated the assertion to expect 2 calls and added 3 new tests asserting `pricing_cta_click`'s `tier`/`ctaLabel` payload per pricing tier. `PricingObjections.test.tsx` was already passing — no change needed there.
+
+**Found and fixed a real test-isolation bug** while doing the above: the `@vercel/analytics` `track` mock in `VoiceDemo.test.tsx` and `ExternalCtaLink.test.tsx` was never cleared between tests (`vi.restoreAllMocks()` doesn't reset a plain `vi.fn()` module mock — only spies). This let call counts leak across tests and would have made new assertions in both files flaky/order-dependent. Added `vi.mocked(track).mockClear()` to each file's `afterEach`.
+
+**New tests added:**
+- `src/components/sections/__tests__/VoiceDemo.test.tsx` — `demo_attempted` + `voice_demo_live_qa_submit` on success; `voice_demo_live_qa_failed` with `reason: 'rate_limited'` (429), `'server_error'` (500), and `'network_error'` (fetch rejection) branches; reassurance copy render.
+- `src/components/ui/__tests__/ExternalCtaLink.test.tsx` — `pricing_cta_click` fires (tagged by tier) for `pricing_*` campaigns, and does not fire for non-pricing campaigns.
+- `src/components/sections/__tests__/Pricing.test.tsx` — `pricing_cta_click` per tier (see above).
+- `src/app/api/voice-demo/__tests__/route.test.ts` — regression test for the actual **promise rejection** path through `checkVoiceDemoDailyCap()` (not just resolved-with-error, which was already covered): confirms the route's `cfa52fd` try/catch turns a rejected `supabaseAdmin.rpc()` call into a 429, not an unhandled 500, including the non-`Error`-value case.
+- `src/components/sections/__tests__/YourCastleHero.test.tsx` and `YourCastleSignup.test.tsx` — `unavailable: true` from `/api/yourcastle/count` (with `remaining: 0`) now asserted end-to-end to hide the counter in both components, not just that the API returns the field.
+- `src/app/contact/__tests__/page.test.tsx` — server-provided `error` message renders verbatim (not the generic fallback); falls back to generic message when `error` field is missing or the response body isn't valid JSON.
+
+No production bugs were found via this testing pass beyond the pre-existing stale assertion and the mock-isolation gap above — `cfa52fd`'s try/catch behaves correctly under an actual rejection, not just a resolved error.
+
+**Final `npm test`: 196/196 passing** (was 178/179 at session start; 17 new tests added). `npx tsc --noEmit` and `npx eslint` clean on all touched files — one pre-existing, unrelated `tsc` error in `src/app/api/yourcastle/signup/__tests__/route.test.ts` confirmed via `git stash` to predate this session's changes.
+
+Commit: `5fcf5a0` — `test(nightagent): fix stale Pricing assertions and cover tonight's changes`
