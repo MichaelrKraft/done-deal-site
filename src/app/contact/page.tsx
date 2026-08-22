@@ -40,8 +40,11 @@ export default function ContactPage() {
         body: JSON.stringify(data),
       });
 
+      const result = await response.json().catch(() => null);
+
       if (!response.ok) {
-        throw new Error('Failed to send message');
+        setError(result?.error || 'Something went wrong. Please try again.');
+        return;
       }
 
       setIsSubmitted(true);
