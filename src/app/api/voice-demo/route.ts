@@ -60,8 +60,21 @@ export async function POST(request: NextRequest) {
   // Persistent backstop against the in-memory rate limiter resetting on
   // redeploy/restart: a Supabase-backed daily cap per IP. This calls the
   // paid Gemini TTS API below, so it fails closed if usage can't be verified.
-  const usage = await checkVoiceDemoDailyCap(getClientIp(request));
-  if (!usage.allowed) {
+  // Wrapped in try/catch because supabaseAdmin's query builder can reject
+  // (not just resolve with `error`) on network-level failures (DNS,
+  // connection reset, etc.) — same class of gap documented in
+  // /api/yourcastle/count. Without this, that rejection would surface as an
+  // unhandled 500 instead of the fail-closed 429 the code already intends.
+  try {
+    const usage = await checkVoiceDemoDailyCap(getClientIp(request));
+    if (!usage.allowed) {
+      return NextResponse.json(
+        { error: 'Daily usage limit reached. Please try again tomorrow.' },
+        { status: 429 }
+      );
+    }
+  } catch (error) {
+    console.error('[voice-demo] usage cap check threw:', error instanceof Error ? error.message : 'Unknown error');
     return NextResponse.json(
       { error: 'Daily usage limit reached. Please try again tomorrow.' },
       { status: 429 }
