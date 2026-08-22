@@ -111,6 +111,66 @@ describe('ContactPage', () => {
     ).toBeInTheDocument();
   });
 
+  it('surfaces the API-provided error message instead of the generic fallback when the server returns one', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        json: async () => ({ error: 'That email address looks invalid to our mail provider.' }),
+      })
+    );
+
+    render(<ContactPage />);
+
+    fillRequiredFields();
+    fireEvent.click(screen.getByRole('button', { name: /book my demo/i }));
+
+    expect(
+      await screen.findByText(/that email address looks invalid to our mail provider\./i)
+    ).toBeInTheDocument();
+    // The generic fallback should not also be shown alongside the specific message.
+    expect(
+      screen.queryByText(/^something went wrong\. please try again\.$/i)
+    ).not.toBeInTheDocument();
+  });
+
+  it('falls back to the generic message when the server response has no error field', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: false, json: async () => ({}) })
+    );
+
+    render(<ContactPage />);
+
+    fillRequiredFields();
+    fireEvent.click(screen.getByRole('button', { name: /book my demo/i }));
+
+    expect(
+      await screen.findByText(/something went wrong\. please try again\./i)
+    ).toBeInTheDocument();
+  });
+
+  it('falls back to the generic message when the error response body is not valid JSON', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        json: async () => {
+          throw new Error('Unexpected token < in JSON');
+        },
+      })
+    );
+
+    render(<ContactPage />);
+
+    fillRequiredFields();
+    fireEvent.click(screen.getByRole('button', { name: /book my demo/i }));
+
+    expect(
+      await screen.findByText(/something went wrong\. please try again\./i)
+    ).toBeInTheDocument();
+  });
+
   it('re-enables the submit button after a failed submission', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, json: async () => ({}) }));
 

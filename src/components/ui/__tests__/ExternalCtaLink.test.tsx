@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
+import { track } from '@vercel/analytics';
 import ExternalCtaLink from '../ExternalCtaLink';
 
 vi.mock('@vercel/analytics', () => ({
@@ -21,6 +22,7 @@ describe('ExternalCtaLink', () => {
     vi.runOnlyPendingTimers();
     vi.useRealTimers();
     vi.restoreAllMocks();
+    vi.mocked(track).mockClear();
   });
 
   it('renders the link with its href and label', () => {
@@ -91,6 +93,42 @@ describe('ExternalCtaLink', () => {
     const link = screen.getByRole('link', { name: 'Opening…' });
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute('aria-busy', 'true');
+  });
+
+  it('also fires a pricing_cta_click event tagged with the tier when the campaign is a pricing_ campaign', async () => {
+    const { track } = await import('@vercel/analytics');
+    render(
+      <ExternalCtaLink
+        href="https://app.done-deal.info/signup"
+        className="btn"
+        campaign="pricing_annual_unlimited"
+        ctaLabel="Start Annual Unlimited"
+      >
+        Start Annual Unlimited
+      </ExternalCtaLink>
+    );
+
+    fireEvent.click(screen.getByRole('link', { name: 'Start Annual Unlimited' }));
+
+    expect(track).toHaveBeenCalledWith('pricing_cta_click', {
+      tier: 'pricing_annual_unlimited',
+      ctaLabel: 'Start Annual Unlimited',
+    });
+    expect(track).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not fire pricing_cta_click for a non-pricing campaign', async () => {
+    const { track } = await import('@vercel/analytics');
+    render(
+      <ExternalCtaLink href="https://app.done-deal.info" className="btn" campaign="hero" ctaLabel="Start free trial">
+        Start free trial
+      </ExternalCtaLink>
+    );
+
+    fireEvent.click(screen.getByRole('link', { name: 'Start free trial' }));
+
+    expect(track).not.toHaveBeenCalledWith('pricing_cta_click', expect.anything());
+    expect(track).toHaveBeenCalledTimes(1);
   });
 
   it('calls onClickTrack when clicked', () => {

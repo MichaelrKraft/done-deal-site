@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { track } from '@vercel/analytics';
 import VoiceDemo from '../VoiceDemo';
 
 vi.mock('@vercel/analytics', () => ({
@@ -43,6 +44,7 @@ describe('VoiceDemo', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
+    vi.mocked(track).mockClear();
   });
 
   it('renders without crashing', () => {
@@ -178,5 +180,103 @@ describe('VoiceDemo', () => {
 
     const askButton = await screen.findByRole('button', { name: /hear it in reme's voice/i });
     expect(askButton).toBeDisabled();
+  });
+
+  it('tracks demo_attempted and voice_demo_live_qa_submit on a successful live-question submission', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      blob: async () => new Blob(['fake-audio'], { type: 'audio/wav' }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<VoiceDemo />);
+
+    fireEvent.click(screen.getByRole('button', { name: /hear reme/i }));
+    finishPlayback();
+
+    const input = await screen.findByPlaceholderText(/hear it in reme's voice/i);
+    fireEvent.change(input, { target: { value: 'What about title work?' } });
+    fireEvent.click(screen.getByRole('button', { name: /hear it in reme's voice/i }));
+
+    expect(track).toHaveBeenCalledWith('demo_attempted');
+    await waitFor(() => {
+      expect(track).toHaveBeenCalledWith('voice_demo_live_qa_submit');
+    });
+    expect(track).not.toHaveBeenCalledWith('voice_demo_live_qa_failed', expect.anything());
+  });
+
+  it('tracks voice_demo_live_qa_failed with reason "rate_limited" on a 429 response', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: false, status: 429 });
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<VoiceDemo />);
+
+    fireEvent.click(screen.getByRole('button', { name: /hear reme/i }));
+    finishPlayback();
+
+    const input = await screen.findByPlaceholderText(/hear it in reme's voice/i);
+    fireEvent.change(input, { target: { value: 'What about HOA docs?' } });
+    fireEvent.click(screen.getByRole('button', { name: /hear it in reme's voice/i }));
+
+    await waitFor(() => {
+      expect(track).toHaveBeenCalledWith('voice_demo_live_qa_failed', {
+        reason: 'rate_limited',
+        status: 429,
+      });
+    });
+  });
+
+  it('tracks voice_demo_live_qa_failed with reason "server_error" on a 500 response', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: false, status: 500 });
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<VoiceDemo />);
+
+    fireEvent.click(screen.getByRole('button', { name: /hear reme/i }));
+    finishPlayback();
+
+    const input = await screen.findByPlaceholderText(/hear it in reme's voice/i);
+    fireEvent.change(input, { target: { value: 'What about deadlines?' } });
+    fireEvent.click(screen.getByRole('button', { name: /hear it in reme's voice/i }));
+
+    await waitFor(() => {
+      expect(track).toHaveBeenCalledWith('voice_demo_live_qa_failed', {
+        reason: 'server_error',
+        status: 500,
+      });
+    });
+  });
+
+  it('tracks voice_demo_live_qa_failed with reason "network_error" when the fetch call itself rejects', async () => {
+    const fetchMock = vi.fn().mockRejectedValue(new Error('network down'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<VoiceDemo />);
+
+    fireEvent.click(screen.getByRole('button', { name: /hear reme/i }));
+    finishPlayback();
+
+    const input = await screen.findByPlaceholderText(/hear it in reme's voice/i);
+    fireEvent.change(input, { target: { value: 'What about deadlines?' } });
+    fireEvent.click(screen.getByRole('button', { name: /hear it in reme's voice/i }));
+
+    await waitFor(() => {
+      expect(track).toHaveBeenCalledWith('voice_demo_live_qa_failed', {
+        reason: 'network_error',
+      });
+    });
+    // The network-error branch must not also fire the status-code-tagged event.
+    expect(track).not.toHaveBeenCalledWith('voice_demo_live_qa_failed', expect.objectContaining({ status: expect.anything() }));
+  });
+
+  it('shows reassurance copy that the sample clips still work even if live TTS fails', async () => {
+    render(<VoiceDemo />);
+
+    fireEvent.click(screen.getByRole('button', { name: /hear reme/i }));
+    finishPlayback();
+
+    expect(
+      await screen.findByText(/the sample clips above always work, even if live text-to-speech is briefly unavailable\./i)
+    ).toBeInTheDocument();
   });
 });

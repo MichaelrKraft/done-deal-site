@@ -79,6 +79,29 @@ describe('YourCastleSignup', () => {
     ).toBeInTheDocument();
   });
 
+  // Regression test for da666e4: the count API now returns
+  // `unavailable: true` (with remaining: 0) instead of a bare 0 when its own
+  // query failed open. Trusting `remaining` at face value in that case would
+  // show agents a false "0 free deals remaining" during a live event. The
+  // component must treat `unavailable` the same as a fetch failure and hide
+  // the counter entirely rather than render a possibly-wrong number.
+  it('hides the counter (does not trust remaining: 0) when the count API responds with unavailable: true', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ claimed: 0, remaining: 0, limit: 20, unavailable: true }),
+      })
+    );
+
+    render(<YourCastleSignup />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /claim my free deal/i })).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/free deals remaining/i)).not.toBeInTheDocument();
+  });
+
   it('does not throw when the background count polling fetch rejects on mount', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')));
 

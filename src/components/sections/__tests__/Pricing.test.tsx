@@ -48,12 +48,53 @@ describe('Pricing', () => {
     });
   });
 
-  it('calls track exactly once per CTA click', () => {
+  // Each pricing CTA intentionally fires two track() calls now: the
+  // general external_cta_click funnel event, plus a dedicated
+  // pricing_cta_click event tagged per tier (see pricing_cta_click tests
+  // below). Updated from the old "exactly once" assertion, which predated
+  // that second event.
+  it('calls track exactly twice per CTA click (external_cta_click + pricing_cta_click)', () => {
     render(<Pricing />);
 
     const link = screen.getByRole('link', { name: /start your free trial/i });
     fireEvent.click(link);
 
-    expect(track).toHaveBeenCalledTimes(1);
+    expect(track).toHaveBeenCalledTimes(2);
+  });
+
+  it('tracks pricing_cta_click with the tier and ctaLabel for the Pay-Per-Transaction CTA', () => {
+    render(<Pricing />);
+
+    const link = screen.getAllByRole('link', { name: /get started/i })[0];
+    fireEvent.click(link);
+
+    expect(track).toHaveBeenCalledWith('pricing_cta_click', {
+      tier: 'pricing_pay_per_transaction',
+      ctaLabel: 'Get Started',
+    });
+  });
+
+  it('tracks pricing_cta_click with the tier and ctaLabel for the Annual Standard CTA', () => {
+    render(<Pricing />);
+
+    const link = screen.getByRole('link', { name: /start your free trial/i });
+    fireEvent.click(link);
+
+    expect(track).toHaveBeenCalledWith('pricing_cta_click', {
+      tier: 'pricing_annual_standard',
+      ctaLabel: 'Start Your Free Trial',
+    });
+  });
+
+  it('tracks pricing_cta_click with the tier and ctaLabel for the Annual Unlimited CTA', () => {
+    render(<Pricing />);
+
+    const links = screen.getAllByRole('link', { name: /get started/i });
+    fireEvent.click(links[links.length - 1]);
+
+    expect(track).toHaveBeenCalledWith('pricing_cta_click', {
+      tier: 'pricing_annual_unlimited',
+      ctaLabel: 'Get Started',
+    });
   });
 });

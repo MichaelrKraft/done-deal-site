@@ -255,4 +255,44 @@ describe('POST /api/voice-demo', () => {
 
     expect(res.status).toBe(200);
   });
+
+  // Regression test for cfa52fd: unlike the "resolves with an error field"
+  // cases above (which checkVoiceDemoDailyCap already handles internally and
+  // turns into { allowed: false }), this covers the case where the
+  // supabaseAdmin.rpc(...) call itself *rejects* — e.g. a thrown network
+  // exception before any response is received. Before the try/catch was
+  // added around checkVoiceDemoDailyCap() in the route, this would propagate
+  // as an unhandled rejection and surface as a 500, defeating the fail-closed
+  // guarantee. It must now be caught and turned into the same 429.
+  it('fails closed (429, not an unhandled 500) when checkVoiceDemoDailyCap rejects outright', async () => {
+    rpcMock.mockRejectedValue(new Error('fetch failed: ECONNRESET'));
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { POST } = await loadRoute();
+
+    const res = await POST(makeRequest({ text: 'Hello world' }, '30.0.0.17'));
+    const json = await res.json();
+
+    expect(res.status).toBe(429);
+    expect(json.error).toMatch(/daily usage limit/i);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalledWith(
+      '[voice-demo] usage cap check threw:',
+      'fetch failed: ECONNRESET'
+    );
+  });
+
+  it('fails closed (429) when checkVoiceDemoDailyCap rejects with a non-Error value', async () => {
+    rpcMock.mockRejectedValue('network down');
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { POST } = await loadRoute();
+
+    const res = await POST(makeRequest({ text: 'Hello world' }, '30.0.0.18'));
+
+    expect(res.status).toBe(429);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalledWith(
+      '[voice-demo] usage cap check threw:',
+      'Unknown error'
+    );
+  });
 });

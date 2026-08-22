@@ -94,6 +94,27 @@ describe('YourCastleHero', () => {
     consoleSpy.mockRestore();
   });
 
+  // Regression test for da666e4: the count API now returns
+  // `unavailable: true` (with remaining: 0) instead of a bare 0 when its own
+  // query failed open. Trusting `remaining` at face value in that case would
+  // show agents a false "0 of 20 remaining" (looks fully claimed). The
+  // component must treat `unavailable` the same as a fetch failure and hide
+  // the counter entirely rather than render a possibly-wrong number.
+  it('hides the counter (does not trust remaining: 0) when the count API responds with unavailable: true', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      json: async () => ({ claimed: 0, remaining: 0, limit: 20, unavailable: true }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<YourCastleHero />);
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith('/api/yourcastle/count');
+    });
+    expect(screen.queryByText(/of 20/i)).not.toBeInTheDocument();
+    expect(screen.queryByText('0')).not.toBeInTheDocument();
+  });
+
   it('polls the count endpoint again after 30 seconds', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       json: async () => ({ remaining: 5 }),
