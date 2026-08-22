@@ -15,6 +15,9 @@ const SAMPLE_QA = [
 
 type State = 'idle' | 'speaking' | 'done';
 
+/** Marks a failure that already reached the server and was tracked with a status code, so the catch block doesn't double-count it as a network error. */
+class VoiceDemoResponseError extends Error {}
+
 export default function VoiceDemo() {
   const [state, setState] = useState<State>('idle');
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
@@ -49,6 +52,7 @@ export default function VoiceDemo() {
 
     setLiveError(null);
     setLiveLoading(true);
+    track('demo_attempted');
     try {
       const res = await fetch('/api/voice-demo', {
         method: 'POST',
@@ -57,7 +61,9 @@ export default function VoiceDemo() {
       });
 
       if (!res.ok) {
-        throw new Error('Reme could not read that back just now.');
+        const reason = res.status === 429 || res.status === 503 ? 'rate_limited' : 'server_error';
+        track('voice_demo_live_qa_failed', { reason, status: res.status });
+        throw new VoiceDemoResponseError('Reme could not read that back just now.');
       }
 
       const blob = await res.blob();
@@ -71,7 +77,13 @@ export default function VoiceDemo() {
       liveObjectUrlRef.current = url;
       play(url, null);
       track('voice_demo_live_qa_submit');
-    } catch {
+    } catch (err) {
+      // Errors with a status code were already tracked above (rate-limited vs
+      // server_error). Anything else here is a network/decode failure that
+      // never got a response — track it as its own bucket.
+      if (!(err instanceof VoiceDemoResponseError)) {
+        track('voice_demo_live_qa_failed', { reason: 'network_error' });
+      }
       setLiveError('Reme could not read that back just now. Try again in a moment.');
     } finally {
       setLiveLoading(false);
