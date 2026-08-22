@@ -300,6 +300,9 @@ export default function VoiceDemo() {
                     {liveLoading ? 'Generating…' : "Hear it in Reme's voice"}
                   </button>
                 </div>
+                <p className="mt-2 text-xs text-gray-500 text-center sm:text-left">
+                  The sample clips above always work, even if live text-to-speech is briefly unavailable.
+                </p>
                 <div className="mt-2">
                   <Toast message={liveError} variant="error" onDismiss={() => setLiveError(null)} />
                 </div>
