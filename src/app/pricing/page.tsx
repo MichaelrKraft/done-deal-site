@@ -197,6 +197,24 @@ export default function PricingPage() {
         {/* Reuse the existing Pricing section (tiers, CTAs, plan-includes) */}
         <Pricing />
 
+        {/* Compact social proof strip — a single testimonial plus the cost
+            comparison stat, placed right under the pricing cards so the
+            CTA decision has trust reinforcement close by without repeating
+            the full homepage Testimonials carousel. */}
+        <section className="pb-4">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="bg-white/5 rounded-2xl p-6 border border-white/10 text-center">
+              <div className="text-yellow-400 mb-3">★★★★★</div>
+              <p className="text-gray-300 italic mb-4">
+                &ldquo;I&apos;ve cut my coordination costs by more than half. Done Deal handles everything from contract to close—no need to hire extra staff.&rdquo;
+              </p>
+              <p className="text-sm text-gray-500">
+                Mark Ellis, RE Agent, Compass Realty
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Feature comparison table */}
         <section className="py-20 bg-black">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
