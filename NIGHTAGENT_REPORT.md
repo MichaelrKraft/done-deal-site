@@ -1415,3 +1415,34 @@ No production bugs were found via this testing pass beyond the pre-existing stal
 **Final `npm test`: 196/196 passing** (was 178/179 at session start; 17 new tests added). `npx tsc --noEmit` and `npx eslint` clean on all touched files — one pre-existing, unrelated `tsc` error in `src/app/api/yourcastle/signup/__tests__/route.test.ts` confirmed via `git stash` to predate this session's changes.
 
 Commit: `5fcf5a0` — `test(nightagent): fix stale Pricing assertions and cover tonight's changes`
+
+## Summary — 2026-08-22
+
+Three teammates (Feature, Bug, Test) ran on branch `nightagent/2026-08-22`, executing tonight's strategic plan (`/Users/michaelkraft/.claude/plans/you-are-a-senior-replicated-owl.md`), which itself corrected an earlier audit's overstated severity: only the live "type anything" TTS box is blocked by the pending Supabase migrations — the orb intro and 3 sample Q&A clips are static `.wav` files and were never affected.
+
+**Commits this session** (13): `da666e4`, `727aa81`, `01f5168`, `ef35ec3`, `a2144aa`, `cfa52fd`, `d19652a`, `284cd62`, `b381b3e`, `39e1063`, `5fcf5a0`, `fd8e25f`. Working tree is clean of code changes; the only modified-but-uncommitted files (`CLAUDE.md`, `NIGHTAGENT_EVAL.md`, `NIGHTAGENT_PLAN.md`) predate this session and belong to the plan-generation step, left untouched. Final `npm test`: **196/196 passing** (up from 178/179 at session start), `npx tsc --noEmit` and `npx eslint` clean.
+
+### Overall progress assessment
+- **The single biggest instrumentation gap from the plan is closed**: the live TTS demo's failure path was previously invisible — zero signal on how many prospects hit the blocked feature. It now fires `voice_demo_live_qa_failed` with a `rate_limited`/`server_error`/`network_error` breakdown, plus `demo_attempted`, giving real data to prioritize the still-pending human SQL fix.
+- **Funnel visibility extended to pricing**: `pricing_cta_click` now fires per-tier, additive to the existing generic `external_cta_click`.
+- **A real, previously-undiscovered bug was found and fixed during the Bug Agent's pass**: `checkVoiceDemoDailyCap()` was called outside `api/voice-demo/route.ts`'s try/catch — a rejected Supabase call would have crashed as an unhandled 500 instead of failing closed with 429, the same bug class already fixed in the yourcastle count route in a prior session. The Test Agent added a dedicated regression test for the actual rejection path (not just resolved-with-error), confirming the fix holds.
+- **Silent-zero risk closed on the yourcastle counter**: it now distinguishes a confirmed "0 remaining" from "count unavailable," hiding the counter in that case rather than risking a misleading permanent zero.
+- **Contact form errors are now specific and recoverable** instead of a generic message, per this environment's UI-craft baseline.
+- **Reasonable, low-cost UX softening added**: microcopy near the live-TTS input now tells visitors the sample clips still work even if live TTS is briefly down — reduces perceived brokenness at near-zero cost.
+- **A cross-team integration issue was caught and fixed cleanly**: the Feature Agent's pricing-page changes broke two existing tests; rather than being missed, the Bug Agent flagged it and the Test Agent fixed the stale assertions (plus found and fixed a real test-isolation bug — an unmocked `track` call leaking state across tests — while doing so).
+- **No Stripe/monetization work was needed or attempted** — correctly out of scope, checkout stays on `app.done-deal.info` by design; both Feature and Bug agents explicitly documented this rather than leaving it ambiguous.
+- **The documented Supabase migration blocker was correctly left untouched** — no agent attempted to re-solve it, per the plan's explicit do-not-retry flag.
+
+### Launchability Score: **78/100** (up from ~71/100 in tonight's pre-session audit)
+Up primarily on Reliability (the voice-demo try/catch gap closed, 196/196 tests) and on Core Features/instrumentation (funnel visibility now exists where there was none). Score remains capped below 85 by the one unchanged blocker: the live TTS demo is still down in production pending the human SQL step, and there is still no end-to-end test crossing the `app.done-deal.info` handoff boundary (plan item 5, not attempted tonight — deprioritized correctly in favor of the higher-impact instrumentation gap, since analytics on the failure path was needed before this could even be scoped by real data).
+
+### Action required from you (unchanged — the only real blocker)
+Apply the 4 pending Supabase migrations via the SQL Editor for project `zjuoxaqdqqdtihmekrcz` (https://supabase.com/dashboard/project/zjuoxaqdqqdtihmekrcz/sql/new) — full SQL and file list in `NIGHTAGENT_MIGRATION_STATUS.md` and `CLAUDE.md`'s "Known Issues" section. This has been the single blocker for 7+ sessions now; it is a ~60-second human task, not something any agent can do from this sandbox.
+
+### Tomorrow's Top 3 priorities
+1. Apply the pending Supabase migrations (above) — with tonight's new `voice_demo_live_qa_failed` analytics live, the next session can finally measure real prospect impact of this gap instead of estimating it.
+2. Write the e2e test verifying the `app.done-deal.info/signup` handoff links are well-formed and reachable (plan item 5, not done tonight) — the one remaining plan item not picked up.
+3. Once migrations are applied, review the new `voice_demo_live_qa_failed` event breakdown (rate_limited vs server_error vs network_error) to see if the "unavailable" case was actually a meaningful chunk of demo attempts, or a non-issue — this determines whether more UX softening work is warranted.
+
+### Blockers / notes flagged for you
+- No PR was opened this session — leaving that decision to you per the "confirm before pushing/opening PRs" rule. 13 commits are sitting on `nightagent/2026-08-22`, ready for review.
