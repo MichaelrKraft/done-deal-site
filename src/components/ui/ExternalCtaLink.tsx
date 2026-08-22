@@ -48,6 +48,11 @@ export default function ExternalCtaLink({
 
   const handleClick = () => {
     track('external_cta_click', { campaign, ctaLabel });
+    // Dedicated pricing-funnel event, tagged per tier, so pricing-page
+    // conversion can be analyzed without filtering the general CTA stream.
+    if (campaign.startsWith('pricing_')) {
+      track('pricing_cta_click', { tier: campaign, ctaLabel });
+    }
     onClickTrack?.();
     setStatus('pending');
     if (timeoutRef.current) clearTimeout(timeoutRef.current);

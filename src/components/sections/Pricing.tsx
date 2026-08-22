@@ -81,7 +81,10 @@ export default function Pricing() {
 
               <Link
                 href={withUtm('https://app.done-deal.info/signup', 'pricing_pay_per_transaction')}
-                onClick={() => track('external_cta_click', { campaign: 'pricing_pay_per_transaction', ctaLabel: 'Get Started' })}
+                onClick={() => {
+                  track('external_cta_click', { campaign: 'pricing_pay_per_transaction', ctaLabel: 'Get Started' });
+                  track('pricing_cta_click', { tier: 'pricing_pay_per_transaction', ctaLabel: 'Get Started' });
+                }}
                 className="w-full block text-center px-6 py-3 rounded-full font-semibold text-sm border border-white/20 text-gray-300 hover:bg-white/5 transition-colors"
               >
                 Get Started
@@ -139,7 +142,10 @@ export default function Pricing() {
                   {/* CTA */}
                   <Link
                     href={withUtm('https://app.done-deal.info/signup', 'pricing_annual_standard')}
-                    onClick={() => track('external_cta_click', { campaign: 'pricing_annual_standard', ctaLabel: 'Start Your Free Trial' })}
+                    onClick={() => {
+                      track('external_cta_click', { campaign: 'pricing_annual_standard', ctaLabel: 'Start Your Free Trial' });
+                      track('pricing_cta_click', { tier: 'pricing_annual_standard', ctaLabel: 'Start Your Free Trial' });
+                    }}
                     className="w-full cyan-button block text-center px-8 py-4 rounded-full font-semibold text-lg"
                   >
                     Start Your Free Trial
@@ -191,7 +197,10 @@ export default function Pricing() {
 
                 <Link
                   href={withUtm('https://app.done-deal.info/signup', 'pricing_annual_unlimited')}
-                  onClick={() => track('external_cta_click', { campaign: 'pricing_annual_unlimited', ctaLabel: 'Get Started' })}
+                  onClick={() => {
+                    track('external_cta_click', { campaign: 'pricing_annual_unlimited', ctaLabel: 'Get Started' });
+                    track('pricing_cta_click', { tier: 'pricing_annual_unlimited', ctaLabel: 'Get Started' });
+                  }}
                   className="w-full block text-center px-6 py-3 rounded-full font-semibold text-sm border border-[#8b5cf6]/40 text-white hover:bg-[#8b5cf6]/10 transition-colors"
                 >
                   Get Started
