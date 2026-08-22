@@ -1372,3 +1372,12 @@ Reliability and the standing migration blocker were the two biggest drags identi
 ### Blockers / notes flagged for you
 - No PR was opened this session, per the "confirm before pushing/opening PRs" rule — worth doing given how much unmerged work has piled up on nightly branches.
 - All three agents' work is fully committed and non-overlapping; no manual conflict resolution needed before a PR.
+
+## Features Completed — 2026-08-22 (Feature Agent)
+
+1. **Live TTS failure-path analytics** — `src/components/sections/VoiceDemo.tsx`. Added `demo_attempted` at call start and `voice_demo_live_qa_failed` in the failure branches, with a `reason` (`rate_limited` for 429/503, `server_error` for other non-OK statuses, `network_error` for fetch/decode failures that never got a response) plus `status` where available. Commit `727aa81`.
+2. **Reassurance microcopy** — same file, one-line note under the live-TTS input: sample clips above still work even if live TTS is briefly unavailable. Commit `01f5168`.
+3. **`pricing_cta_click` funnel event** — `src/components/ui/ExternalCtaLink.tsx` (fires for any `campaign` prefixed `pricing_`) and `src/components/sections/Pricing.tsx` (the three tier CTAs on the homepage-embedded pricing section, which use a plain `Link` rather than `ExternalCtaLink`). Tagged with `tier` + `ctaLabel`, additive alongside the existing `external_cta_click` event — no duplication removed. Commit `a2144aa`.
+4. **Pricing page social proof** — `src/app/pricing/page.tsx`. Added a compact single-testimonial card (reusing the existing, already-shipped Mark Ellis quote from `Testimonials.tsx` — no new/unverified numeric claims) directly beneath the pricing tiers, distinct from the yourcastle-page urgency counter. Commit `d19652a`.
+
+All four commits are small and scoped to their stated file(s); `npx tsc --noEmit` and `npx eslint` both clean on touched files (pre-existing unrelated `yourcastle/signup/__tests__` type errors were not introduced by this work). No tests added — per instructions, that's the Test Agent's scope. No changes to error-handling/Stripe/monetization infra — Bug Agent's scope.
