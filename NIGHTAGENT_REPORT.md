@@ -1456,3 +1456,53 @@ Apply the 4 pending Supabase migrations via the SQL Editor for project `zjuoxaqd
 ## Monetization Changes — 2026-08-23
 
 None. Per this session's explicit brief, Stripe/billing integration and "create a pricing page" were intentionally skipped: this site has no billing code by design (billing lives in the separate `app.done-deal.info/signup` app; this site only links out to it), and a real pricing page with the three tiers ($197/deal, $997/yr, $2,500/yr) already exists at `src/app/pricing/page.tsx`. No monetization-related code was added or modified tonight.
+
+## Features Completed — 2026-08-23 (Feature Agent)
+
+Scope: voice-demo capacity UX, character counter, and a UTM-tagging spot-check. Worked from `src/app/api/voice-demo/route.ts` and `src/components/sections/VoiceDemo.tsx` — did not touch `voiceDemoUsage.ts`'s cap-checking internals, Stripe, or Supabase DDL, per instructions.
+
+### 1. Friendly "at capacity" message for voice-demo failures — DONE
+- The route already returns 429 for three distinct fail-closed cases (per-minute rate limit, daily Supabase cap, and the cap-check itself throwing/unavailable — see route comments) — all of which read as "temporarily unavailable," not a broken feature. The frontend previously showed the same generic "Reme could not read that back just now. Try again in a moment." for every failure type (429, 502, 500, network error alike).
+- `VoiceDemo.tsx`: on a 429 response specifically, the live-question error toast now shows "Reme is at capacity right now — please try again in a few minutes." Non-429 failures (502/500/network) keep the existing generic message. Analytics tracking (`voice_demo_live_qa_failed` with `reason`/`status`) was untouched.
+- No change to `voiceDemoUsage.ts` or `rateLimit.ts` — this is purely a frontend copy/branching change keyed off the existing status code.
+
+### 2. Live character counter on the voice-demo text input — DONE
+- Confirmed a max length already exists and is enforced both server-side (`MAX_TEXT_LENGTH = 500` in `route.ts`, returns 400 above it) and client-side (`maxLength={500}` on the `<input>`) — so no new limit was invented; a `MAX_LIVE_TEXT_LENGTH = 500` constant was added client-side (duplicated rather than imported, since the route file is server-only) to drive the counter off the same number.
+- Added a live "N/500" counter next to the existing "sample clips always work" reassurance line, below the input. Turns red (`text-red-400`) once the input reaches the 500-char limit.
+
+### Tests added
+- `src/components/sections/__tests__/VoiceDemo.test.tsx`: two new regression tests — one asserting the specific "at capacity" copy renders on a 429 (not the generic message), one asserting the counter updates live and turns red at exactly 500/500. Full suite: 17/17 passing.
+
+### 3. UTM tagging spot-check on primary CTAs — VERIFIED, NO CHANGES NEEDED
+- Audited every `app.done-deal.info` link in `src/`. Found a single, already-consistent convention: `src/lib/externalCta.ts` exports `withUtm(href, campaign)` (sets `utm_source=done-deal-site`, `utm_medium=cta`, `utm_campaign=<placement>`), applied via a shared `<ExternalCtaLink>` component or called directly, across every CTA — `Hero.tsx`, `Navbar.tsx`, `Pricing.tsx`, `HowItWorks.tsx`, `Comparison.tsx`, `YourCastleSignup.tsx`, `YourCastleHero.tsx`, `FinalCTA.tsx`, `CompetitionCallout.tsx`, `Benefits.tsx`, and both `pricing/page.tsx` and `how-it-works/page.tsx` (which route through `ExternalCtaLink`, so the `href` looking "bare" in JSX is misleading — `withUtm` is applied internally at render time). Every `CtaCampaign` value is unique per placement, and `ExternalCtaLink` also emits click analytics per-campaign. No CTA was found without UTM tagging. No changes made — item is already fully and consistently implemented from a prior session.
+
+### Verification
+- `npx vitest run src/components/sections/__tests__/VoiceDemo.test.tsx`: 17/17 passing.
+- `npm run build`: ran once, succeeded cleanly (all routes generated, including `/api/voice-demo`).
+- Files touched: `src/components/sections/VoiceDemo.tsx`, `src/components/sections/__tests__/VoiceDemo.test.tsx`.
+- Commit: `feat(voice-demo): friendly capacity message and live char counter` (`f829f37`).
+
+### Note on shared-worktree collision
+A concurrent Bug Agent's `git commit` on this same branch briefly swept up my staged files into its own commit alongside its unrelated changes (`CLAUDE.md`, `NIGHTAGENT_MIGRATION_STATUS.md`, `NIGHTAGENT_PLAN.md`, `NIGHTAGENT_EVAL.md`, the new `supabase/migrations/CONSOLIDATED_PENDING_MIGRATIONS.sql`). Caught it, ran `git reset a390152~1` (soft reset, nothing lost) to undo the mixed commit, then re-committed only my two files as `f829f37`. The other agent's changes were left unstaged/untracked for it to commit separately, and it was notified via SendMessage.
+
+## Tests Added — 2026-08-23
+
+Verified tonight's work (Feature Agent `f829f37`, Bug Agent `e6117dc`) rather than duplicating existing coverage.
+
+### Verified — Feature Agent's regression tests
+- `src/components/sections/__tests__/VoiceDemo.test.tsx` already contains both tests it reported:
+  - `'shows a specific "at capacity" message (not a generic error) when the API returns 429'`
+  - `'shows a live character counter that updates as the user types and turns red at the limit'` — covers 0/500 initial state, mid-typing increment (22/500), and the exact 500/500 boundary with `text-red-400` class assertion.
+- No gaps found in this coverage; did not add anything duplicative.
+
+### Confirmed — Bug Agent made no application-code changes
+`git show --stat e6117dc` touches only `CLAUDE.md`, `NIGHTAGENT_MIGRATION_STATUS.md`, `NIGHTAGENT_REPORT.md`, and the new `supabase/migrations/CONSOLIDATED_PENDING_MIGRATIONS.sql` (a documentation/SQL convenience file, not application logic). No tests needed.
+
+### Full suite run
+`npm test` (`vitest run`): **28 test files, 198 tests, all passing** (~36s). No pre-existing failures found. `jsdom` "Not implemented: navigation to another Document" / canvas `getContext()` warnings are pre-existing environment noise, not failures.
+
+### Files touched
+None — no code or test changes were needed. Only this report file was appended.
+
+### Commit
+No commit made (nothing to commit besides doc updates already covered by other agents' commits). `git status` shows only pre-existing modified docs (`NIGHTAGENT_EVAL.md`, `NIGHTAGENT_PLAN.md`, this file) at session start, untouched by this task.
