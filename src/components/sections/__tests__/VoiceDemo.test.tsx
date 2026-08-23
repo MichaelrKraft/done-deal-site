@@ -269,6 +269,43 @@ describe('VoiceDemo', () => {
     expect(track).not.toHaveBeenCalledWith('voice_demo_live_qa_failed', expect.objectContaining({ status: expect.anything() }));
   });
 
+  it('shows a specific "at capacity" message (not a generic error) when the API returns 429', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: false, status: 429 });
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<VoiceDemo />);
+
+    fireEvent.click(screen.getByRole('button', { name: /hear reme/i }));
+    finishPlayback();
+
+    const input = await screen.findByPlaceholderText(/hear it in reme's voice/i);
+    fireEvent.change(input, { target: { value: 'What about HOA docs?' } });
+    fireEvent.click(screen.getByRole('button', { name: /hear it in reme's voice/i }));
+
+    expect(
+      await screen.findByText(/reme is at capacity right now/i)
+    ).toBeInTheDocument();
+  });
+
+  it('shows a live character counter that updates as the user types and turns red at the limit', async () => {
+    render(<VoiceDemo />);
+
+    fireEvent.click(screen.getByRole('button', { name: /hear reme/i }));
+    finishPlayback();
+
+    const input = await screen.findByPlaceholderText(/hear it in reme's voice/i);
+    expect(screen.getByText('0/500')).toBeInTheDocument();
+
+    fireEvent.change(input, { target: { value: 'What about title work?' } });
+    expect(screen.getByText('22/500')).toBeInTheDocument();
+
+    const maxText = 'x'.repeat(500);
+    fireEvent.change(input, { target: { value: maxText } });
+    const counter = screen.getByText('500/500');
+    expect(counter).toBeInTheDocument();
+    expect(counter).toHaveClass('text-red-400');
+  });
+
   it('shows reassurance copy that the sample clips still work even if live TTS fails', async () => {
     render(<VoiceDemo />);
 

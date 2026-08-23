@@ -15,8 +15,16 @@ const SAMPLE_QA = [
 
 type State = 'idle' | 'speaking' | 'done';
 
+// Mirrors MAX_TEXT_LENGTH in src/app/api/voice-demo/route.ts. Duplicated
+// rather than imported because that file is a server-only route module.
+const MAX_LIVE_TEXT_LENGTH = 500;
+
 /** Marks a failure that already reached the server and was tracked with a status code, so the catch block doesn't double-count it as a network error. */
 class VoiceDemoResponseError extends Error {}
+
+/** 429 covers both the per-minute rate limit and the daily/global usage cap (including the cap check failing closed) — all of these mean "at capacity," not a generic server error. */
+const CAPACITY_MESSAGE = "Reme is at capacity right now — please try again in a few minutes.";
+const GENERIC_ERROR_MESSAGE = "Reme could not read that back just now. Try again in a moment.";
 
 export default function VoiceDemo() {
   const [state, setState] = useState<State>('idle');
@@ -63,7 +71,13 @@ export default function VoiceDemo() {
       if (!res.ok) {
         const reason = res.status === 429 || res.status === 503 ? 'rate_limited' : 'server_error';
         track('voice_demo_live_qa_failed', { reason, status: res.status });
-        throw new VoiceDemoResponseError('Reme could not read that back just now.');
+        // A 429 means the per-minute rate limit, the daily cap, or the
+        // cap-check-itself-unavailable fail-closed path (see
+        // src/app/api/voice-demo/route.ts) — all read as "temporarily at
+        // capacity" to the visitor, not a broken demo.
+        throw new VoiceDemoResponseError(
+          res.status === 429 ? CAPACITY_MESSAGE : GENERIC_ERROR_MESSAGE
+        );
       }
 
       const blob = await res.blob();
@@ -84,7 +98,7 @@ export default function VoiceDemo() {
       if (!(err instanceof VoiceDemoResponseError)) {
         track('voice_demo_live_qa_failed', { reason: 'network_error' });
       }
-      setLiveError('Reme could not read that back just now. Try again in a moment.');
+      setLiveError(err instanceof VoiceDemoResponseError ? err.message : GENERIC_ERROR_MESSAGE);
     } finally {
       setLiveLoading(false);
     }
@@ -284,7 +298,7 @@ export default function VoiceDemo() {
                     }}
                     placeholder="Type anything to hear it in Reme's voice…"
                     disabled={liveLoading}
-                    maxLength={500}
+                    maxLength={MAX_LIVE_TEXT_LENGTH}
                     className="flex-1 rounded-xl px-4 py-3 text-sm bg-white/5 border border-white/10 text-white placeholder:text-gray-500 focus:outline-none focus:border-[#00BEFF]/50 disabled:opacity-50"
                   />
                   <button
@@ -300,9 +314,18 @@ export default function VoiceDemo() {
                     {liveLoading ? 'Generating…' : "Hear it in Reme's voice"}
                   </button>
                 </div>
-                <p className="mt-2 text-xs text-gray-500 text-center sm:text-left">
-                  The sample clips above always work, even if live text-to-speech is briefly unavailable.
-                </p>
+                <div className="mt-1.5 flex items-center justify-between gap-2">
+                  <p className="text-xs text-gray-500 text-center sm:text-left">
+                    The sample clips above always work, even if live text-to-speech is briefly unavailable.
+                  </p>
+                  <span
+                    className={`text-xs shrink-0 tabular-nums ${
+                      liveQuestion.length >= MAX_LIVE_TEXT_LENGTH ? 'text-red-400' : 'text-gray-500'
+                    }`}
+                  >
+                    {liveQuestion.length}/{MAX_LIVE_TEXT_LENGTH}
+                  </span>
+                </div>
                 <div className="mt-2">
                   <Toast message={liveError} variant="error" onDismiss={() => setLiveError(null)} />
                 </div>
