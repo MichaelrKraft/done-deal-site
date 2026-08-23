@@ -1506,3 +1506,32 @@ None — no code or test changes were needed. Only this report file was appended
 
 ### Commit
 No commit made (nothing to commit besides doc updates already covered by other agents' commits). `git status` shows only pre-existing modified docs (`NIGHTAGENT_EVAL.md`, `NIGHTAGENT_PLAN.md`, this file) at session start, untouched by this task.
+
+## Summary — 2026-08-23
+
+Three teammates ran on branch `nightagent/2026-08-23`, executing the strategic plan's top priorities around the one live production problem: the Reme voice demo failing closed (429/silent) because its Supabase usage-cap migrations were never applied. Lead-agent scoping note: dropped the generic mission-brief instruction to "add Stripe if missing" — this repo's billing intentionally lives on the external `app.done-deal.info`, adding it here would have created a second, contradictory billing surface.
+
+**Commits this session** (3, plus this one): `f829f37` (Feature Agent — capacity UX + char counter), `e6117dc` (Bug Agent — verification + consolidated migrations doc), `21cae8c` (Test Agent — verification report). Working tree clean; `NIGHTAGENT_EVAL.md`/`NIGHTAGENT_PLAN.md` show only their pre-existing session-start diffs, nothing new left uncommitted.
+
+### Overall progress assessment
+- **Voice demo no longer fails silently.** A 429 (rate limit, daily cap, or fail-closed cap-check) now shows visitors "Reme is at capacity right now — please try again in a few minutes." instead of a generic or absent error.
+- **Character counter added** to the demo's text input (N/500, turns red at limit), reusing the existing server-enforced max rather than inventing a new one.
+- **UTM tagging audited, found already consistent** — every CTA to `app.done-deal.info` already goes through the existing `withUtm()`/`ExternalCtaLink` helper. No gap, no change needed.
+- **Contact form's core submission path re-verified safe** — a non-`source`-column failure still surfaces as a 500, not a silent data loss. No change needed there.
+- **General bug/security sweep found nothing new** — the remaining API surface (yourcastle count, externalCta, supabase client, rate limiter) is already defensive. Consistent with how mature this codebase has become over many prior NightAgent sessions.
+- **The 4 pending Supabase migrations are now consolidated** into one copy-paste file (`supabase/migrations/CONSOLIDATED_PENDING_MIGRATIONS.sql`), with `NIGHTAGENT_MIGRATION_STATUS.md` and `CLAUDE.md` pointed at it — this directly lowers the friction on the recurring human-only blocker.
+- **Test suite still green**: 198 tests across 28 files passing; two new regression tests (capacity message, char counter) verified correct and non-duplicative.
+
+### Launchability Score: **80/100** (up from 79/100)
+Small, deliberate bump: the flagship demo's failure mode is now honest and user-facing instead of silent, and the migration-apply friction for the human is materially lower. Score isn't higher because the underlying blocker (migrations not applied to production) is still open — that's the ceiling until a human runs the SQL.
+
+### Action required from you (unchanged root cause, now lower-friction)
+**Apply the consolidated migration file** via the Supabase SQL Editor for `zjuoxaqdqqdtihmekrcz`: https://supabase.com/dashboard/project/zjuoxaqdqqdtihmekrcz/sql/new — paste `supabase/migrations/CONSOLIDATED_PENDING_MIGRATIONS.sql` in one shot instead of four separate files. Then run `npm run smoke:schema` to confirm. This unblocks: contact form `source` attribution, yourcastle atomic allocation, and both voice-demo usage-cap RPCs (which is what's silently 429ing every visitor right now).
+
+### Tomorrow's Top 3 priorities
+1. Run the consolidated migration SQL (single blocker, now one paste instead of four).
+2. Once applied, manually verify the voice demo no longer fails closed, and that the new "at capacity" message only appears under genuine load (not on every request).
+3. Open a PR merging accumulated `nightagent/*` work into `main` — multiple sessions of reliability/UX work have piled up without merging.
+
+### Blockers encountered
+None new. The Supabase migration-apply step remains the sole blocker, and remains outside any agent's reach (no DB DDL access in this sandbox) — documented in CLAUDE.md's "Known Issues" section, now pointing at the consolidated file.
