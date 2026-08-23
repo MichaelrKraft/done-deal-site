@@ -75,6 +75,9 @@ pricing page, cross-checked against a second source).
 *(NightAgent will populate this. You can also add key files manually.)*
 
 ## Recent Progress
+- 8/22/2026: *(Lead agent appends here after all teammates finish)*
+
+All three teammates completed their assigned scope on branch `nightagent/2026-07-04`, 6 commits total (`68755c9`, `6c4614f`, `710a418`, `c2cba9f`, `70428cc`, `b1dc283`). Working tree is clean; nothing left uncommitted.
 - 8/21/2026: *(Lead agent appends here after all teammates finish)*
 
 All three teammates completed their assigned scope on branch `nightagent/2026-07-04`, 6 commits total (`68755c9`, `6c4614f`, `710a418`, `c2cba9f`, `70428cc`, `b1dc283`). Working tree is clean; nothing left uncommitted.
@@ -137,7 +140,7 @@ Three migrations are written, tested against, and committed to this repo but **n
 
 **Application code is already safe in the meantime**: `src/app/api/yourcastle/signup/route.ts` calls the atomic `allocate_yourcastle_signup` RPC first; if it 404s (`PGRST202`, migration not applied), it falls back to the pre-existing select-then-insert path instead of 500ing every signup. This fallback has a narrower, pre-existing race (not fixed by this migration) but is not a regression — see route comments and `src/app/api/yourcastle/signup/__tests__/route.test.ts` for full regression coverage of both paths. **No further code change is needed here; do not re-wire this again.**
 
-**Action required (human, ~60 seconds)**: open the Supabase SQL Editor for `zjuoxaqdqqdtihmekrcz` (https://supabase.com/dashboard/project/zjuoxaqdqqdtihmekrcz/sql/new) and run the full copy-paste SQL block plus the atomic-allocation migration file, both documented in `NIGHTAGENT_MIGRATION_STATUS.md` at the repo root — plus the newer global-cap migration below (added 2026-08-21, not yet in that status doc). Then run `npm run smoke:schema` to confirm. The four pending migrations:
+**Action required (human, ~60 seconds)**: open the Supabase SQL Editor for `zjuoxaqdqqdtihmekrcz` (https://supabase.com/dashboard/project/zjuoxaqdqqdtihmekrcz/sql/new), paste the entire contents of **`supabase/migrations/CONSOLIDATED_PENDING_MIGRATIONS.sql`** (all 4 pending migrations concatenated in the correct order — added 2026-08-23 to replace copy-pasting four separate files), and click Run once. Then run `npm run smoke:schema` to confirm. See `NIGHTAGENT_MIGRATION_STATUS.md` for background. The four pending migrations (now consolidated into the one file above):
 1. `supabase/migrations/20260715000000_add_source_to_contact_submissions.sql` — fixes silently-failing contact form leads (`contact_submissions.source` missing).
 2. `supabase/migrations/20260716000000_create_voice_demo_usage.sql` — fixes TTS cost-cap no-op (currently voice demo is fully disabled/429s in prod as a safe fail-closed side effect).
 3. `supabase/migrations/20260816000000_atomic_yourcastle_free_deal_allocation.sql` — closes the free-deal double-allocation race described above.
@@ -146,7 +149,11 @@ Three migrations are written, tested against, and committed to this repo but **n
 Once applied, delete the fallback branch in `yourcastle/signup/route.ts` per its own inline comment, and update this section to reflect resolution.
 
 ---
-*Last updated by NightAgent: 2026-08-21T06:50:33.792Z*
+*Last updated by NightAgent: 2026-08-22T06:58:07.746Z*
+
+
+
+
 
 
 
@@ -207,10 +214,10 @@ Once applied, delete the fallback branch in `yourcastle/signup/route.ts` per its
 
 
 <!-- coder1-mem:start -->
-<!-- Auto-updated by coder1-mem on 2026-08-22 — do not edit this block manually -->
+<!-- Auto-updated by coder1-mem on 2026-08-23 — do not edit this block manually -->
 ## Recent Session Context
 
-**Project:** done-deal-site | **Sessions:** 126 | **Last active:** just now
+**Project:** done-deal-site | **Sessions:** 132 | **Last active:** just now
 
 Session topic: ...
 

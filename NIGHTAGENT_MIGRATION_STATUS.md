@@ -1,9 +1,24 @@
-# Migration Status Check — 2026-08-16
+# Migration Status Check — updated 2026-08-23
 
 ## TL;DR for the human (copy-paste, ~60 seconds)
 
+**Update 2026-08-23**: a 4th migration (`20260821000000_add_voice_demo_global_daily_cap.sql`)
+was added after this doc was originally written, and all 4 pending migrations
+have now been concatenated in the correct order into one file so you only
+need to copy-paste once:
+
+**`supabase/migrations/CONSOLIDATED_PENDING_MIGRATIONS.sql`**
+
 Open the Supabase SQL Editor for project `zjuoxaqdqqdtihmekrcz`:
 https://supabase.com/dashboard/project/zjuoxaqdqqdtihmekrcz/sql/new
+
+Paste the entire contents of that file and click **Run** once. It is a
+manual-apply convenience copy only — Supabase will never run it automatically
+as a real migration. The inline block below is kept for history but is now
+stale (only 2 of the 4 pending migrations); use the consolidated file instead.
+
+<details>
+<summary>Original 2026-08-16 inline block (stale, superseded above)</summary>
 
 Paste this whole block and click **Run** once:
 
@@ -71,6 +86,8 @@ convenient, no urgency:
 ```
 Just run the file directly from the SQL Editor's "paste file" option, or
 copy its contents — it's independent of the two migrations above.
+
+</details>
 
 ---
 
