@@ -20,6 +20,38 @@
 // All checks are read-only / non-mutating. Nothing real is inserted,
 // updated, or deleted (the RPC check probes function existence via an
 // intentionally-invalid call, never a real invocation).
+//
+// --- After applying CONSOLIDATED_PENDING_MIGRATIONS.sql: end-to-end check ---
+// A passing `npm run smoke:schema` only proves the tables/columns/RPC exist
+// — it does not prove the feature actually works end-to-end (e.g. an RLS
+// policy could still block the app's runtime queries even though the
+// service-role client used here can see everything). Once this script is
+// green, do ONE live pass of each feature against the deployed site
+// (https://done-deal.co or your preview URL) before considering the
+// migration apply verified:
+//
+//   1. Reme voice demo — go to the homepage, click the orb, wait for the
+//      intro to finish, type a short phrase in the "hear it in Reme's
+//      voice" box, and submit. Expect: audio plays back. If it instead
+//      shows "Reme is at capacity right now" immediately (not after
+//      several tries), the daily-cap RPC or table is still not reachable
+//      at runtime — re-check RLS/grants on `voice_demo_usage`, not just
+//      existence.
+//   2. Your Castle signup — go to /yourcastle, scroll to "Claim Your Free
+//      Deal", and submit the form with a disposable test email. Expect: a
+//      200 response, the remaining-count badge decrements, and (if
+//      Telegram is configured) a notification arrives. A silent fallback
+//      to the pre-migration path won't error, so also spot-check the new
+//      row in Supabase's `yourcastle_signups` table directly to confirm
+//      the atomic `allocate_yourcastle_signup` RPC path was used, not the
+//      select-then-insert fallback (see route.ts comments for how to tell
+//      them apart).
+//   3. Contact form — go to /contact, submit with a disposable test
+//      email, and check the new row in `contact_submissions` has a
+//      non-null `source` column (e.g. "contact_page").
+//
+// Any failure here after a green smoke:schema points at RLS/grants, not a
+// missing migration — file it separately rather than re-running the SQL.
 
 import { createClient } from '@supabase/supabase-js';
 
