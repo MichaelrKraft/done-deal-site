@@ -69,18 +69,44 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Field length exceeds limit' }, { status: 400 });
     }
 
+    const submission = {
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      phone: typeof phone === 'string' ? phone.trim() : null,
+      company: typeof company === 'string' ? company.trim() : null,
+      message: message.trim(),
+      source: 'contact-page',
+    };
+
     const { error: insertError } = await supabaseAdmin
       .from('contact_submissions')
-      .insert({
-        name: name.trim(),
-        email: email.toLowerCase().trim(),
-        phone: typeof phone === 'string' ? phone.trim() : null,
-        company: typeof company === 'string' ? company.trim() : null,
-        message: message.trim(),
-        source: 'contact-page',
-      });
+      .insert(submission);
 
-    if (insertError) throw insertError;
+    if (insertError) {
+      // PGRST204 = PostgREST "column not found in schema cache" — happens
+      // right now because migration 20260715000000_add_source_to_contact_
+      // submissions.sql is pending in production (see CLAUDE.md "Known
+      // Issues / Blockers"). Losing a lead entirely because of one optional
+      // attribution column is the worst failure mode for a marketing site,
+      // so retry once without `source` rather than 500ing the whole
+      // submission. Once the migration is applied this branch never fires.
+      const isMissingSourceColumn =
+        insertError.code === 'PGRST204' &&
+        /source/i.test(insertError.message ?? '');
+
+      if (!isMissingSourceColumn) throw insertError;
+
+      console.error(
+        '[contact] source column missing (pending migration), retrying insert without it'
+      );
+      const submissionWithoutSource: Partial<typeof submission> = { ...submission };
+      delete submissionWithoutSource.source;
+      const { error: retryError } = await supabaseAdmin
+        .from('contact_submissions')
+        .insert(submissionWithoutSource);
+
+      if (retryError) throw retryError;
+    }
 
     await sendTelegramNotification(
       `📩 <b>New Demo Request!</b>\n\n` +

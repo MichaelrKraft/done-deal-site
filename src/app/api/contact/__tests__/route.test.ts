@@ -154,6 +154,56 @@ describe('POST /api/contact', () => {
     expect(json.error).toMatch(/internal server error/i);
   });
 
+  // Regression test: the `source` column migration
+  // (20260715000000_add_source_to_contact_submissions.sql) is not yet
+  // applied in production, so the first insert 404s with PostgREST's
+  // "column not found" error (PGRST204). Before this fix, that error was
+  // rethrown as-is and the whole lead was lost with a 500 — the worst
+  // failure mode for a marketing site. The route must retry once without
+  // `source` and still persist the lead.
+  it('regression: retries without `source` and still succeeds when the source column is missing (PGRST204)', async () => {
+    insertMock
+      .mockResolvedValueOnce({
+        error: { code: 'PGRST204', message: "Could not find the 'source' column of 'contact_submissions' in the schema cache" },
+      })
+      .mockResolvedValueOnce({ error: null });
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { POST } = await loadRoute();
+
+    const res = await POST(makeRequest(validPayload, '20.0.0.13'));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.success).toBe(true);
+    expect(insertMock).toHaveBeenCalledTimes(2);
+    // Second call must not include `source`.
+    const secondCallArg = insertMock.mock.calls[1][0];
+    expect(secondCallArg).not.toHaveProperty('source');
+    expect(consoleSpy).toHaveBeenCalledWith(
+      '[contact] source column missing (pending migration), retrying insert without it'
+    );
+    // Must never fall through to the generic 500 handler.
+    expect(consoleSpy).not.toHaveBeenCalledWith(
+      'Contact form error:',
+      expect.anything()
+    );
+  });
+
+  // A PGRST204 error unrelated to `source` (e.g. a different missing
+  // column) must NOT be silently swallowed by the retry logic — only the
+  // specific known-pending-migration case should retry.
+  it('does not retry and returns 500 for a PGRST204 error unrelated to the source column', async () => {
+    insertMock.mockResolvedValueOnce({
+      error: { code: 'PGRST204', message: "Could not find the 'phone' column of 'contact_submissions' in the schema cache" },
+    });
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { POST } = await loadRoute();
+
+    const res = await POST(makeRequest(validPayload, '20.0.0.14'));
+    expect(res.status).toBe(500);
+    expect(insertMock).toHaveBeenCalledTimes(1);
+  });
+
   it('skips the Telegram call when bot credentials are not configured', async () => {
     delete process.env.TELEGRAM_BOT_TOKEN;
     delete process.env.TELEGRAM_CHAT_ID;
