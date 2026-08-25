@@ -1535,3 +1535,29 @@ Small, deliberate bump: the flagship demo's failure mode is now honest and user-
 
 ### Blockers encountered
 None new. The Supabase migration-apply step remains the sole blocker, and remains outside any agent's reach (no DB DDL access in this sandbox) — documented in CLAUDE.md's "Known Issues" section, now pointing at the consolidated file.
+
+## Features Completed
+
+**Session**: 2026-08-25, Feature Agent, branch `nightagent/2026-08-25`
+
+Reviewed tonight's `NIGHTAGENT_PLAN.md` priority list (backed by the referenced strategic assessment at `~/.claude/plans/you-are-a-senior-crystalline-horizon.md`) and scoped to the feature/UX tasks only (tests and pricing-copy-consistency bug were left for the other agents).
+
+**Findings — already done, no action needed:**
+- Task 1 (Reme graceful degradation): `src/app/api/voice-demo/route.ts` already returns 429 for both rate-limit and daily-cap-fail-closed cases, and `src/components/sections/VoiceDemo.tsx` already renders a clear "Reme is at capacity right now — please try again in a few minutes." toast instead of a raw error. No change needed.
+- Task 5 (client-side max-length + char counter on Reme input): already implemented — `MAX_LIVE_TEXT_LENGTH = 500` mirrors the server cap, `maxLength` is set on the input, and a live `{length}/{500}` counter (turning red at the limit) is already rendered below it.
+- Task 8 (analytics on `/yourcastle`): already fully instrumented — `YourCastleSignup.tsx` fires `external_cta_click` (campaign `yourcastle_signup`) and `yourcastle_signup_submit`; the page also renders the shared `Pricing` component, which already fires `pricing_cta_click` for all three tiers. Nothing missing.
+
+**Implemented:**
+1. **Task 3 — Route-level loading states.** Added `src/app/contact/loading.tsx` (skeleton matching the contact form's field layout) and `src/app/yourcastle/loading.tsx` (skeleton for the hero, since the page is a long composition of client sections with no server data fetch of its own). Both use the existing black-bg + white/cyan skeleton language consistent with `not-found.tsx`/`error.tsx`.
+2. **Task 7 — Post-migration verification checklist.** Extended the header comment in `scripts/smoke-test-schema.mjs` with a documented, copy-pasteable 3-step end-to-end check (Reme voice demo, Your Castle signup, contact form) to run manually after the pending Supabase migrations are applied — makes clear that a green `smoke:schema` only proves schema existence, not that RLS/grants allow the app's actual runtime queries to succeed. Chose to extend the existing script's docs rather than add a new file, since that's exactly where a human doing the migration apply will already be looking.
+
+**Not attempted:** Did not touch the blocked Supabase migration-apply step or the yourcastle signup fallback logic, per instructions — that remains correctly documented as human-blocked in `CLAUDE.md`.
+
+**Files touched:**
+- `src/app/contact/loading.tsx` (new)
+- `src/app/yourcastle/loading.tsx` (new)
+- `scripts/smoke-test-schema.mjs` (comment-only addition)
+
+**Build**: `npm run build` passed clean (Turbopack, all routes compiled, static pages generated).
+
+**Commit**: `3ef0a8b` — `feat(ux): add route-level loading states for /contact and /yourcastle`
