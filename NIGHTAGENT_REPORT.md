@@ -1574,3 +1574,30 @@ Reviewed tonight's `NIGHTAGENT_PLAN.md` priority list (backed by the referenced 
 ## Monetization Changes — 2026-08-25 (Bug & Quality Agent)
 
 No monetization changes made. Out of scope: this is a lead-gen marketing site with checkout handled entirely on the external `app.done-deal.info` domain (confirmed via `NIGHTAGENT_PLAN.md`'s linked strategic assessment — zero Stripe/payment code in this repo by design). The plan's only monetization-adjacent item (task #6, pricing-copy consistency) was a copy audit, not a new integration, and is covered above with no issues found.
+
+## Tests Added — 2026-08-25 (Test Agent)
+
+Waited on FeatureAgent/BugAgent (branch `nightagent/2026-08-25`); their commits landed at `70ba5ad` (fix) and `3ef0a8b` (feat) after ~2 min of polling.
+
+**Reviewed BugAgent's commit `70ba5ad`** (contact form: retry insert without `source` column when the pending-migration PGRST204 error occurs) — already shipped with thorough regression tests in the same commit (`src/app/api/contact/__tests__/route.test.ts`: retry-and-succeed case, retry-not-triggered-for-unrelated-PGRST204 case). No gap found; nothing added here.
+
+**Reviewed FeatureAgent's commit `3ef0a8b`** (route-level `loading.tsx` skeletons for `/contact` and `/yourcastle`) — untested, so added:
+- `src/app/contact/__tests__/loading.test.tsx` — render-smoke, pulse-animation container present, 4 grid field skeletons present, no real interactive elements (input/textarea/button/form) rendered.
+- `src/app/yourcastle/__tests__/loading.test.tsx` — render-smoke, pulse-animation container present, no interactive elements, centered hero layout present.
+
+**Status**: 4 new test files' worth of assertions (21 tests total incl. re-verified contact route tests) pass in isolation and combined with the pre-existing suite. Full `npm test` run shows 4 pre-existing failures (timeouts in `src/app/__tests__/page.test.tsx`, `src/app/contact/__tests__/page.test.tsx`, `src/components/sections/__tests__/Pricing.test.tsx`) that reproduce identically with my changes stashed out — confirmed flaky/order-dependent under full-suite load, not a regression from tonight's work or my new tests (verified by running the same files in isolation, where all pass).
+
+**Commit**: `a941d70` — `test(routes): cover new /contact and /yourcastle loading skeletons`
+
+## Summary — 2026-08-25 (Lead Agent)
+
+**Overall progress**: All three teammates (Feature, Bug, Test) completed their assigned scope on branch `nightagent/2026-08-25`, 5 new commits total (`70ba5ad`, `3ef0a8b`, `9dbe7ca`, `57ad582`, `a941d70`). The standout result: the Bug Agent found and fixed a genuinely live production issue — the `/api/contact` route was silently 500ing on every real visitor submission because the `source` column migration is still unapplied, meaning every contact-form lead has been lost until tonight's retry-fallback fix. Everything else on tonight's plan (Reme graceful degradation, char counter, `/yourcastle` analytics, pricing-copy consistency) was already correctly shipped in prior sessions and was verified, not re-done. Feature Agent added route-level loading states for `/contact` and `/yourcastle` plus a post-migration verification checklist; Test Agent covered both new loading skeletons and confirmed the Bug Agent's fix already had adequate regression tests. `npm run build` passed clean after each agent's changes. Working tree has this report's own append plus pre-existing modifications to `CLAUDE.md`/`NIGHTAGENT_EVAL.md`/`NIGHTAGENT_PLAN.md` from before this session started.
+
+**Launchability Score**: 60/100 (up slightly from the pre-session strategic assessment of 58/100 — the contact-form lead-loss fix is a meaningful reliability win for a lead-gen site whose entire purpose is capturing leads; still capped by the unresolved DB migration blocker and structural non-applicability of Auth/full Monetization scoring to a marketing site).
+
+**Tomorrow's Top 3 priorities**:
+1. Apply the consolidated migration SQL (`supabase/migrations/CONSOLIDATED_PENDING_MIGRATIONS.sql`) via the Supabase SQL Editor — this is the single blocker gating the contact-form `source` column, the Reme voice-demo usage table, the Your Castle atomic allocation, and the voice-demo global daily cap. Still requires a human with dashboard access; no agent in this sandbox has DB DDL credentials.
+2. Once applied, delete the now-redundant retry-without-`source` fallback in `src/app/api/contact/route.ts` (commit `70ba5ad`) and the pre-existing `yourcastle/signup` fallback, per their own inline comments, and run `npm run smoke:schema` + the manual 3-step checklist documented in `scripts/smoke-test-schema.mjs` to confirm.
+3. Open a PR merging the accumulated `nightagent/*` branch work into `main` — several sessions of reliability/UX fixes (including tonight's lead-capture bug fix) have piled up on nightly branches without merging to production.
+
+**Blockers encountered**: None new. The Supabase migration-apply step remains the sole blocker and remains outside any agent's reach in this sandbox (documented in `CLAUDE.md` "Known Issues / Blockers").
