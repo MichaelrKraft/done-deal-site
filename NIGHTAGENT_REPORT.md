@@ -1561,3 +1561,16 @@ Reviewed tonight's `NIGHTAGENT_PLAN.md` priority list (backed by the referenced 
 **Build**: `npm run build` passed clean (Turbopack, all routes compiled, static pages generated).
 
 **Commit**: `3ef0a8b` — `feat(ux): add route-level loading states for /contact and /yourcastle`
+
+## Bugs Fixed — 2026-08-25 (Bug & Quality Agent)
+
+- **Fixed a live, active production bug: `/api/contact` was silently dropping every lead.** The `source` column migration (`20260715000000_add_source_to_contact_submissions.sql`) is still unapplied in production, so every insert into `contact_submissions` 404'd with PostgREST `PGRST204` ("column not found") and the whole submission was rethrown, returning a 500 to the visitor — the contact form has been silently failing for every real submission until this fix. Root cause fix: on a `PGRST204` error specifically about the `source` column, retry the insert once without `source` so the lead is still captured (just without attribution) until the migration is applied. File: `src/app/api/contact/route.ts`. Commit `70ba5ad`.
+  - Added two regression tests in `src/app/api/contact/__tests__/route.test.ts`: one proving the retry-and-succeed path when `source` is the missing column, one proving an unrelated `PGRST204` error (different missing column) still fails loudly with a 500 rather than being silently swallowed. All 13 tests in the file pass.
+- Verified (did not need to change) that plan tasks #1, #3, #5 were already shipped in prior sessions: voice-demo already fails closed with a friendly "at capacity" message on 429 (`src/components/sections/VoiceDemo.tsx`), `loading.tsx` already exists for both `/contact` and `/yourcastle`, and the live-text input already has both a `maxLength={500}` HTML attribute and a visible red-at-limit character counter mirroring the server's cap.
+- Audited pricing copy consistency (plan task #6): `$197`/`$997`/`$2,500` and the "10 transactions" Annual Standard limit are consistent across `Pricing.tsx`, `Comparison.tsx`, `ROICalculator.tsx`, and `PricingObjections.tsx` — no stale numbers found, no change needed.
+- Security scan: no `dangerouslySetInnerHTML` on user-controlled data (only static JSON-LD schema markup), no empty catch blocks, no hardcoded secrets, Telegram HTML-injection already escaped via `escapeTelegramHtml()` in both `contact` and `yourcastle/signup` routes with existing regression test coverage. Did not touch the `yourcastle/signup` fallback path per instructions — it is already correct and documented.
+- `npm run build` passes cleanly (all 4 API routes, all static pages compile and generate).
+
+## Monetization Changes — 2026-08-25 (Bug & Quality Agent)
+
+No monetization changes made. Out of scope: this is a lead-gen marketing site with checkout handled entirely on the external `app.done-deal.info` domain (confirmed via `NIGHTAGENT_PLAN.md`'s linked strategic assessment — zero Stripe/payment code in this repo by design). The plan's only monetization-adjacent item (task #6, pricing-copy consistency) was a copy audit, not a new integration, and is covered above with no issues found.
