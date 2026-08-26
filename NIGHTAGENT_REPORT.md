@@ -1601,3 +1601,18 @@ Waited on FeatureAgent/BugAgent (branch `nightagent/2026-08-25`); their commits 
 3. Open a PR merging the accumulated `nightagent/*` branch work into `main` — several sessions of reliability/UX fixes (including tonight's lead-capture bug fix) have piled up on nightly branches without merging to production.
 
 **Blockers encountered**: None new. The Supabase migration-apply step remains the sole blocker and remains outside any agent's reach in this sandbox (documented in `CLAUDE.md` "Known Issues / Blockers").
+
+## Bugs Fixed — 2026-08-26
+
+### Voice-demo / yourcastle fail-closed UX audit — no new fix needed (verified already resolved)
+- Task was to check for bare/generic error messaging on the Reme voice demo's 429 fail-closed state (currently the de-facto prod state since migrations aren't applied) and on the yourcastle signup fallback path.
+- Read `src/app/api/voice-demo/route.ts`, `src/lib/voiceDemoUsage.ts`, `src/components/sections/VoiceDemo.tsx`, `src/app/api/yourcastle/signup/route.ts`, `src/components/sections/YourCastleSignup.tsx`.
+- Found this was already fixed in prior sessions (commits `f829f37`, `01f5168`, `727aa81`): `VoiceDemo.tsx` already shows a friendly `CAPACITY_MESSAGE` ("Reme is at capacity right now — please try again in a few minutes.") for any 429, distinguishes it from a generic error, and reassures users the pre-recorded sample clips still work. `YourCastleSignup.tsx` already surfaces the server's specific error string with a sane fallback.
+- Ran the three relevant suites (`VoiceDemo.test.tsx`, `voiceDemoUsage.test.ts`, `yourcastle/signup/route.test.ts`): 35/35 passing, no changes needed. No commit made for this part — nothing to fix.
+
+## Escalations — 2026-08-26
+
+### Added `ACTION_REQUIRED_MIGRATIONS.md` (repo root) — standalone escalation for the recurring migration blocker
+- The Supabase migration-apply blocker has been rediscovered and re-documented inside `CLAUDE.md` across 6+ sessions without resolution, because it was buried in a long "Known Issues" section a human has no reason to open.
+- Created `/Users/michaelkraft/done-deal-site/ACTION_REQUIRED_MIGRATIONS.md`: a standalone, scannable file at repo root stating the concrete prod impact (voice demo dead, contact leads losing attribution, yourcastle race condition) up top, followed by an exact 3-step checklist (SQL Editor URL for project `zjuoxaqdqqdtihmekrcz`, the file to paste — `supabase/migrations/CONSOLIDATED_PENDING_MIGRATIONS.sql` — and `npm run smoke:schema` to verify), executable by a human in under 60 seconds.
+- Did not attempt to apply the migration myself — confirmed in CLAUDE.md that no agent sandbox has DDL-capable DB credentials; not re-verified further per task instructions.
