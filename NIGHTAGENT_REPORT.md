@@ -1616,3 +1616,20 @@ Waited on FeatureAgent/BugAgent (branch `nightagent/2026-08-25`); their commits 
 - The Supabase migration-apply blocker has been rediscovered and re-documented inside `CLAUDE.md` across 6+ sessions without resolution, because it was buried in a long "Known Issues" section a human has no reason to open.
 - Created `/Users/michaelkraft/done-deal-site/ACTION_REQUIRED_MIGRATIONS.md`: a standalone, scannable file at repo root stating the concrete prod impact (voice demo dead, contact leads losing attribution, yourcastle race condition) up top, followed by an exact 3-step checklist (SQL Editor URL for project `zjuoxaqdqqdtihmekrcz`, the file to paste — `supabase/migrations/CONSOLIDATED_PENDING_MIGRATIONS.sql` — and `npm run smoke:schema` to verify), executable by a human in under 60 seconds.
 - Did not attempt to apply the migration myself — confirmed in CLAUDE.md that no agent sandbox has DDL-capable DB credentials; not re-verified further per task instructions.
+
+## Cleanup — 2026-08-26
+
+### Removed dead FAL_KEY entry from .env.example
+- Per plan priority 5, grepped the entire codebase (case-insensitive, `fal_key`/`fal` including imports and package.json) for any remaining reference — found none outside the explanatory comment in `.env.example` itself, confirming `@fal-ai/client` removal left this fully dead.
+- Deleted the `FAL_KEY=` line and its leftover comment block from `.env.example`.
+- Commit: `91998ea` — `chore(config): remove dead FAL_KEY entry from .env.example`
+
+## Tests Added — 2026-08-26
+
+### withUtm unit tests (src/lib/externalCta.ts)
+- No existing test file for `externalCta.ts`; created `src/lib/__tests__/externalCta.test.ts` following the `describe`/`it`/`expect` vitest conventions used in `voiceDemoUsage.test.ts`.
+- Read `withUtm`'s implementation first to confirm actual behavior rather than guessing: it always `.set()`s (overrides, never merges) `utm_source`/`utm_medium`/`utm_campaign`, leaves any other existing query params untouched, and on an invalid/relative URL (which throws inside `new URL()` with no base) catches and returns the original string unchanged.
+- 8 tests covering: plain URL gets all three UTM params; existing non-UTM params preserved; pre-existing UTM params fully overridden (asserted no duplicate params from the override); partial pre-existing UTM set overridden; all 14 `CtaCampaign` union values round-trip correctly; relative URL, empty string, and malformed URL all return unchanged (fail-safe path).
+- `npx vitest run src/lib/__tests__/externalCta.test.ts` — 8/8 passing.
+- `npm run build` — passed clean (had to wait ~1 min for a concurrent `next build` from another teammate to finish first, per build-safety hook; no concurrent build run).
+- Commit: `a49f450` — `test(externalCta): add unit tests for withUtm`
