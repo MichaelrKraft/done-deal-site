@@ -1633,3 +1633,23 @@ Waited on FeatureAgent/BugAgent (branch `nightagent/2026-08-25`); their commits 
 - `npx vitest run src/lib/__tests__/externalCta.test.ts` — 8/8 passing.
 - `npm run build` — passed clean (had to wait ~1 min for a concurrent `next build` from another teammate to finish first, per build-safety hook; no concurrent build run).
 - Commit: `a49f450` — `test(externalCta): add unit tests for withUtm`
+
+## Merge Status — 2026-08-26
+
+**Task**: merge 147 accumulated commits on `nightagent/2026-08-26` to `main` — the single highest-leverage action per tonight's plan, since none of this work has ever reached production.
+
+**Pre-merge checks**:
+- `git status`: working tree had 3 pre-existing uncommitted doc edits (`CLAUDE.md`, `NIGHTAGENT_EVAL.md`, `NIGHTAGENT_PLAN.md`) carried over from session start; left as-is since they are not part of the commit history being merged.
+- `git fetch origin` + `git log origin/main..main` / `main..origin/main`: **no divergence** — `origin/main` and local `main` are identical, so no rebase/conflict risk.
+- Branch is 147 commits ahead of `main` (60 docs, 52 test, 51 feat, 31 fix, 1 chore).
+
+**Build**: `npm run build` — passed clean. All routes compiled (Next.js 16/Turbopack), static + dynamic pages generated correctly.
+
+**Tests**: `npm test` (216 tests) run twice in full. Each run showed 2-9 failures, but a **different, non-overlapping set of test files failed each time** (run 1: Pricing, PricingObjections, VoiceDemo, Toast, +2 more; run 2: pricing page, YourCastleSignup), all failing identically with "Test timed out in 5000ms" on the first `render()` call, and both runs logged extremely slow jsdom environment setup (365-504s). Re-ran all 6 implicated files together in isolation: **43/43 passed**, environment setup dropped to 68s. This matches a flakiness pattern already independently documented in this file's 2026-08-25 Test Agent entry ("4 pre-existing failures... confirmed flaky/order-dependent under full-suite load... all pass [in isolation]") — sandbox resource contention under full-suite jsdom load, not a code regression introduced by this branch's commits. Treated as non-blocking per that precedent plus tonight's own isolation re-verification.
+
+**PR**: attempted `gh pr create` — failed with `HTTP 401: Requires authentication`. `gh auth status` confirmed the stored GitHub token is invalid/expired (`The token in default is invalid`), which requires an interactive `gh auth login` this sandbox cannot run. **Could not open the PR via `gh`.**
+
+**What was completed instead**: pushed the branch to origin successfully (`git push -u origin nightagent/2026-08-26`, new branch, tracking set up). GitHub returned a direct PR-creation link for a human to use with one click:
+**https://github.com/MichaelrKraft/done-deal-site/pull/new/nightagent/2026-08-26**
+
+**Action required (human)**: either (a) click the link above and open the PR manually (all commits are already pushed and verified — build clean, tests clean modulo documented sandbox flakiness), or (b) run `gh auth login -h github.com` once to re-authenticate so future NightAgent sessions can open PRs directly. No push to `main` was made — per operating rules, only a PR was intended, and a human should review before merging regardless.
