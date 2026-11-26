@@ -42,7 +42,7 @@ export default function Footer() {
                 </li>
                 <li>
                   <a
-                    href="https://www.app.appointwise.io/"
+                    href="https://app.done-deal.info/login"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-gray-400 hover:text-white transition-colors"
