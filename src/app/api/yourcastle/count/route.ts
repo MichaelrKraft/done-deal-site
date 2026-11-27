@@ -9,7 +9,8 @@ export async function GET() {
     .select('*', { count: 'exact', head: true });
 
   if (error) {
-    return NextResponse.json({ claimed: 0, remaining: FREE_DEAL_LIMIT, limit: FREE_DEAL_LIMIT });
+    console.error('[count] Supabase query failed:', error.code);
+    return NextResponse.json({ error: 'Count unavailable' }, { status: 500 });
   }
 
   const claimed = count ?? 0;

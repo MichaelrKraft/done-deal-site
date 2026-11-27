@@ -25,7 +25,8 @@ export async function GET(_request: Request, { params }: Params) {
     .eq('brokerage_slug', slug);
 
   if (error) {
-    return NextResponse.json({ claimed: 0, remaining: limit, limit });
+    console.error('[count] Supabase query failed:', error.code);
+    return NextResponse.json({ error: 'Count unavailable' }, { status: 500 });
   }
 
   const claimed = count ?? 0;

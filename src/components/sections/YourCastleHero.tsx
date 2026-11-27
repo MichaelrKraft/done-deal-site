@@ -16,14 +16,14 @@ export default function YourCastleHero() {
   useEffect(() => {
     fetch('/api/yourcastle/count')
       .then((r) => r.json())
-      .then((d) => setRemaining(d.remaining))
+      .then((d) => setRemaining(typeof d.remaining === 'number' ? d.remaining : null))
       .catch(() => setRemaining(null));
 
     // Poll every 30 seconds
     const interval = setInterval(() => {
       fetch('/api/yourcastle/count')
         .then((r) => r.json())
-        .then((d) => setRemaining(d.remaining))
+        .then((d) => setRemaining(typeof d.remaining === 'number' ? d.remaining : null))
         .catch(() => {});
     }, 30000);
 

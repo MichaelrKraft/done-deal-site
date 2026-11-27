@@ -23,7 +23,7 @@ export default function DotGrid({
   const mouseRef = useRef({ x: -1000, y: -1000 });
   const rafRef = useRef<number>(0);
 
-  const draw = useCallback(() => {
+  const draw = useCallback(function loop() {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -61,7 +61,7 @@ export default function DotGrid({
       }
     }
     ctx.globalAlpha = 1;
-    rafRef.current = requestAnimationFrame(draw);
+    rafRef.current = requestAnimationFrame(loop);
   }, [color, dotSize, spacing, glowRadius, glowIntensity]);
 
   useEffect(() => {
