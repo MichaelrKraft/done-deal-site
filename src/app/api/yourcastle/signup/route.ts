@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit';
+import { escapeHtml, parseSignup } from '@/lib/signup-validation';
 
 const FREE_DEAL_LIMIT = parseInt(process.env.YOURCASTLE_FREE_DEAL_LIMIT || '20');
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -16,18 +18,24 @@ async function sendTelegramNotification(text: string) {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { firstName, lastName, email, phone } = body;
+    const limited = checkRateLimit('signup', getClientIp(request), 5, 60 * 60 * 1000);
+    if (!limited.allowed) return rateLimitResponse(limited);
 
-    if (!firstName || !lastName || !email || !phone) {
-      return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
+    let raw: unknown;
+    try {
+      raw = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid request.' }, { status: 400 });
     }
+    const parsed = parseSignup(raw);
+    if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 });
+    const { firstName, lastName, email, phone } = parsed.value;
 
     // Check for duplicate email
     const { data: existing } = await supabaseAdmin
       .from('yourcastle_signups')
       .select('id')
-      .eq('email', email.toLowerCase())
+      .eq('email', email)
       .single();
 
     if (existing) {
@@ -47,10 +55,10 @@ export async function POST(request: Request) {
     const { error: insertError } = await supabaseAdmin
       .from('yourcastle_signups')
       .insert({
-        first_name: firstName.trim(),
-        last_name: lastName.trim(),
-        email: email.toLowerCase().trim(),
-        phone: phone.trim(),
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        phone,
         brokerage: 'Your Castle Real Estate',
         free_deal: gotFreeDeal,
         spot_number: spotNumber,
@@ -64,9 +72,9 @@ export async function POST(request: Request) {
     await sendTelegramNotification(
       `🎯 <b>New Your Castle Signup!</b>\n\n` +
       `${dealStatus}\n\n` +
-      `👤 ${firstName} ${lastName}\n` +
-      `📧 ${email}\n` +
-      `📱 ${phone}\n\n` +
+      `👤 ${escapeHtml(firstName)} ${escapeHtml(lastName)}\n` +
+      `📧 ${escapeHtml(email)}\n` +
+      `📱 ${escapeHtml(phone)}\n\n` +
       `${gotFreeDeal ? `${FREE_DEAL_LIMIT - spotNumber} free deals remaining` : 'All free deals claimed'}`
     );
 

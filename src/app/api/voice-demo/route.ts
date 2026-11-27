@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit';
+
+const MAX_TEXT_CHARS = 600;
 
 const GEMINI_TTS_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent';
@@ -40,9 +43,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'TTS not configured' }, { status: 503 });
   }
 
-  const { text } = await request.json() as { text: string };
-  if (!text?.trim()) {
+  const ip = getClientIp(request);
+  const hourly = checkRateLimit('voice-hour', ip, 20, 60 * 60 * 1000);
+  if (!hourly.allowed) return rateLimitResponse(hourly);
+  const daily = checkRateLimit('voice-day', ip, 60, 24 * 60 * 60 * 1000);
+  if (!daily.allowed) return rateLimitResponse(daily);
+
+  let text: unknown;
+  try {
+    ({ text } = (await request.json()) as { text?: unknown });
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
+  if (typeof text !== 'string' || !text.trim()) {
     return NextResponse.json({ error: 'text is required' }, { status: 400 });
+  }
+  if (text.length > MAX_TEXT_CHARS) {
+    return NextResponse.json({ error: `text must be ${MAX_TEXT_CHARS} characters or fewer` }, { status: 413 });
   }
 
   const res = await fetch(`${GEMINI_TTS_URL}?key=${apiKey}`, {

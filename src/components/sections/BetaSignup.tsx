@@ -30,7 +30,7 @@ export default function BetaSignup({ config }: { config: BrokerageConfig }) {
     const fetchCount = () =>
       fetch(`/api/beta/${config.slug}/count`)
         .then((r) => r.json())
-        .then((d) => setRemaining(d.remaining))
+        .then((d) => setRemaining(typeof d.remaining === 'number' ? d.remaining : null))
         .catch(() => {});
 
     fetchCount();

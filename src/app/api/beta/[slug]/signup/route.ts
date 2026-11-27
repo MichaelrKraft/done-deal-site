@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { Resend } from 'resend';
+import { checkRateLimit, getClientIp, rateLimitResponse } from '@/lib/rate-limit';
+import { escapeHtml, parseSignup } from '@/lib/signup-validation';
 
 const FROM_EMAIL = process.env.FROM_EMAIL ?? 'Reme at Done Deal <reme@mail.leadspot.ai>';
 
@@ -23,13 +25,13 @@ async function sendWelcomeEmail(firstName: string, email: string, brokerageName:
         </tr>
         <tr>
           <td style="padding:40px;">
-            <p style="margin:0 0 16px;font-size:16px;color:#2c2420;">Hi ${firstName},</p>
+            <p style="margin:0 0 16px;font-size:16px;color:#2c2420;">Hi ${escapeHtml(firstName)},</p>
             ${gotFreeDeal ? `
             <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#5a4e45;">
-              You're in — and you claimed a <strong>free deal</strong> as part of the ${brokerageName} beta. I'll coordinate your first transaction at no cost so you can see exactly what I do.
+              You're in — and you claimed a <strong>free deal</strong> as part of the ${escapeHtml(brokerageName)} beta. I'll coordinate your first transaction at no cost so you can see exactly what I do.
             </p>` : `
             <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#5a4e45;">
-              You're on the list for the ${brokerageName} beta. I'll reach out as soon as your spot opens up.
+              You're on the list for the ${escapeHtml(brokerageName)} beta. I'll reach out as soon as your spot opens up.
             </p>`}
             <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#5a4e45;">
               I'm Reme — your AI transaction coordinator. I handle paperwork, track deadlines, and make sure nothing falls through the cracks so you can focus on closing.
@@ -112,12 +114,18 @@ type Params = { params: Promise<{ slug: string }> };
 export async function POST(request: Request, { params }: Params) {
   try {
     const { slug } = await params;
-    const body = await request.json();
-    const { firstName, lastName, email, phone } = body;
+    const limited = checkRateLimit('signup', getClientIp(request), 5, 60 * 60 * 1000);
+    if (!limited.allowed) return rateLimitResponse(limited);
 
-    if (!firstName || !lastName || !email || !phone) {
-      return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
+    let raw: unknown;
+    try {
+      raw = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid request.' }, { status: 400 });
     }
+    const parsed = parseSignup(raw);
+    if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 });
+    const { firstName, lastName, email, phone } = parsed.value;
 
     // Verify brokerage exists and is active
     const { data: brokerage } = await supabaseAdmin
@@ -138,7 +146,7 @@ export async function POST(request: Request, { params }: Params) {
       .from('beta_signups')
       .select('id')
       .eq('brokerage_slug', slug)
-      .eq('email', email.toLowerCase())
+      .eq('email', email)
       .single();
 
     if (existing) {
@@ -159,10 +167,10 @@ export async function POST(request: Request, { params }: Params) {
       .from('beta_signups')
       .insert({
         brokerage_slug: slug,
-        first_name: firstName.trim(),
-        last_name: lastName.trim(),
-        email: email.toLowerCase().trim(),
-        phone: phone.trim(),
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        phone,
         free_deal: gotFreeDeal,
         spot_number: spotNumber,
         source,
@@ -171,15 +179,15 @@ export async function POST(request: Request, { params }: Params) {
     if (insertError) throw insertError;
 
     // Send welcome email and Telegram notification in parallel
-    void sendWelcomeEmail(firstName.trim(), email.toLowerCase().trim(), brokerageName, gotFreeDeal);
+    void sendWelcomeEmail(firstName, email, brokerageName, gotFreeDeal);
 
     const dealStatus = gotFreeDeal ? `✅ FREE DEAL — Spot #${spotNumber}` : `📋 Waitlisted (no free deal)`;
     await sendTelegramNotification(
-      `🎯 <b>New Beta Signup — ${brokerageName}!</b>\n\n` +
+      `🎯 <b>New Beta Signup — ${escapeHtml(brokerageName)}!</b>\n\n` +
       `${dealStatus}\n\n` +
-      `👤 ${firstName} ${lastName}\n` +
-      `📧 ${email}\n` +
-      `📱 ${phone}\n\n` +
+      `👤 ${escapeHtml(firstName)} ${escapeHtml(lastName)}\n` +
+      `📧 ${escapeHtml(email)}\n` +
+      `📱 ${escapeHtml(phone)}\n\n` +
       `${gotFreeDeal ? `${limit - spotNumber} free deals remaining` : 'All free deals claimed'}`
     );
 

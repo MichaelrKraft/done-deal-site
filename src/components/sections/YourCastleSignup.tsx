@@ -23,12 +23,12 @@ export default function YourCastleSignup() {
   useEffect(() => {
     fetch('/api/yourcastle/count')
       .then((r) => r.json())
-      .then((d) => setRemaining(d.remaining));
+      .then((d) => setRemaining(typeof d.remaining === 'number' ? d.remaining : null));
 
     const interval = setInterval(() => {
       fetch('/api/yourcastle/count')
         .then((r) => r.json())
-        .then((d) => setRemaining(d.remaining));
+        .then((d) => setRemaining(typeof d.remaining === 'number' ? d.remaining : null));
     }, 15000);
 
     return () => clearInterval(interval);
