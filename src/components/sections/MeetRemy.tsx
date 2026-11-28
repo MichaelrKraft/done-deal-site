@@ -19,6 +19,13 @@ const STATUS: Record<ConvState, string> = {
   processing: 'Remy is thinking...',
 };
 
+/** Human-readable explanation for a failed Reme chat request. */
+function errorMessageFor(status: number): string {
+  if (status === 429) return "I've hit my chat limit for now. Please try again in a little while, or contact us.";
+  if (status === 502 || status === 504) return "I'm having trouble connecting right now. Please tap the mic and try again.";
+  return "Something went wrong on my end. Please tap the mic and try again.";
+}
+
 function MicIcon() {
   return (
     <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
@@ -112,7 +119,12 @@ export default function MeetRemy() {
         body: JSON.stringify({ userText, history: historyRef.current }),
       });
 
-      if (!res.ok || !activeRef.current) { stopAll(); return; }
+      if (!res.ok || !activeRef.current) {
+        const failed = !res.ok;
+        stopAll();
+        if (failed) setRemyText(errorMessageFor(res.status));
+        return;
+      }
 
       const replyText = decodeURIComponent(res.headers.get('X-Remy-Text') ?? '');
       setRemyText(replyText);
