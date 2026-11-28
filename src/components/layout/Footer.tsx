@@ -42,16 +42,13 @@ export default function Footer() {
                 </li>
                 <li>
                   <a
-                    href="https://www.app.appointwise.io/"
+                    href="https://app.done-deal.info/login"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-gray-400 hover:text-white transition-colors"
                   >
                     Login
                   </a>
-                </li>
-                <li>
-                  <span className="text-gray-500 text-sm">Access your billing</span>
                 </li>
               </ul>
             </div>
@@ -63,16 +60,6 @@ export default function Footer() {
                 <li>
                   <Link href="/contact" className="text-gray-400 hover:text-white transition-colors">
                     Contact
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-gray-400 hover:text-white transition-colors">
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-gray-400 hover:text-white transition-colors">
-                    Terms & Conditions
                   </Link>
                 </li>
               </ul>

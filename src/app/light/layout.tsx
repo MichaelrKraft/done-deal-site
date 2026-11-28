@@ -1,3 +1,8 @@
+import type { Metadata } from 'next';
+
+// /light duplicates / — keep it out of search indexes.
+export const metadata: Metadata = { robots: { index: false, follow: false } };
+
 export default function LightLayout({ children }: { children: React.ReactNode }) {
   return (
     <>

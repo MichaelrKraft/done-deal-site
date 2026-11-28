@@ -61,6 +61,7 @@ export default function DotGrid({
       }
     }
     ctx.globalAlpha = 1;
+    // eslint-disable-next-line react-hooks/immutability -- intentional self-scheduling animation loop
     rafRef.current = requestAnimationFrame(draw);
   }, [color, dotSize, spacing, glowRadius, glowIntensity]);
 
